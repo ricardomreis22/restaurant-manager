@@ -1,0 +1,221 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // Adjust to your DB provider
+  url      = env("DATABASE_URL")
+}
+
+model Owner {
+  id          Int         @id @default(autoincrement())
+  name        String
+  email       String      @unique
+  phone       String
+  restaurants Restaurant[]
+}
+
+model Restaurant {
+  id          Int          @id @default(autoincrement())
+  name        String
+  location    String
+  phone       String
+  email       String       @unique
+  tables      Table[]
+  employees   Employee[]
+  menus       Menu[]
+  inventory   InventoryItem[]
+  promotions  Promotion[]
+  reviews     Review[]
+  events      Event[]
+  suppliers   Supplier[]
+  reports     Report[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  owner       Owner        @relation(fields: [ownerId], references: [id])
+  ownerId     Int
+}
+
+model Table {
+  id           Int          @id @default(autoincrement())
+  number       Int          @unique
+  capacity     Int
+  isReserved   Boolean      @default(false)
+  reservations Reservation[]
+  orders       Order[]
+  seats        Seat[]
+  restaurant   Restaurant   @relation(fields: [restaurantId], references: [id])
+  restaurantId Int
+
+  Event Event[]
+}
+
+model Seat {
+  id          Int      @id @default(autoincrement())
+  seatNumber  Int
+  orders      Order[]
+  table       Table    @relation(fields: [tableId], references: [id])
+  tableId     Int
+}
+
+model Reservation {
+  id          Int       @id @default(autoincrement())
+  customerName String
+  customerPhone String
+  date        DateTime
+  time        DateTime
+  numberOfGuests Int
+  table       Table     @relation(fields: [tableId], references: [id])
+  tableId     Int
+}
+
+model Employee {
+  id          Int       @id @default(autoincrement())
+  firstName   String
+  lastName    String
+  email       String    @unique
+  phone       String
+  salary      Float
+  role        Role      @relation(fields: [roleId], references: [id])
+  roleId      Int
+  restaurant  Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantId Int
+  shifts      Shift[]
+}
+
+model Role {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique // e.g., Manager, Waiter, Chef
+  employees   Employee[]
+}
+
+model Shift {
+  id          Int       @id @default(autoincrement())
+  startTime   DateTime
+  endTime     DateTime
+  employee    Employee  @relation(fields: [employeeId], references: [id])
+  employeeId  Int
+}
+
+model Menu {
+  id          Int        @id @default(autoincrement())
+  name        String
+  description String
+  items       MenuItem[]
+  restaurant  Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantId Int
+}
+
+model MenuItem {
+  id          Int        @id @default(autoincrement())
+  name        String
+  description String
+  price       Float
+  category    String
+  isAvailable Boolean    @default(true)
+  menu        Menu       @relation(fields: [menuId], references: [id])
+  menuId      Int
+
+  Promotion Promotion[]
+
+  OrderItem OrderItem[]
+}
+
+model Promotion {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String
+  discount    Float     // Percentage or fixed amount
+  startDate   DateTime
+  endDate     DateTime
+  isActive    Boolean   @default(true)
+  applicableItems MenuItem[]
+  restaurant  Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantId Int
+}
+
+model Order {
+  id          Int       @id @default(autoincrement())
+  orderNumber String    @unique
+  table       Table?    @relation(fields: [tableId], references: [id])
+  tableId     Int?
+  seat        Seat?     @relation(fields: [seatId], references: [id])
+  seatId      Int?
+  items       OrderItem[]
+  totalAmount Float
+  status      String    @default("Pending") // e.g., Pending, Completed, Cancelled
+  createdAt   DateTime  @default(now())
+
+  Delivery Delivery[]
+}
+
+model OrderItem {
+  id          Int       @id @default(autoincrement())
+  quantity    Int
+  menuItem    MenuItem  @relation(fields: [menuItemId], references: [id])
+  menuItemId  Int
+  order       Order     @relation(fields: [orderId], references: [id])
+  orderId     Int
+}
+
+model InventoryItem {
+  id          Int       @id @default(autoincrement())
+  name        String
+  quantity    Int
+  unit        String
+  restaurant  Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantId Int
+  updatedAt   DateTime   @updatedAt
+  supplier    Supplier?  @relation(fields: [supplierId], references: [id])
+  supplierId  Int?
+}
+
+model Supplier {
+  id          Int       @id @default(autoincrement())
+  name        String
+  contactInfo String
+  itemsSupplied InventoryItem[]
+
+  Restaurant Restaurant[]
+}
+
+model Review {
+  id          Int       @id @default(autoincrement())
+  customerName String
+  rating      Int       // e.g., 1-5
+  comment     String?
+  restaurant  Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantId Int
+  createdAt   DateTime  @default(now())
+}
+
+model Event {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  date        DateTime
+  time        DateTime
+  guestCount  Int
+  restaurant  Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantId Int
+  reservedTables Table[]
+}
+
+model Delivery {
+  id          Int       @id @default(autoincrement())
+  order       Order     @relation(fields: [orderId], references: [id])
+  orderId     Int
+  deliveryAddress String
+  deliveryFee Float
+  deliveryTime DateTime
+  deliveryStatus String  @default("Pending") // e.g., Pending, Out for Delivery, Delivered
+}
+
+model Report {
+  id          Int       @id @default(autoincrement())
+  type        String    // e.g., Sales, Inventory, Employee Performance
+  data        Json
+  createdAt   DateTime  @default(now())
+
+  Restaurant Restaurant[]
+}
