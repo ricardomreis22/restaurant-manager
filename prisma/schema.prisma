@@ -18,7 +18,7 @@ model Owner {
 model Restaurant {
   id          Int          @id @default(autoincrement())
   name        String
-  location    String
+  address     String
   phone       String
   email       String       @unique
   tables      Table[]

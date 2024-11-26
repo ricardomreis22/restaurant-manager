@@ -1,101 +1,87 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import Link from "next/link";
+import { useState } from "react";
+import { Table } from "./types";
+
+const initialTables: Table[] = [
+  { id: 1, tableNumber: "T1", capacity: 2, status: "available" },
+  { id: 2, tableNumber: "T2", capacity: 2, status: "available" },
+  { id: 3, tableNumber: "T3", capacity: 2, status: "available" },
+  { id: 4, tableNumber: "T4", capacity: 2, status: "available" },
+  { id: 5, tableNumber: "T5", capacity: 2, status: "available" },
+];
+
+export default function RestaurantLayout() {
+  const [tables, setTables] = useState<Table[]>(initialTables);
+
+  const getStatusColor = (status: Table["status"]) => {
+    switch (status) {
+      case "available":
+        return "bg-green-200 hover:bg-green-300";
+      case "occupied":
+        return "bg-red-200 hover:bg-red-300";
+      case "reserved":
+        return "bg-yellow-200 hover:bg-yellow-300";
+    }
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="p-8">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Restaurant Floor Plan</h1>
+        <div className="space-x-4">
+          <Link
+            href="/restaurants"
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            Manage Restaurants
+          </Link>
+          <Link
+            href="/owners"
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
           >
-            Read our docs
-          </a>
+            Manage Owners
+          </Link>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+
+      {/* Table Status Legend */}
+      <div className="mb-6 flex gap-4">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 bg-green-200 rounded"></div>
+          <span>Available</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 bg-red-200 rounded"></div>
+          <span>Occupied</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 bg-yellow-200 rounded"></div>
+          <span>Reserved</span>
+        </div>
+      </div>
+
+      {/* Tables Grid */}
+      <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+        {tables.map((table) => (
+          <Link
+            key={table.id}
+            href={`/tables/${table.id}`}
+            className={`
+              ${getStatusColor(table.status)}
+              p-4 rounded-lg shadow-md cursor-pointer
+              transition-colors duration-200
+              flex flex-col items-center justify-center
+              aspect-square
+            `}
+          >
+            <span className="font-bold text-lg">{table.tableNumber}</span>
+            <span className="text-sm">{table.capacity} seats</span>
+            <span className="text-xs capitalize mt-1">{table.status}</span>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
