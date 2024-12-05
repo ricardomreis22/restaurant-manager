@@ -7,7 +7,7 @@ import {
   updateRestaurant,
   deleteRestaurant,
 } from "./actions";
-import { getOwners } from "../owners/actions";
+import { getOwners } from "../../owners/actions";
 
 interface Restaurant {
   id: number;

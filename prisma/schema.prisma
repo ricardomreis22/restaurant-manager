@@ -12,6 +12,7 @@ model Owner {
   name        String
   email       String      @unique
   phone       String
+  password    String
   restaurants Restaurant[]
 }
 

@@ -4,6 +4,7 @@ CREATE TABLE "Owner" (
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "phone" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
 
     CONSTRAINT "Owner_pkey" PRIMARY KEY ("id")
 );
@@ -12,7 +13,7 @@ CREATE TABLE "Owner" (
 CREATE TABLE "Restaurant" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
-    "location" TEXT NOT NULL,
+    "address" TEXT NOT NULL,
     "phone" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
