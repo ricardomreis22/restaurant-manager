@@ -12,13 +12,14 @@ model Owner {
   name        String
   email       String      @unique
   phone       String
+  password    String
   restaurants Restaurant[]
 }
 
 model Restaurant {
   id          Int          @id @default(autoincrement())
   name        String
-  location    String
+  address     String
   phone       String
   email       String       @unique
   tables      Table[]
