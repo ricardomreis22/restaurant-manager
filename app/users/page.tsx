@@ -1,14 +1,15 @@
-"use client";
+/*"use client";
 
 import { useState, useEffect } from "react";
-import { getUsers, updateUser, deleteUser } from "./actions";
-import { auth } from "@/auth";
+import { getUsers, createUser, updateUser, deleteUser } from "./actions";
+import { UserRole } from "@prisma/client";
 
 interface User {
   id: number;
   name: string;
   email: string;
   phone: string;
+  role: UserRole;
 }
 
 export default function UsersPage() {
@@ -18,6 +19,8 @@ export default function UsersPage() {
     name: "",
     email: "",
     phone: "",
+    password: "",
+    role: UserRole,
   });
   const [editingId, setEditingId] = useState<number | null>(null);
 
@@ -30,7 +33,7 @@ export default function UsersPage() {
       const data = await getUsers();
       setUsers(data);
     } catch (error) {
-      console.error("Error fetching users:", error);
+      console.error("Error fetching Users:", error);
     } finally {
       setIsLoading(false);
     }
@@ -42,25 +45,27 @@ export default function UsersPage() {
     try {
       if (editingId) {
         await updateUser(editingId, formData);
+      } else {
+        await createUser(formData);
       }
 
       // Reset form and refresh data
-      setFormData({ name: "", email: "", phone: "" });
+      setFormData({ name: "", email: "", phone: "", password: "", role: USER });
       setEditingId(null);
       fetchUsers();
     } catch (error) {
-      console.error("Error saving user:", error);
+      console.error("Error saving User:", error);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this user?")) return;
+    if (!confirm("Are you sure you want to delete this User?")) return;
 
     try {
       await deleteUser(id);
       fetchUsers();
     } catch (error) {
-      console.error("Error deleting user:", error);
+      console.error("Error deleting User:", error);
     }
   };
 
@@ -79,7 +84,6 @@ export default function UsersPage() {
     <div className="p-8">
       <h1 className="text-3xl font-bold mb-8">Manage Users</h1>
 
-      {/* Form */}
       <form onSubmit={handleSubmit} className="mb-8 space-y-4 max-w-md">
         <div>
           <label className="block mb-1">Name</label>
@@ -123,7 +127,6 @@ export default function UsersPage() {
         </button>
       </form>
 
-      {/* Users List */}
       <div className="grid gap-4">
         {users.map((user) => (
           <div
@@ -154,4 +157,4 @@ export default function UsersPage() {
       </div>
     </div>
   );
-}
+}*/

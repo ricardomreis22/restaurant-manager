@@ -1,16 +1,21 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { UserRole } from "@prisma/client";
 
-export async function getUsers() {
+export async function createUser(data: {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+  role: UserRole;
+}) {
   try {
-    return await prisma.user.findMany({
-      include: {
-        restaurants: true,
-      },
+    return await prisma.user.create({
+      data,
     });
   } catch (error) {
-    throw new Error("Failed to fetch users");
+    throw new Error("Failed to create user");
   }
 }
 
@@ -28,7 +33,7 @@ export async function updateUser(
       data,
     });
   } catch (error) {
-    throw new Error("Failed to update User");
+    throw new Error("Failed to update user");
   }
 }
 
@@ -38,6 +43,6 @@ export async function deleteUser(id: number) {
       where: { id },
     });
   } catch (error) {
-    throw new Error("Failed to delete User");
+    throw new Error("Failed to delete user");
   }
 }

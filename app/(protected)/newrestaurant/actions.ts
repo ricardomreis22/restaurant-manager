@@ -5,24 +5,14 @@ import prisma from "@/lib/prisma";
 
 export async function getRestaurants() {
   try {
-    const session = await auth();
-
-    if (!session?.user?.id) {
-      throw new Error("Not authenticated");
-    }
-
     return await prisma.restaurant.findMany({
-      where: {
-        userId: parseInt(session.user.id),
-      },
       include: {
         user: true,
         tables: true,
       },
     });
   } catch (error) {
-    console.error("Failed to fetch restaurants:", error);
-    return [];
+    throw new Error("Failed to fetch restaurants");
   }
 }
 
@@ -48,30 +38,35 @@ export async function getRestaurant(id: number) {
   }
 }
 
-export async function createRestaurant(data: {
+export async function createRestaurant(formData: {
   name: string;
   address: string;
-  phone: string;
-  email: string;
-  userId: number;
+  phone?: string;
+  email?: string;
 }) {
   try {
-    return await prisma.restaurant.create({
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      throw new Error("Not authenticated");
+    }
+
+    console.log(formData);
+
+    const restaurant = await prisma.restaurant.create({
       data: {
-        name: data.name,
-        address: data.address,
-        phone: data.phone,
-        email: data.email,
-        user: {
-          connect: { id: data.userId },
-        },
-      },
-      include: {
-        user: true,
+        name: formData.name,
+        address: formData.address,
+        phone: formData.phone || "",
+        email: formData.email || "",
+        userId: parseInt(session.user.id),
       },
     });
+
+    return { success: true, restaurant };
   } catch (error) {
-    throw new Error("Failed to create restaurant");
+    console.error("Failed to create restaurant:", error);
+    return { error: "Failed to create restaurant" };
   }
 }
 

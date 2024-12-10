@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { startTransition, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RegisterSchema } from "@/schemas";
 import type { z } from "zod";
-import { useRouter } from "next/navigation";
 
 import {
   Form,
@@ -35,25 +34,18 @@ export const RegisterForm = () => {
       name: "",
     },
   });
-  const router = useRouter();
 
   const onSubmit = async (values: z.infer<typeof RegisterSchema>) => {
-    router.push("/auth/login");
     setError("");
     setSuccess("");
 
-    try {
-      // TODO: Add Register logic
-      const { success, error } = await register(values);
-      setSuccess(success);
-      setError(error);
-    } catch (error) {
-      setError("Invalid credentials");
-    } finally {
-      setIsPending(false);
-    }
+    startTransition(() => {
+      register(values).then((data) => {
+        setError(data.error);
+        setSuccess(data.success);
+      });
+    });
   };
-
   return (
     <CardWrapper
       headerLabel="Create your account"
