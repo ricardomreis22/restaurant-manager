@@ -1,9 +1,19 @@
-import NextAuth from "next-auth";
+import NextAuth, { type DefaultSession } from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import prisma from "@/lib/prisma";
 
 import authConfig from "@/auth.config";
+import { getUserById } from "./data/user";
+import { UserRole } from "@prisma/client";
 
+declare module "next-auth" {
+  interface Session {
+    user: {
+      role?: UserRole;
+      address: string;
+    } & DefaultSession["user"];
+  }
+}
 export const {
   handlers: { GET, POST },
   auth,
@@ -13,6 +23,29 @@ export const {
   adapter: PrismaAdapter(prisma),
   session: {
     strategy: "jwt",
+  },
+  callbacks: {
+    // Add the user id to the session
+    async session({ token, session }) {
+      if (token.sub && session.user) {
+        session.user.id = token.sub;
+      }
+      if (token.role && session.user) {
+        session.user.role = token.role as UserRole;
+      }
+      return session;
+    },
+    // Add the user role to the token, so we can use it in the middleware, to add admin routes, and have role based access control
+    async jwt({ token }) {
+      if (!token.sub) return token;
+      const existingUser = await getUserById(Number(token.sub));
+
+      if (!existingUser) return token;
+
+      token.role = existingUser.role;
+
+      return token;
+    },
   },
   ...authConfig,
 });
