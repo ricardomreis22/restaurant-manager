@@ -109,24 +109,28 @@ model Menu {
   id          Int        @id @default(autoincrement())
   name        String
   description String
-  items       MenuItem[]
+  categories  Category[]
   restaurant  Restaurant @relation(fields: [restaurantId], references: [id])
   restaurantId Int
 }
 
-model MenuItem {
-  id          Int        @id @default(autoincrement())
+model Category {
+  id          Int       @id @default(autoincrement())
   name        String
-  description String
-  price       Float
-  category    String
-  isAvailable Boolean    @default(true)
-  menu        Menu       @relation(fields: [menuId], references: [id])
+  menu        Menu      @relation(fields: [menuId], references: [id])
   menuId      Int
+  items       MenuItem[]
+}
 
-  Promotion Promotion[]
-
-  OrderItem OrderItem[]
+model MenuItem {
+  id          Int       @id @default(autoincrement())
+  name        String
+  price       Float
+  imageUrl    String?
+  category    Category  @relation(fields: [categoryId], references: [id])
+  categoryId  Int
+  orderItems  OrderItem[]
+  applicablePromotions Promotion[]
 }
 
 model Promotion {
