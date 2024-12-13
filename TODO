@@ -1,7 +1,5 @@
+Para adicionar restaurantes e/ou mesas e/ou items e categorias se calhar nao devia criar uma nova pagina e sim uma modal?
 
-
-
-Cada owner so poder ter acesso a informacao relacionada consigo e com os seus restaurantes
-
-
-redirect somewhere after registration sucessfull
+Learn about schema.prisma and about the relations between the tables.
+Learn about zod and how to use it to validate the data in the form with the schema.prisma.
+Learn about react-hook-form and how to use it to validate the data in the form with the zod schema.
