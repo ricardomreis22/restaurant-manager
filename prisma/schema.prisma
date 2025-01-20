@@ -82,8 +82,9 @@ model Employee {
   firstName   String
   lastName    String
   email       String    @unique
+  pin         String    @unique
   phone       String
-  salary      Float
+  salary      Float?
   role        Role      @relation(fields: [roleId], references: [id])
   roleId      Int
   restaurant  Restaurant @relation(fields: [restaurantId], references: [id])

@@ -51,8 +51,6 @@ export async function createRestaurant(formData: {
       throw new Error("Not authenticated");
     }
 
-    console.log(formData);
-
     const restaurant = await prisma.restaurant.create({
       data: {
         name: formData.name,
@@ -60,6 +58,16 @@ export async function createRestaurant(formData: {
         phone: formData.phone || "",
         email: formData.email || "",
         userId: parseInt(session.user.id),
+        tables: {
+          create: Array.from({ length: 10 }, (_, index) => ({
+            number: index + 1,
+            capacity: 2, // All tables now have capacity of 2
+            isReserved: false,
+          })),
+        },
+      },
+      include: {
+        tables: true,
       },
     });
 
