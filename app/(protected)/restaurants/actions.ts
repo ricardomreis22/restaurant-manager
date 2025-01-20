@@ -26,28 +26,6 @@ export async function getRestaurants() {
   }
 }
 
-export async function getRestaurant(id: number) {
-  try {
-    return await prisma.restaurant.findUnique({
-      where: { id },
-      include: {
-        user: true,
-        tables: true,
-        employees: true,
-        menus: true,
-        inventory: true,
-        promotions: true,
-        reviews: true,
-        events: true,
-        suppliers: true,
-        reports: true,
-      },
-    });
-  } catch (error) {
-    throw new Error("Failed to fetch restaurant");
-  }
-}
-
 export async function createRestaurant(data: {
   name: string;
   address: string;

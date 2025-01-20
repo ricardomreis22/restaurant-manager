@@ -1,13 +1,22 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { use } from "react";
-import { useRouter } from "next/navigation";
-import { getRestaurantMenu } from "../[restaurantId]/actions";
-import { getRestaurant } from "../actions";
+import { useRouter, useParams } from "next/navigation";
+import { getRestaurant, getRestaurantMenu } from "../[restaurantId]/actions";
 import { getRestaurantTables } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Menu } from "@prisma/client";
+import Link from "next/link";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreVertical, Trash } from "lucide-react";
+import { deleteRestaurant } from "../actions";
+import EmployeesPage from "@/components/restaurants/EmployeesPage";
+import Floormap from "@/components/restaurants/FloorMap";
 
 interface MenuItem {
   id: number;
@@ -18,30 +27,45 @@ interface MenuItem {
   isAvailable: boolean;
 }
 
-export default function RestaurantPage({
-  params,
-}: {
-  params: Promise<{ restaurantId: string }>;
-}) {
+interface Table {
+  id: number;
+  number: number;
+  capacity: number;
+  isReserved: boolean;
+}
+
+export default function RestaurantPage() {
   const router = useRouter();
-  const { restaurantId } = use(params);
-  const [selectedTable, setSelectedTable] = useState<number | null>(null);
+  const params = useParams();
+  const restaurantId = parseInt(params.restaurantId as string);
   const [restaurant, setRestaurant] = useState<any>(null);
-  const [tables, setTables] = useState<any[]>([]);
+  const [tables, setTables] = useState<Table[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
+  const [display, setDisplay] = useState<string>("floormap");
   useEffect(() => {
     const loadData = async () => {
-      const restaurantData = await getRestaurant(parseInt(restaurantId));
-      const tablesData = await getRestaurantTables(parseInt(restaurantId));
-      const menuData = await getRestaurantMenu(parseInt(restaurantId));
-
+      const restaurantData = await getRestaurant(restaurantId);
+      const tablesData = await getRestaurantTables(restaurantId);
+      const menuData = await getRestaurantMenu(restaurantId);
+      console.log(tablesData);
       setRestaurant(restaurantData);
       setTables(tablesData);
     };
 
     loadData();
   }, [restaurantId]);
+
+  const handleDelete = async () => {
+    if (window.confirm("Are you sure you want to delete this restaurant?")) {
+      try {
+        await deleteRestaurant(restaurantId);
+        router.push("/restaurants");
+      } catch (error) {
+        console.error("Failed to delete restaurant:", error);
+      }
+    }
+  };
 
   if (!restaurant) {
     return <div>Loading...</div>;
@@ -54,84 +78,52 @@ export default function RestaurantPage({
   return (
     <div className="h-screen flex">
       <div className="w-2/3 h-full p-8">
-        <div className="flex justify-end mb-4">
-          <Button
-            onClick={() => router.push(`/restaurants/${restaurantId}/menu`)}
-            className="bg-blue-500 hover:bg-blue-600"
-          >
-            Set Up Menu
-          </Button>
+        <div className="flex justify-between mb-4">
+          <div className="flex gap-4">
+            <Button
+              onClick={() => setDisplay("floormap")}
+              className="bg-blue-500 hover:bg-blue-600"
+            >
+              FloorMap{" "}
+            </Button>
+            <Button
+              onClick={() => router.push(`/restaurants/${restaurantId}/menu`)}
+              className="bg-blue-500 hover:bg-blue-600"
+            >
+              Set Up Menu
+            </Button>
+            <Button
+              className="bg-green-500 hover:bg-green-600"
+              onClick={() => setDisplay("employees")}
+            >
+              Employees
+            </Button>
+          </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                className="text-red-600 cursor-pointer"
+                onClick={handleDelete}
+              >
+                <Trash className="mr-2 h-4 w-4" />
+                Delete Restaurant
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
-        <div className="relative h-full bg-gray-50 rounded-lg">
-          {/* Kitchen - Left Side */}
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-24 h-48 bg-gray-200 rounded-r-lg flex items-center justify-center">
-            <span className="font-semibold text-gray-700 -rotate-90">
-              Kitchen
-            </span>
-          </div>
-
-          {/* Entrance - Right Side */}
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-24 h-32 flex flex-col items-center justify-center">
-            <div className="w-12 h-20 border-2 border-gray-400 rounded-r-lg"></div>
-            <span className="mt-2 text-sm text-gray-700">Entrance</span>
-          </div>
-
-          {/* Tables Grid */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2/3">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              {tables.map((table) => (
-                <div
-                  key={table.id}
-                  onClick={() => setSelectedTable(table.id)}
-                  className={`
-                    p-4 rounded-lg shadow-md text-center cursor-pointer
-                    ${table.isReserved ? "bg-yellow-100" : "bg-green-100"}
-                    ${selectedTable === table.id ? "ring-2 ring-blue-500" : ""}
-                    hover:shadow-lg transition-all
-                  `}
-                >
-                  <h3 className="font-bold text-lg">Table {table.number}</h3>
-                  <p className="text-sm text-gray-600">
-                    Capacity: {table.capacity}
-                  </p>
-                  <p className="text-sm mt-1">
-                    {table.isReserved ? "Reserved" : "Available"}
-                  </p>
-                  {table.reservations && table.reservations.length > 0 && (
-                    <div className="mt-2 text-xs text-gray-500">
-                      <p>Next Reservation:</p>
-                      <p>
-                        {new Date(
-                          table.reservations[0].time
-                        ).toLocaleTimeString()}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Bar - Bottom */}
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2/3 h-20 bg-gray-200 rounded-t-lg flex items-center justify-center">
-            <span className="font-semibold text-gray-700">Bar</span>
-          </div>
-        </div>
-
-        {/* Legend */}
-        <div className="absolute bottom-4 left-4 flex gap-4 text-sm text-gray-600">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-green-100 rounded"></div>
-            <span>Available</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-yellow-100 rounded"></div>
-            <span>Reserved</span>
-          </div>
-        </div>
+        {display === "employees" ? (
+          <EmployeesPage />
+        ) : display === "floormap" ? (
+          <Floormap tables={tables} />
+        ) : null}
       </div>
-
       {/* Right side - Menu and Orders */}
     </div>
   );

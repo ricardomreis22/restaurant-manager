@@ -3,3 +3,26 @@ Para adicionar restaurantes e/ou mesas e/ou items e categorias se calhar nao dev
 Learn about schema.prisma and about the relations between the tables.
 Learn about zod and how to use it to validate the data in the form with the schema.prisma.
 Learn about react-hook-form and how to use it to validate the data in the form with the zod schema.
+
+---
+
+IF the person is an admin, show the admin dashboard, if the person is a user, show the user dashboard.
+
+For the admin dashboard, show the following:
+
+- Add restaurant
+- Floormap
+  . make the tables move with drag and drop on click of the button
+  . add tables to the floormap
+- Add employee
+  . change the add employee to a modal instead of new link page, and make it possible to edit the employee
+- Add item
+- Add category
+- Add menu
+- Add promotion
+- Add review
+- Add event
+- Add supplier
+- Add report
+
+As the employee login, the employee should be redirected to the user dashboard where the restaurant tables and can get inside a table a make the order.
