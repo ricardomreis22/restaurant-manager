@@ -26,3 +26,18 @@ For the admin dashboard, show the following:
 - Add report
 
 As the employee login, the employee should be redirected to the user dashboard where the restaurant tables and can get inside a table a make the order.
+
+---------Questions-------
+After the admin login, he enter the restaurant page and I can get the restaurantId from clicking the restaurant. Is that safe? I know that I shouldnt have the restaurantId in the url, I will take it out.
+
+On the update employee should I need to give the restaurantId?
+
+Should I do smaller change on each branch?
+
+------NOW-----
+
+Fix the new restaurante creation, I think theres an erro there.
+-------AFTER THIS-------
+
+--------LAST STEPS-------
+button to change password

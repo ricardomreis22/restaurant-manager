@@ -9,7 +9,6 @@ import { getUserByEmail } from "@/data/user";
 export const createEmployee = async (
   values: z.infer<typeof NewEmployeeSchema>
 ) => {
-  console.log(values);
   const validatedFields = NewEmployeeSchema.safeParse(values);
 
   if (!validatedFields.success) {
@@ -62,4 +61,52 @@ export const createEmployee = async (
     success: "Employee created successfully!",
     error: undefined,
   };
+};
+
+export async function updateEmployee(data: {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  role: string;
+}) {
+  try {
+    await prisma.employee.update({
+      where: { id: data.id },
+      data: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        role: {
+          connectOrCreate: {
+            where: {
+              name: data.role,
+            },
+            create: {
+              name: data.role,
+            },
+          },
+        },
+      },
+    });
+
+    return { success: "Employee updated successfully" };
+  } catch (error) {
+    return { error: "Failed to update employee" };
+  }
+}
+
+export const deleteEmployee = async (employeeId: number) => {
+  try {
+    await prisma.employee.delete({
+      where: {
+        id: employeeId,
+      },
+    });
+    return { success: "Employee deleted successfully" };
+  } catch (error) {
+    return { error: "Failed to delete employee" };
+  }
 };
