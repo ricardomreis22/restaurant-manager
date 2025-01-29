@@ -6,7 +6,6 @@ import { getRestaurant, getRestaurantMenu } from "../[restaurantId]/actions";
 import { getRestaurantTables } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Menu } from "@prisma/client";
-import Link from "next/link";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,7 +47,6 @@ export default function RestaurantPage() {
       const restaurantData = await getRestaurant(restaurantId);
       const tablesData = await getRestaurantTables(restaurantId);
       const menuData = await getRestaurantMenu(restaurantId);
-      console.log(tablesData);
       setRestaurant(restaurantData);
       setTables(tablesData);
     };

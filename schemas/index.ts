@@ -39,3 +39,14 @@ export const NewEmployeeSchema = z.object({
   }),
   restaurantId: z.number(),
 });
+
+export const UpdateEmployeeSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.string().email("Invalid email"),
+  phone: z.string().min(1, "Phone number is required"),
+  role: z.enum(["waiter", "manager", "cooker", "delivery_driver", "chef"], {
+    required_error: "Role is required",
+  }),
+  restaurantId: z.number(),
+});
