@@ -28,21 +28,19 @@ export const RestaurantSchema = z.object({
   email: z.string().email("Invalid email").optional(),
 });
 
-export const NewEmployeeSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
+export const NewStaffSchema = z.object({
+  name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
   phone: z.string().min(1, "Phone number is required"),
-  pin: z.string().length(4, "PIN must be exactly 4 digits"),
   role: z.enum(["waiter", "manager", "cooker", "delivery_driver", "chef"], {
     required_error: "Role is required",
   }),
   restaurantId: z.number(),
 });
 
-export const UpdateEmployeeSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
+export const UpdateStaffSchema = z.object({
+  name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email"),
   phone: z.string().min(1, "Phone number is required"),
   role: z.enum(["waiter", "manager", "cooker", "delivery_driver", "chef"], {

@@ -11,45 +11,83 @@ export async function getRestaurants() {
       throw new Error("Not authenticated");
     }
 
-    return await prisma.restaurant.findMany({
+    const user = await prisma.user.findUnique({
       where: {
-        userId: parseInt(session.user.id),
+        id: parseInt(session.user.id),
       },
       include: {
-        user: true,
-        tables: true,
+        restaurants: true,
       },
     });
+
+    return user;
   } catch (error) {
     console.error("Failed to fetch restaurants:", error);
-    return [];
+    throw error;
   }
 }
 
-export async function createRestaurant(data: {
-  name: string;
-  address: string;
-  phone: string;
-  email: string;
-  userId: number;
-}) {
+export async function getRestaurant(id: number) {
   try {
-    return await prisma.restaurant.create({
-      data: {
-        name: data.name,
-        address: data.address,
-        phone: data.phone,
-        email: data.email,
-        user: {
-          connect: { id: data.userId },
-        },
-      },
+    return await prisma.restaurant.findUnique({
+      where: { id },
       include: {
-        user: true,
+        users: true,
+        tables: true,
+        menus: true,
+        inventory: true,
+        promotions: true,
+        reviews: true,
+        events: true,
+        suppliers: true,
+        reports: true,
       },
     });
   } catch (error) {
-    throw new Error("Failed to create restaurant");
+    throw new Error("Failed to fetch restaurant");
+  }
+}
+
+export async function createRestaurant(formData: {
+  name: string;
+  address: string;
+  phone?: string;
+  email?: string;
+}) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      throw new Error("Not authenticated");
+    }
+
+    const restaurant = await prisma.restaurant.create({
+      data: {
+        name: formData.name,
+        address: formData.address,
+        phone: formData.phone || "",
+        email: formData.email || "",
+        users: {
+          connect: { id: parseInt(session.user.id) },
+        },
+        tables: {
+          create: Array.from({ length: 10 }, (_, index) => ({
+            number: index + 1,
+            capacity: 2,
+            isReserved: false,
+          })),
+        },
+      },
+      include: {
+        users: true,
+        tables: true,
+      },
+    });
+
+    return { success: true, restaurant };
+  } catch (error) {
+    console.error("Failed to create restaurant:", error);
+    return { error: "Failed to create restaurant" };
   }
 }
 
@@ -66,7 +104,7 @@ export async function updateRestaurant(
   try {
     const updateData: any = { ...data };
     if (data.userId) {
-      updateData.user = {
+      updateData.users = {
         connect: { id: data.userId },
       };
       delete updateData.userId;
@@ -76,7 +114,7 @@ export async function updateRestaurant(
       where: { id },
       data: updateData,
       include: {
-        user: true,
+        users: true,
       },
     });
   } catch (error) {
@@ -94,19 +132,158 @@ export async function deleteRestaurant(id: number) {
   }
 }
 
-export async function getRestaurantsByUser(userId: number) {
+export async function createInitialTables(restaurantId: number) {
   try {
-    return await prisma.restaurant.findMany({
+    const tables = [];
+    for (let i = 1; i <= 10; i++) {
+      const table = await prisma.table.create({
+        data: {
+          number: i,
+          capacity: i <= 5 ? 2 : 4, // Tables 1-5 have capacity 2, 6-10 have capacity 4
+          isReserved: false,
+          restaurantId: restaurantId,
+        },
+      });
+      tables.push(table);
+    }
+    return tables;
+  } catch (error) {
+    console.error("Failed to create tables:", error);
+    throw error;
+  }
+}
+
+/////////////////////////////////tables
+export async function getRestaurantTables(restaurantId: number) {
+  try {
+    const tables = await prisma.table.findMany({
       where: {
-        userId,
+        restaurantId: restaurantId,
+      },
+      orderBy: {
+        number: "asc",
       },
       include: {
-        tables: true,
-        employees: true,
-        menus: true,
+        reservations: true,
       },
     });
+    return tables;
   } catch (error) {
-    throw new Error("Failed to fetch user's restaurants");
+    console.error("Failed to fetch tables:", error);
+    return [];
+  }
+}
+
+/////////////////////////////////menu
+
+export async function getRestaurantMenu(restaurantId: number) {
+  try {
+    const menuItems = await prisma.menu.findMany({
+      where: {
+        restaurantId: restaurantId,
+      },
+    });
+    return menuItems;
+  } catch (error) {
+    console.error("Failed to fetch menu:", error);
+    return [];
+  }
+}
+
+// Staff Management
+export async function getRestaurantStaff(restaurantId: number) {
+  try {
+    const restaurant = await prisma.restaurant.findUnique({
+      where: { id: restaurantId },
+      include: {
+        users: {
+          where: {
+            userRole: "STAFF",
+          },
+          include: {
+            role: true,
+          },
+        },
+      },
+    });
+    return restaurant?.users || [];
+  } catch (error) {
+    console.error("Failed to fetch staff:", error);
+    throw new Error("Failed to fetch staff");
+  }
+}
+
+export async function deleteStaffMember(userId: number) {
+  try {
+    const user = await prisma.user.delete({
+      where: { id: userId },
+    });
+    return { success: "Staff member deleted successfully" };
+  } catch (error) {
+    console.error("Failed to delete staff member:", error);
+    return { error: "Failed to delete staff member" };
+  }
+}
+
+export async function updateStaffMember(
+  userId: number,
+  data: {
+    name: string;
+    email: string;
+    phone?: string;
+    roleId?: number;
+  }
+) {
+  try {
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        roleId: data.roleId,
+      },
+      include: {
+        role: true,
+      },
+    });
+    return { success: "Staff member updated successfully", user };
+  } catch (error) {
+    console.error("Failed to update staff member:", error);
+    return { error: "Failed to update staff member" };
+  }
+}
+
+export async function addStaffMember(
+  restaurantId: number,
+  data: {
+    name: string;
+    email: string;
+    password: string;
+    phone?: string;
+    roleId?: number;
+  }
+) {
+  try {
+    const user = await prisma.user.create({
+      data: {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        phone: data.phone || "",
+        userRole: "STAFF",
+        roleId: data.roleId,
+        restaurants: {
+          connect: { id: restaurantId },
+        },
+      },
+      include: {
+        role: true,
+      },
+    });
+    return { success: "Staff member added successfully", user };
+  } catch (error) {
+    console.error("Failed to add staff member:", error);
+    return { error: "Failed to add staff member" };
   }
 }

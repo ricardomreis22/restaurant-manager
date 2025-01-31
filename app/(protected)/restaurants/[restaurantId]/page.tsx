@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { getRestaurant, getRestaurantMenu } from "../[restaurantId]/actions";
-import { getRestaurantTables } from "./actions";
+import { getRestaurant, getRestaurantMenu } from "../actions";
+import { getRestaurantTables } from "../actions";
 import { Button } from "@/components/ui/button";
 import { Menu } from "@prisma/client";
 import {
@@ -14,8 +14,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreVertical, Trash } from "lucide-react";
 import { deleteRestaurant } from "../actions";
-import EmployeesPage from "@/components/restaurants/EmployeesPage";
 import Floormap from "@/components/restaurants/FloorMap";
+import StaffPage from "@/components/restaurants/StaffPage";
 
 interface MenuItem {
   id: number;
@@ -117,7 +117,7 @@ export default function RestaurantPage() {
         </div>
 
         {display === "employees" ? (
-          <EmployeesPage />
+          <StaffPage />
         ) : display === "floormap" ? (
           <Floormap tables={tables} />
         ) : null}
