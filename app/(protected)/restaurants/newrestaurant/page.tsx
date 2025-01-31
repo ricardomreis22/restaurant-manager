@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RestaurantSchema } from "@/schemas/index";
-import { createRestaurant } from "./actions";
+import { createRestaurant } from "../actions";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,7 +40,7 @@ export default function NewRestaurantPage() {
     setError("");
     setSuccess("");
     setIsPending(true);
-
+    console.log(values);
     try {
       const result = await createRestaurant(values);
 

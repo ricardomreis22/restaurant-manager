@@ -3,31 +3,34 @@ import { getRestaurants } from "@/app/(protected)/restaurants/actions";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Edit } from "lucide-react";
+import { Restaurant } from "@prisma/client";
 
 const RestaurantsPage = async () => {
-  const restaurants = await getRestaurants();
+  const userRestaurants = await getRestaurants();
+
+  if (!userRestaurants) return null;
 
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">My Restaurants</h1>
-        <Link href="/newrestaurant">
+        <Link href="/restaurants/newrestaurant">
           <Button>Create a Restaurant</Button>
         </Link>
       </div>
 
-      {restaurants.length === 0 ? (
+      {!userRestaurants?.restaurants?.length ? (
         <div className="text-center py-10">
           <p className="text-gray-500 mb-4">
             You haven't created any restaurants yet.
           </p>
-          <Link href="/newrestaurant">
+          <Link href="/restaurants/newrestaurant">
             <Button variant="outline">Create your first restaurant</Button>
           </Link>
         </div>
       ) : (
         <div className="grid gap-4">
-          {restaurants.map((restaurant) => (
+          {userRestaurants.restaurants.map((restaurant) => (
             <div
               key={restaurant.id}
               className="border p-4 rounded-lg shadow hover:shadow-md transition"

@@ -3,14 +3,13 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import prisma from "@/lib/prisma";
 
 import authConfig from "@/auth.config";
-import { getUserById } from "./data/user";
+import { getUserById } from "@/data/user";
 import { UserRole } from "@prisma/client";
 
 declare module "next-auth" {
   interface Session {
     user: {
-      role?: UserRole;
-      address: string;
+      userRole: UserRole;
     } & DefaultSession["user"];
   }
 }
@@ -30,8 +29,8 @@ export const {
       if (token.sub && session.user) {
         session.user.id = token.sub;
       }
-      if (token.role && session.user) {
-        session.user.role = token.role as UserRole;
+      if (token.userRole && session.user) {
+        session.user.userRole = token.userRole as UserRole;
       }
       return session;
     },
@@ -42,7 +41,7 @@ export const {
 
       if (!existingUser) return token;
 
-      token.role = existingUser.role;
+      token.userRole = existingUser.userRole;
 
       return token;
     },
