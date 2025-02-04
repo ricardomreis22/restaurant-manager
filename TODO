@@ -35,9 +35,15 @@ On the update employee should I need to give the restaurantId?
 Should I do smaller change on each branch?
 
 ------NOW-----
-
-Fix the new restaurante creation, I think theres an erro there.
+Update the category menu and items CRUD
 -------AFTER THIS-------
 
 --------LAST STEPS-------
 button to change password
+
+when login verify if the staff or a admin and redirect to the correct page.
+If its admin, see all the restaurants and the staff see the restaurant that is part of
+
+---------- WATCH OUT -------
+
+Can i delete the admin that create the restaurant?

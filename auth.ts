@@ -29,9 +29,6 @@ export const {
       if (token.sub && session.user) {
         session.user.id = token.sub;
       }
-      if (token.userRole && session.user) {
-        session.user.userRole = token.userRole as UserRole;
-      }
       return session;
     },
     // Add the user role to the token, so we can use it in the middleware, to add admin routes, and have role based access control
@@ -40,8 +37,6 @@ export const {
       const existingUser = await getUserById(Number(token.sub));
 
       if (!existingUser) return token;
-
-      token.userRole = existingUser.userRole;
 
       return token;
     },

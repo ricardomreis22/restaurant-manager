@@ -2,10 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { getRestaurant, getRestaurantMenu } from "../actions";
-import { getRestaurantTables } from "../actions";
+import { getRestaurant, getRestaurantTables } from "../actions";
 import { Button } from "@/components/ui/button";
-import { Menu } from "@prisma/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,15 +14,7 @@ import { MoreVertical, Trash } from "lucide-react";
 import { deleteRestaurant } from "../actions";
 import Floormap from "@/components/restaurants/FloorMap";
 import StaffPage from "@/components/restaurants/StaffPage";
-
-interface MenuItem {
-  id: number;
-  name: string;
-  price: number;
-  category: Menu;
-  description: string;
-  isAvailable: boolean;
-}
+import MenuPage from "@/components/restaurants/MenuPage";
 
 interface Table {
   id: number;
@@ -39,14 +29,12 @@ export default function RestaurantPage() {
   const restaurantId = parseInt(params.restaurantId as string);
   const [restaurant, setRestaurant] = useState<any>(null);
   const [tables, setTables] = useState<Table[]>([]);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-
   const [display, setDisplay] = useState<string>("floormap");
+
   useEffect(() => {
     const loadData = async () => {
       const restaurantData = await getRestaurant(restaurantId);
       const tablesData = await getRestaurantTables(restaurantId);
-      const menuData = await getRestaurantMenu(restaurantId);
       setRestaurant(restaurantData);
       setTables(tablesData);
     };
@@ -69,10 +57,6 @@ export default function RestaurantPage() {
     return <div>Loading...</div>;
   }
 
-  //const filteredMenuItems = menuItems.filter(
-  //  (item) => item.category === selectedCategory
-  //);
-
   return (
     <div className="h-screen flex">
       <div className="w-2/3 h-full p-8">
@@ -82,13 +66,13 @@ export default function RestaurantPage() {
               onClick={() => setDisplay("floormap")}
               className="bg-blue-500 hover:bg-blue-600"
             >
-              FloorMap{" "}
+              FloorMap
             </Button>
             <Button
-              onClick={() => router.push(`/restaurants/${restaurantId}/menu`)}
+              onClick={() => setDisplay("menu")}
               className="bg-blue-500 hover:bg-blue-600"
             >
-              Set Up Menu
+              Menu
             </Button>
             <Button
               className="bg-green-500 hover:bg-green-600"
@@ -120,9 +104,10 @@ export default function RestaurantPage() {
           <StaffPage />
         ) : display === "floormap" ? (
           <Floormap tables={tables} />
+        ) : display === "menu" ? (
+          <MenuPage restaurantId={restaurantId} />
         ) : null}
       </div>
-      {/* Right side - Menu and Orders */}
     </div>
   );
 }

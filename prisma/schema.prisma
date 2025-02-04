@@ -36,12 +36,12 @@ model Role {
 model Restaurant {
   id          Int          @id @default(autoincrement())
   name        String
-  address     String       @unique
-  phone       String       @unique
-  email       String       @unique
+  address     String ?      @unique
+  phone       String?       @unique
+  email       String?       @unique
   tables      Table[]
   users       User[]       @relation("UsersRestaurants")
-  menus       Menu[]
+  menu        MenuItem[]
   inventory   InventoryItem[]
   promotions  Promotion[]
   reviews     Review[]
@@ -54,7 +54,7 @@ model Restaurant {
 
 model Table {
   id           Int          @id @default(autoincrement())
-  number       Int          @unique
+  number       Int
   capacity     Int
   isReserved   Boolean      @default(false)
   reservations Reservation[]
@@ -64,6 +64,8 @@ model Table {
   restaurantId Int
 
   Event Event[]
+
+  @@unique([number, restaurantId])
 }
 
 model Seat {
@@ -93,30 +95,16 @@ model Shift {
   staffId     Int
 }
 
-model Menu {
-  id          Int        @id @default(autoincrement())
-  name        String
-  description String
-  categories  Category[]
-  restaurant  Restaurant @relation(fields: [restaurantId], references: [id])
-  restaurantId Int
-}
-
-model Category {
-  id          Int       @id @default(autoincrement())
-  name        String
-  menu        Menu      @relation(fields: [menuId], references: [id])
-  menuId      Int
-  items       MenuItem[]
-}
-
 model MenuItem {
   id          Int       @id @default(autoincrement())
   name        String
   price       Float
   imageUrl    String?
-  category    Category  @relation(fields: [categoryId], references: [id])
-  categoryId  Int
+  category    String
+  description String?
+  isAvailable Boolean   @default(true)
+  restaurant  Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantId Int
   orderItems  OrderItem[]
   applicablePromotions Promotion[]
 }
