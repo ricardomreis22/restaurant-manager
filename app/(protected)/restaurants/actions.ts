@@ -326,7 +326,7 @@ export async function createMenuItem(
   restaurantId: number,
   item: {
     name: string;
-    description: string;
+    description?: string;
     price: number;
     category: string;
   }
@@ -376,7 +376,7 @@ export async function updateMenuItem(
   id: number,
   item: {
     name: string;
-    description: string;
+    description?: string;
     price: number;
     category: string;
   }

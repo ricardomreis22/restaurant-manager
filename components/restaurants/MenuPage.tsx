@@ -20,6 +20,7 @@ interface MenuPageProps {
 
 export default function MenuPage({ restaurantId }: MenuPageProps) {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
@@ -29,6 +30,11 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
     try {
       const menuData = await getMenu(restaurantId);
       setMenuItems(menuData);
+      // Extract unique categories from menu items
+      const uniqueCategories = [
+        ...new Set(menuData.map((item) => item.category)), // Set is a JavaScript object that only stores unique values.
+      ];
+      setCategories(uniqueCategories);
     } catch (error) {
       console.error("Failed to load menu:", error);
     } finally {
@@ -42,7 +48,7 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
 
   const handleAddItem = async (item: {
     name: string;
-    description: string;
+    description?: string;
     price: number;
     category: string;
   }) => {
@@ -58,7 +64,7 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
     id: number,
     item: {
       name: string;
-      description: string;
+      description?: string;
       price: number;
       category: string;
     }
@@ -155,6 +161,7 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSubmit={handleAddItem}
+        existingCategories={categories}
       />
 
       {selectedItem && (
@@ -166,6 +173,7 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
           }}
           onSubmit={handleUpdateItem}
           item={selectedItem}
+          existingCategories={categories}
         />
       )}
     </div>

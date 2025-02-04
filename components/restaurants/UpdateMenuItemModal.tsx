@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +19,7 @@ import {
 import { MenuItem } from "@prisma/client";
 
 interface UpdateMenuItemModalProps {
+  existingCategories: string[];
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (
@@ -36,6 +35,7 @@ interface UpdateMenuItemModalProps {
 }
 
 export function UpdateMenuItemModal({
+  existingCategories,
   isOpen,
   onClose,
   onSubmit,
