@@ -66,10 +66,12 @@ const NewStaffModal = ({
     setSuccess("");
     setIsPending(true);
     startTransition(() => {
-      addStaffMember(restaurantId, values).then((data) => {
-        setError(data.error);
-        setSuccess(data.success);
-        if (data.success) {
+      addStaffMember(values).then((data) => {
+        if (data?.error) {
+          setError(data.error);
+        }
+        if (data?.success) {
+          setSuccess(data.success);
           form.reset();
           onSuccess();
           setIsOpen(false);
@@ -147,7 +149,47 @@ const NewStaffModal = ({
                   <FormItem>
                     <FormLabel>Role</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="w-full flex justify-between items-center"
+                          >
+                            {field.value
+                              ? field.value.charAt(0).toUpperCase() +
+                                field.value.slice(1).replace("_", " ")
+                              : "Select a role"}
+                            <ChevronDown className="h-4 w-4 opacity-50" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => field.onChange("waiter")}
+                          >
+                            Waiter
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => field.onChange("manager")}
+                          >
+                            Manager
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => field.onChange("cooker")}
+                          >
+                            Cooker
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => field.onChange("delivery_driver")}
+                          >
+                            Delivery Driver
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => field.onChange("chef")}
+                          >
+                            Chef
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -157,12 +199,10 @@ const NewStaffModal = ({
                 control={form.control}
                 name="restaurantId"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Restaurant ID</FormLabel>
+                  <FormItem className="hidden">
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} type="hidden" value={restaurantId} />
                     </FormControl>
-                    <FormMessage />
                   </FormItem>
                 )}
               />

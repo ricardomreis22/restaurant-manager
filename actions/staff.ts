@@ -1,15 +1,15 @@
 "use server";
 
 import { z } from "zod";
-import { NewEmployeeSchema } from "@/schemas";
+import { NewStaffSchema } from "@/schemas";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { getUserByEmail } from "@/data/user";
 
 export const createEmployee = async (
-  values: z.infer<typeof NewEmployeeSchema>
+  values: z.infer<typeof NewStaffSchema>
 ) => {
-  const validatedFields = NewEmployeeSchema.safeParse(values);
+  const validatedFields = NewStaffSchema.safeParse(values);
 
   if (!validatedFields.success) {
     return {
@@ -17,10 +17,10 @@ export const createEmployee = async (
     };
   }
 
-  const { firstName, lastName, email, phone, pin, role, restaurantId } =
+  const { name, email, password, phone, role, restaurantId } =
     validatedFields.data;
 
-  const hashedPassword = await bcrypt.hash(pin, 10);
+  const hashedPassword = await bcrypt.hash(password, 10);
 
   const existingUser = await getUserByEmail(email);
   if (existingUser) {
@@ -30,12 +30,11 @@ export const createEmployee = async (
     };
   }
 
-  await prisma.employee.create({
+  await prisma.user.create({
     data: {
       email,
-      pin: hashedPassword,
-      firstName,
-      lastName,
+      password: hashedPassword,
+      name,
       phone,
       role: {
         connectOrCreate: {
@@ -47,7 +46,7 @@ export const createEmployee = async (
           },
         },
       },
-      restaurant: {
+      restaurants: {
         connect: {
           id: restaurantId,
         },
@@ -65,18 +64,16 @@ export const createEmployee = async (
 
 export async function updateEmployee(data: {
   id: number;
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
   phone: string;
   role: string;
 }) {
   try {
-    await prisma.employee.update({
+    await prisma.user.update({
       where: { id: data.id },
       data: {
-        firstName: data.firstName,
-        lastName: data.lastName,
+        name: data.name,
         email: data.email,
         phone: data.phone,
         role: {
@@ -100,7 +97,7 @@ export async function updateEmployee(data: {
 
 export const deleteEmployee = async (employeeId: number) => {
   try {
-    await prisma.employee.delete({
+    await prisma.user.delete({
       where: {
         id: employeeId,
       },

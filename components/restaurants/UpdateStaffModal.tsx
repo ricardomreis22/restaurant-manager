@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { StaffMember } from "@/components/restaurants/EmployeesPage";
+import { StaffMember } from "@/components/restaurants/StaffPage";
 import { Button } from "@/components/ui/button";
 import {
   Form,

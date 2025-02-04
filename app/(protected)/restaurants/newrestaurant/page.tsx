@@ -40,8 +40,8 @@ export default function NewRestaurantPage() {
     setError("");
     setSuccess("");
     setIsPending(true);
-    console.log(values);
     try {
+      console.log(values);
       const result = await createRestaurant(values);
 
       if (result.error) {
