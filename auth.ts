@@ -24,13 +24,6 @@ export const {
     strategy: "jwt",
   },
   callbacks: {
-    // Add the user id to the session
-    async session({ token, session }) {
-      if (token.sub && session.user) {
-        session.user.id = token.sub;
-      }
-      return session;
-    },
     // Add the user role to the token, so we can use it in the middleware, to add admin routes, and have role based access control
     async jwt({ token }) {
       if (!token.sub) return token;
@@ -38,7 +31,16 @@ export const {
 
       if (!existingUser) return token;
 
+      token.user = existingUser;
       return token;
+    },
+    // Add the user id to the session
+    async session({ token, session }) {
+      if (token.sub && session.user) {
+        session.user.id = token.sub;
+        session.user.userRole = token.userRole as UserRole;
+      }
+      return session;
     },
   },
   ...authConfig,

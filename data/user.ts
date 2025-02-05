@@ -6,6 +6,9 @@ export const getUserByEmail = async (email: string) => {
       where: {
         email,
       },
+      include: {
+        restaurants: true,
+      },
     });
     return user;
   } catch (error) {
@@ -18,6 +21,9 @@ export const getUserById = async (id: number) => {
     const user = await prisma.user.findUnique({
       where: {
         id,
+      },
+      include: {
+        restaurants: true,
       },
     });
     return user;

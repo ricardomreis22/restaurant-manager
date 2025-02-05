@@ -7,9 +7,19 @@ interface Table {
   isReserved: boolean;
 }
 
-const Floormap = (props: { tables: Table[] }) => {
+interface FloorMapProps {
+  tables: Table[];
+  onTableSelect: (tableId: number) => void;
+}
+
+const Floormap = ({ tables, onTableSelect }: FloorMapProps) => {
   const [selectedTable, setSelectedTable] = useState<number | null>(null);
-  const { tables } = props;
+
+  const handleTableClick = (tableId: number) => {
+    setSelectedTable(tableId);
+    onTableSelect(tableId);
+  };
+
   return (
     <div>
       <div className="h-full bg-gray-50 rounded-lg">
@@ -32,7 +42,7 @@ const Floormap = (props: { tables: Table[] }) => {
             {tables.map((table) => (
               <div
                 key={table.id}
-                onClick={() => setSelectedTable(table.id)}
+                onClick={() => handleTableClick(table.id)}
                 className={`
             p-4 rounded-lg shadow-md text-center cursor-pointer
             ${table.isReserved ? "bg-yellow-100" : "bg-green-100"}

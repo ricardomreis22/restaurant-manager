@@ -16,10 +16,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MenuItem } from "@prisma/client";
+import { MenuItems, Category } from "@prisma/client";
+
+interface MenuItemWithCategory extends MenuItem {
+  category: Category;
+}
 
 interface UpdateMenuItemModalProps {
-  existingCategories: string[];
+  categories: Category[];
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (
@@ -28,14 +32,14 @@ interface UpdateMenuItemModalProps {
       name: string;
       description?: string;
       price: number;
-      category: string;
+      categoryId: number;
     }
   ) => void;
-  item: MenuItem;
+  item: MenuItemWithCategory;
 }
 
 export function UpdateMenuItemModal({
-  existingCategories,
+  categories,
   isOpen,
   onClose,
   onSubmit,
@@ -45,7 +49,7 @@ export function UpdateMenuItemModal({
     name: "",
     description: "",
     price: "",
-    category: "",
+    categoryId: "",
   });
 
   useEffect(() => {
@@ -54,7 +58,7 @@ export function UpdateMenuItemModal({
         name: item.name,
         description: item.description || "",
         price: item.price.toString(),
-        category: item.category,
+        categoryId: item.categoryId.toString(),
       });
     }
   }, [item]);
@@ -64,17 +68,10 @@ export function UpdateMenuItemModal({
     onSubmit(item.id, {
       ...formData,
       price: parseFloat(formData.price),
+      categoryId: parseInt(formData.categoryId),
     });
     onClose();
   };
-
-  const categories = [
-    "Main Dishes",
-    "Appetizers",
-    "Desserts",
-    "Beverages",
-    "Sides",
-  ];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -124,9 +121,9 @@ export function UpdateMenuItemModal({
             <div>
               <Label htmlFor="category">Category</Label>
               <Select
-                value={formData.category}
+                value={formData.categoryId}
                 onValueChange={(value) =>
-                  setFormData({ ...formData, category: value })
+                  setFormData({ ...formData, categoryId: value })
                 }
               >
                 <SelectTrigger>
@@ -134,8 +131,11 @@ export function UpdateMenuItemModal({
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
+                    <SelectItem
+                      key={category.id}
+                      value={category.id.toString()}
+                    >
+                      {category.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

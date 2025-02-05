@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Category } from "@prisma/client";
 
 interface AddMenuItemModalProps {
   isOpen: boolean;
@@ -24,22 +25,22 @@ interface AddMenuItemModalProps {
     name: string;
     description?: string;
     price: number;
-    category: string;
+    categoryId: number;
   }) => void;
-  existingCategories: string[];
+  categories: Category[];
 }
 
 export function AddMenuItemModal({
   isOpen,
   onClose,
   onSubmit,
-  existingCategories,
+  categories,
 }: AddMenuItemModalProps) {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     price: "",
-    category: "",
+    categoryId: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -47,12 +48,13 @@ export function AddMenuItemModal({
     onSubmit({
       ...formData,
       price: parseFloat(formData.price),
+      categoryId: parseInt(formData.categoryId),
     });
     setFormData({
       name: "",
       description: "",
       price: "",
-      category: "",
+      categoryId: "",
     });
     onClose();
   };
@@ -104,32 +106,26 @@ export function AddMenuItemModal({
             </div>
             <div>
               <Label htmlFor="category">Category</Label>
-              <div className="space-y-2">
-                <Select
-                  value={formData.category}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, category: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select or enter category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {existingCategories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Input
-                  placeholder="Or enter a new category"
-                  value={formData.category}
-                  onChange={(e) =>
-                    setFormData({ ...formData, category: e.target.value })
-                  }
-                />
-              </div>
+              <Select
+                value={formData.categoryId}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, categoryId: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem
+                      key={category.id}
+                      value={category.id.toString()}
+                    >
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter className="mt-4">

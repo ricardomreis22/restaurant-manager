@@ -1,5 +1,6 @@
 import authConfig from "./auth.config";
 import NextAuth from "next-auth";
+import { UserRole } from "@prisma/client";
 
 import {
   DEFAULT_LOGIN_REDIRECT,
@@ -10,13 +11,23 @@ import {
 
 const { auth } = NextAuth(authConfig);
 
-export default auth((req) => {
+export default auth(async (req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
 
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
+  console.log(req.auth, "req.auth");
+
+  // Get user role from auth
+  const userRole = req.auth?.user?.userRole;
+
+  // Example of role-based access control
+  const isAdminRoute = nextUrl.pathname.startsWith("/admin");
+  if (isAdminRoute && userRole !== UserRole.ADMIN) {
+    return Response.redirect(new URL("/restaurants/", nextUrl));
+  }
 
   if (isApiAuthRoute) {
     return;
