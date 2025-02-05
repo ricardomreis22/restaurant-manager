@@ -6,6 +6,7 @@ import { NewStaffSchema } from "@/schemas";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
+import { Prisma } from "@prisma/client";
 
 export async function getRestaurants() {
   try {
@@ -15,7 +16,7 @@ export async function getRestaurants() {
       throw new Error("Not authenticated");
     }
 
-    const user = await prisma.user.findUnique({
+    const restaurants = await prisma.user.findUnique({
       where: {
         id: parseInt(session.user.id),
       },
@@ -24,7 +25,7 @@ export async function getRestaurants() {
       },
     });
 
-    return user;
+    return restaurants;
   } catch (error) {
     console.error("Failed to fetch restaurants:", error);
     throw error;
@@ -38,7 +39,7 @@ export async function getRestaurant(id: number) {
       include: {
         users: true,
         tables: true,
-        menu: true,
+        menuItems: true,
         inventory: true,
         promotions: true,
         reviews: true,
@@ -62,20 +63,16 @@ export async function createRestaurant(formData: {
     const session = await auth();
 
     if (!session?.user?.id) {
-      throw new Error("Not authenticated");
+      return { error: "Not authenticated" };
     }
 
-    // if (session.user.userRole !== "ADMIN") {
-    //   throw new Error("Staff cannot create a restaurant");
-    // }
-
-    // Check for existing restaurant with same address
+    // Check for existing restaurant with non-null values only
     const existingRestaurant = await prisma.restaurant.findFirst({
       where: {
         OR: [
           { address: formData.address },
-          { phone: formData.phone || "" },
-          { email: formData.email || "" },
+          formData.phone ? { phone: formData.phone } : {},
+          formData.email ? { email: formData.email } : {},
         ],
       },
     });
@@ -84,40 +81,69 @@ export async function createRestaurant(formData: {
       if (existingRestaurant.address === formData.address) {
         return { error: "A restaurant at this address already exists" };
       }
-      if (existingRestaurant.phone === formData.phone) {
+      if (formData.phone && existingRestaurant.phone === formData.phone) {
         return { error: "This phone number is already registered" };
       }
-      if (existingRestaurant.email === formData.email) {
+      if (formData.email && existingRestaurant.email === formData.email) {
         return { error: "This email is already registered" };
       }
     }
+
+    // Define default categories
+    const defaultCategories = [
+      {
+        name: "Main Dishes",
+        description: "Our delicious main course options",
+      },
+      {
+        name: "Starters",
+        description: "Appetizers and small plates",
+      },
+      {
+        name: "Drinks",
+        description: "Beverages and cocktails",
+      },
+      {
+        name: "Desserts",
+        description: "Sweet treats to finish your meal",
+      },
+      {
+        name: "Sides",
+        description: "Perfect accompaniments to your main dish",
+      },
+    ];
 
     const restaurant = await prisma.restaurant.create({
       data: {
         name: formData.name,
         address: formData.address,
-        phone: formData.phone || "",
-        email: formData.email || "",
+        phone: formData.phone || null,
+        email: formData.email || null,
         users: {
-          connect: { id: parseInt(session.user.id) },
+          connect: {
+            id: parseInt(session.user.id),
+          },
         },
         tables: {
           create: Array.from({ length: 10 }, (_, index) => ({
             number: index + 1,
-            capacity: 2,
+            capacity: index < 5 ? 2 : 4,
             isReserved: false,
           })),
+        },
+        categories: {
+          create: defaultCategories,
         },
       },
       include: {
         users: true,
         tables: true,
+        categories: true,
       },
     });
 
     return { success: true, restaurant };
   } catch (error) {
-    console.error("Failed to create restaurant:", error);
     return { error: "Failed to create restaurant" };
   }
 }
@@ -319,93 +345,5 @@ export async function addStaffMember(values: z.infer<typeof NewStaffSchema>) {
   } catch (error) {
     console.error("Failed to add staff member:", error);
     return { error: "Failed to add staff member" };
-  }
-}
-
-export async function createMenuItem(
-  restaurantId: number,
-  item: {
-    name: string;
-    description?: string;
-    price: number;
-    category: string;
-  }
-) {
-  try {
-    const menuItem = await prisma.menuItem.create({
-      data: {
-        name: item.name,
-        description: item.description,
-        price: item.price,
-        category: item.category,
-        isAvailable: true,
-        restaurant: {
-          connect: {
-            id: restaurantId,
-          },
-        },
-      },
-    });
-    return menuItem;
-  } catch (error) {
-    console.error("Failed to create menu item:", error);
-    throw error;
-  }
-}
-
-export async function getMenu(restaurantId: number) {
-  if (!restaurantId) return [];
-
-  try {
-    const menuItems = await prisma.menuItem.findMany({
-      where: {
-        restaurantId: restaurantId,
-      },
-      orderBy: {
-        category: "asc",
-      },
-    });
-    return menuItems;
-  } catch (error) {
-    console.error("Failed to fetch menu items:", error);
-    return [];
-  }
-}
-
-export async function updateMenuItem(
-  id: number,
-  item: {
-    name: string;
-    description?: string;
-    price: number;
-    category: string;
-  }
-) {
-  try {
-    const menuItem = await prisma.menuItem.update({
-      where: { id },
-      data: {
-        name: item.name,
-        description: item.description,
-        price: item.price,
-        category: item.category,
-      },
-    });
-    return menuItem;
-  } catch (error) {
-    console.error("Failed to update menu item:", error);
-    throw error;
-  }
-}
-
-export async function deleteMenuItem(id: number) {
-  try {
-    await prisma.menuItem.delete({
-      where: { id },
-    });
-    return true;
-  } catch (error) {
-    console.error("Failed to delete menu item:", error);
-    throw error;
   }
 }

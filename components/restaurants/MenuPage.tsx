@@ -1,40 +1,58 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, startTransition } from "react";
 import {
   createMenuItem,
-  getMenu,
   updateMenuItem,
   deleteMenuItem,
-} from "@/app/(protected)/restaurants/actions";
-import { MenuItem } from "@prisma/client";
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  getCategories,
+  getMenuItems,
+} from "@/actions/menu";
+import { MenuItems, Category } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { AddMenuItemModal } from "./AddMenuItemModal";
 import { UpdateMenuItemModal } from "./UpdateMenuItemModal";
-import { Pencil, Trash } from "lucide-react";
+import { Pencil, Trash, Plus } from "lucide-react";
+import { AddCategoryModal } from "./AddCategoryModal";
+import { UpdateCategoryModal } from "./UpdateCategoryModal";
 
 interface MenuPageProps {
   restaurantId: number;
 }
 
+interface MenuItemWithCategory extends MenuItems {
+  category: Category;
+}
+
 export default function MenuPage({ restaurantId }: MenuPageProps) {
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
+  const [menuItems, setMenuItems] = useState<MenuItemWithCategory[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isPending, setIsPending] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+  const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
+  const [isUpdateCategoryModalOpen, setIsUpdateCategoryModalOpen] =
+    useState(false);
+  const [selectedItem, setSelectedItem] = useState<MenuItemWithCategory | null>(
+    null
+  );
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+    null
+  );
 
   const loadMenu = async () => {
     try {
-      const menuData = await getMenu(restaurantId);
-      setMenuItems(menuData);
-      // Extract unique categories from menu items
-      const uniqueCategories = [
-        ...new Set(menuData.map((item) => item.category)), // Set is a JavaScript object that only stores unique values.
-      ];
-      setCategories(uniqueCategories);
+      const [categoriesData, menuItemsData] = await Promise.all([
+        getCategories(restaurantId),
+        getMenuItems(restaurantId),
+      ]);
+      setCategories(categoriesData);
+      setMenuItems(menuItemsData as MenuItemWithCategory[]);
     } catch (error) {
       console.error("Failed to load menu:", error);
     } finally {
@@ -46,45 +64,139 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
     loadMenu();
   }, [restaurantId]);
 
-  const handleAddItem = async (item: {
+  const handleAddItem = (item: {
     name: string;
     description?: string;
     price: number;
-    category: string;
+    categoryId: number;
   }) => {
-    try {
-      await createMenuItem(restaurantId, item);
-      loadMenu();
-    } catch (error) {
-      console.error("Failed to add item:", error);
-    }
+    setIsPending(true);
+    startTransition(() => {
+      createMenuItem(restaurantId, {
+        name: item.name,
+        description: item.description,
+        price: item.price,
+        categoryId: item.categoryId,
+      })
+        .then(() => {
+          loadMenu();
+          setIsAddModalOpen(false);
+          setIsPending(false);
+        })
+        .catch((error) => {
+          console.error("Failed to add item:", error);
+          setIsPending(false);
+        });
+    });
   };
 
-  const handleUpdateItem = async (
+  const handleUpdateItem = (
     id: number,
     item: {
       name: string;
       description?: string;
       price: number;
-      category: string;
+      categoryId: number;
     }
   ) => {
-    try {
-      await updateMenuItem(id, item);
-      loadMenu();
-    } catch (error) {
-      console.error("Failed to update item:", error);
+    setIsPending(true);
+    startTransition(() => {
+      updateMenuItem(id, item)
+        .then(() => {
+          loadMenu();
+          setIsUpdateModalOpen(false);
+          setSelectedItem(null);
+          setIsPending(false);
+        })
+        .catch((error) => {
+          console.error("Failed to update item:", error);
+          setIsPending(false);
+        });
+    });
+  };
+
+  const handleDeleteItem = (id: number) => {
+    if (window.confirm("Are you sure you want to delete this item?")) {
+      setIsPending(true);
+      startTransition(() => {
+        deleteMenuItem(id)
+          .then(() => {
+            loadMenu();
+            setIsPending(false);
+          })
+          .catch((error) => {
+            console.error("Failed to delete item:", error);
+            setIsPending(false);
+          });
+      });
     }
   };
 
-  const handleDeleteItem = async (id: number) => {
-    if (window.confirm("Are you sure you want to delete this item?")) {
-      try {
-        await deleteMenuItem(id);
-        loadMenu();
-      } catch (error) {
-        console.error("Failed to delete item:", error);
-      }
+  const handleAddCategory = (category: {
+    name: string;
+    description?: string;
+    restaurantId: number;
+  }) => {
+    setIsPending(true);
+    startTransition(() => {
+      createCategory(category)
+        .then(() => {
+          loadMenu();
+          setIsAddCategoryModalOpen(false);
+          setIsPending(false);
+        })
+        .catch((error) => {
+          console.error("Failed to add category:", error);
+          setIsPending(false);
+        });
+    });
+  };
+
+  const handleUpdateCategory = (
+    id: number,
+    category: {
+      name: string;
+      description?: string;
+      restaurantId: number;
+    }
+  ) => {
+    setIsPending(true);
+    startTransition(() => {
+      updateCategory(id, {
+        name: category.name,
+        description: category.description,
+      })
+        .then(() => {
+          loadMenu();
+          setIsUpdateCategoryModalOpen(false);
+          setSelectedCategory(null);
+          setIsPending(false);
+        })
+        .catch((error) => {
+          console.error("Failed to update category:", error);
+          setIsPending(false);
+        });
+    });
+  };
+
+  const handleDeleteCategory = (id: number) => {
+    if (
+      window.confirm(
+        "Are you sure you want to delete this category? All items in this category will be moved to uncategorized."
+      )
+    ) {
+      setIsPending(true);
+      startTransition(() => {
+        deleteCategory(id)
+          .then(() => {
+            loadMenu();
+            setIsPending(false);
+          })
+          .catch((error) => {
+            console.error("Failed to delete category:", error);
+            setIsPending(false);
+          });
+      });
     }
   };
 
@@ -94,29 +206,70 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
 
   // Group items by category
   const itemsByCategory = menuItems.reduce((acc, item) => {
-    if (!acc[item.category]) {
-      acc[item.category] = [];
+    const categoryId = item.categoryId;
+    if (!acc[categoryId]) {
+      acc[categoryId] = [];
     }
-    acc[item.category].push(item);
+    acc[categoryId].push(item);
     return acc;
-  }, {} as Record<string, MenuItem[]>);
+  }, {} as Record<number, MenuItemWithCategory[]>);
 
   return (
     <div className="p-4">
       <div className="flex justify-between mb-6">
         <h2 className="text-2xl font-bold">Menu</h2>
-        <Button onClick={() => setIsAddModalOpen(true)}>Add Menu Item</Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setIsAddCategoryModalOpen(true)}
+            disabled={isPending}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Category
+          </Button>
+          <Button onClick={() => setIsAddModalOpen(true)} disabled={isPending}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Menu Item
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {Object.entries(itemsByCategory).map(([category, items]) => (
-          <Card key={category}>
-            <CardHeader>
-              <h3 className="text-xl font-semibold">{category}</h3>
+        {categories.map((category) => (
+          <Card key={category.id}>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <h3 className="text-xl font-semibold">{category.name}</h3>
+                {category.description && (
+                  <p className="text-sm text-gray-600">
+                    {category.description}
+                  </p>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedCategory(category);
+                    setIsUpdateCategoryModalOpen(true);
+                  }}
+                  disabled={isPending}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleDeleteCategory(category.id)}
+                  disabled={isPending}
+                >
+                  <Trash className="h-4 w-4" />
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {items.map((item) => (
+                {itemsByCategory[category.id]?.map((item) => (
                   <div
                     key={item.id}
                     className="flex justify-between items-center p-2 hover:bg-gray-50 rounded-lg"
@@ -138,6 +291,7 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
                           setSelectedItem(item);
                           setIsUpdateModalOpen(true);
                         }}
+                        disabled={isPending}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -145,6 +299,7 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDeleteItem(item.id)}
+                        disabled={isPending}
                       >
                         <Trash className="h-4 w-4" />
                       </Button>
@@ -161,7 +316,7 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSubmit={handleAddItem}
-        existingCategories={categories}
+        categories={categories}
       />
 
       {selectedItem && (
@@ -173,7 +328,26 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
           }}
           onSubmit={handleUpdateItem}
           item={selectedItem}
-          existingCategories={categories}
+          categories={categories}
+        />
+      )}
+
+      <AddCategoryModal
+        isOpen={isAddCategoryModalOpen}
+        onClose={() => setIsAddCategoryModalOpen(false)}
+        onSubmit={handleAddCategory}
+        restaurantId={restaurantId}
+      />
+
+      {selectedCategory && (
+        <UpdateCategoryModal
+          isOpen={isUpdateCategoryModalOpen}
+          onClose={() => {
+            setIsUpdateCategoryModalOpen(false);
+            setSelectedCategory(null);
+          }}
+          onSubmit={handleUpdateCategory}
+          category={selectedCategory}
         />
       )}
     </div>

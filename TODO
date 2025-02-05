@@ -28,21 +28,6 @@ For the admin dashboard, show the following:
 As the employee login, the employee should be redirected to the user dashboard where the restaurant tables and can get inside a table a make the order.
 
 ---------Questions-------
-After the admin login, he enter the restaurant page and I can get the restaurantId from clicking the restaurant. Is that safe? I know that I shouldnt have the restaurantId in the url, I will take it out.
-
-On the update employee should I need to give the restaurantId?
-
-Should I do smaller change on each branch?
-
-------NOW-----
-Update the category menu and items CRUD
--------AFTER THIS-------
-
---------LAST STEPS-------
-button to change password
-
-when login verify if the staff or a admin and redirect to the correct page.
-If its admin, see all the restaurants and the staff see the restaurant that is part of
 
 ---------- WATCH OUT -------
 

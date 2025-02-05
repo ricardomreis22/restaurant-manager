@@ -36,12 +36,13 @@ model Role {
 model Restaurant {
   id          Int          @id @default(autoincrement())
   name        String
-  address     String ?      @unique
+  address     String?      @unique
   phone       String?       @unique
   email       String?       @unique
   tables      Table[]
   users       User[]       @relation("UsersRestaurants")
-  menu        MenuItem[]
+  menuItems   MenuItems[]
+  categories  Category[] 
   inventory   InventoryItem[]
   promotions  Promotion[]
   reviews     Review[]
@@ -95,18 +96,28 @@ model Shift {
   staffId     Int
 }
 
-model MenuItem {
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  menuItems   MenuItems[]
+  restaurant  Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantId Int
+}
+
+model MenuItems {
   id          Int       @id @default(autoincrement())
   name        String
   price       Float
   imageUrl    String?
-  category    String
+  category    Category  @relation(fields: [categoryId], references: [id])
+  categoryId  Int
   description String?
   isAvailable Boolean   @default(true)
-  restaurant  Restaurant @relation(fields: [restaurantId], references: [id])
-  restaurantId Int
   orderItems  OrderItem[]
   applicablePromotions Promotion[]
+  restaurant  Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantId Int
 }
 
 model Promotion {
@@ -117,7 +128,7 @@ model Promotion {
   startDate   DateTime
   endDate     DateTime
   isActive    Boolean   @default(true)
-  applicableItems MenuItem[]
+  applicableItems MenuItems[]
   restaurant  Restaurant @relation(fields: [restaurantId], references: [id])
   restaurantId Int
 }
@@ -140,7 +151,7 @@ model Order {
 model OrderItem {
   id          Int       @id @default(autoincrement())
   quantity    Int
-  menuItem    MenuItem  @relation(fields: [menuItemId], references: [id])
+  menuItem    MenuItems  @relation(fields: [menuItemId], references: [id])
   menuItemId  Int
   order       Order     @relation(fields: [orderId], references: [id])
   orderId     Int

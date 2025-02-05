@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { startTransition, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RestaurantSchema } from "@/schemas/index";
@@ -36,26 +36,24 @@ export default function NewRestaurantPage() {
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof RestaurantSchema>) => {
+  const onSubmit = (values: z.infer<typeof RestaurantSchema>) => {
     setError("");
     setSuccess("");
     setIsPending(true);
-    try {
-      console.log(values);
-      const result = await createRestaurant(values);
 
-      if (result.error) {
-        setError(result.error);
-        return;
-      }
-
-      setSuccess("Restaurant created successfully!");
-      router.push("/restaurants");
-    } catch (error) {
-      setError("Something went wrong!");
-    } finally {
-      setIsPending(false);
-    }
+    startTransition(() => {
+      createRestaurant(values).then((data) => {
+        if (data?.error) {
+          setError(data.error);
+        }
+        if (data?.success) {
+          setSuccess("Restaurant created successfully!");
+          form.reset();
+          router.push("/restaurants");
+        }
+        setIsPending(false);
+      });
+    });
   };
 
   return (

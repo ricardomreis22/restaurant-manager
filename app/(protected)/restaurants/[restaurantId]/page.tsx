@@ -15,6 +15,7 @@ import { deleteRestaurant } from "../actions";
 import Floormap from "@/components/restaurants/FloorMap";
 import StaffPage from "@/components/restaurants/StaffPage";
 import MenuPage from "@/components/restaurants/MenuPage";
+import { TableView } from "@/components/restaurants/TableView";
 
 interface Table {
   id: number;
@@ -30,6 +31,7 @@ export default function RestaurantPage() {
   const [restaurant, setRestaurant] = useState<any>(null);
   const [tables, setTables] = useState<Table[]>([]);
   const [display, setDisplay] = useState<string>("floormap");
+  const [selectedTable, setSelectedTable] = useState<Table | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -53,38 +55,49 @@ export default function RestaurantPage() {
     }
   };
 
+  const handleTableSelect = (tableId: number) => {
+    const table = tables.find((t) => t.id === tableId);
+    if (table) {
+      setSelectedTable(table);
+    }
+  };
+
   if (!restaurant) {
     return <div>Loading...</div>;
   }
 
   return (
-    <div className="h-screen flex">
-      <div className="w-2/3 h-full p-8">
-        <div className="flex justify-between mb-4">
-          <div className="flex gap-4">
-            <Button
-              onClick={() => setDisplay("floormap")}
-              className="bg-blue-500 hover:bg-blue-600"
-            >
-              FloorMap
-            </Button>
-            <Button
-              onClick={() => setDisplay("menu")}
-              className="bg-blue-500 hover:bg-blue-600"
-            >
-              Menu
-            </Button>
-            <Button
-              className="bg-green-500 hover:bg-green-600"
-              onClick={() => setDisplay("employees")}
-            >
-              Employees
-            </Button>
+    <div className="h-screen flex flex-col">
+      {/* Top Navigation */}
+      <div className="border-b">
+        <div className="flex justify-between items-center px-6 py-3">
+          <div className="flex items-center gap-4">
+            <h1 className="text-xl font-semibold">{restaurant.name}</h1>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setDisplay("floormap")}
+                variant={display === "floormap" ? "default" : "outline"}
+              >
+                Floor Map
+              </Button>
+              <Button
+                onClick={() => setDisplay("menu")}
+                variant={display === "menu" ? "default" : "outline"}
+              >
+                Menu
+              </Button>
+              <Button
+                onClick={() => setDisplay("employees")}
+                variant={display === "employees" ? "default" : "outline"}
+              >
+                Employees
+              </Button>
+            </div>
           </div>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
+              <Button variant="ghost" size="icon">
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -99,11 +112,19 @@ export default function RestaurantPage() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+      </div>
 
-        {display === "employees" ? (
+      {/* Main Content */}
+      <div className="flex-1 overflow-hidden">
+        {selectedTable ? (
+          <TableView
+            table={selectedTable}
+            onClose={() => setSelectedTable(null)}
+          />
+        ) : display === "employees" ? (
           <StaffPage />
         ) : display === "floormap" ? (
-          <Floormap tables={tables} />
+          <Floormap tables={tables} onTableSelect={handleTableSelect} />
         ) : display === "menu" ? (
           <MenuPage restaurantId={restaurantId} />
         ) : null}

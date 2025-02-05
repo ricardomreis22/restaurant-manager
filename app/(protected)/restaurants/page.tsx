@@ -7,9 +7,6 @@ import { Restaurant } from "@prisma/client";
 
 const RestaurantsPage = async () => {
   const userRestaurants = await getRestaurants();
-
-  if (!userRestaurants) return null;
-
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-8">
@@ -19,7 +16,7 @@ const RestaurantsPage = async () => {
         </Link>
       </div>
 
-      {!userRestaurants?.restaurants?.length ? (
+      {!userRestaurants?.restaurants.length ? (
         <div className="text-center py-10">
           <p className="text-gray-500 mb-4">
             You haven't created any restaurants yet.
