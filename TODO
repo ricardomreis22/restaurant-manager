@@ -29,6 +29,11 @@ As the employee login, the employee should be redirected to the user dashboard w
 
 ---------Questions-------
 
+So I did the difference between the admin and the staff in the login.ts, but right the only the staff can´t acess is the other restaurants.
+
+Inside the restaurant the staff can see, he can´t see some pages as well like the employers page. And he can´t change the floorplan, etc.
+How do I make the staff not be able to change this things? Do I have to make this things in a admin route and then make staff not able to access it?
+
 ---------- WATCH OUT -------
 
 Can i delete the admin that create the restaurant?

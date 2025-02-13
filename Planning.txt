@@ -1,5 +1,0 @@
-App criada para os owners dos restaurantes, ou seja quem se regista na app são os owmers.
-
-Depois os owners vão criar os users. 
-
-Ao fazer login se forem owners tem mais acessos, se forem user tem menos e consoante a sua role
