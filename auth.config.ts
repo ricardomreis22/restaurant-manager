@@ -1,19 +1,26 @@
 import type { NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
+import { PrismaClient } from "@prisma/client";
 
 import { LoginSchema } from "@/schemas";
 import { getUserByEmail } from "@/data/user";
+
+const prisma = new PrismaClient();
 
 export default {
   providers: [
     Credentials({
       async authorize(credentials) {
-        const validatedFields = LoginSchema.safeParse(credentials);
+        try {
+          const { email, password } = credentials as {
+            email: string;
+            password: string;
+          };
 
-        if (validatedFields.success) {
-          const { email, password } = validatedFields.data;
-          const user = await getUserByEmail(email);
+          const user = await prisma.user.findUnique({
+            where: { email },
+          });
 
           if (!user || !user.password) return null;
 
@@ -21,10 +28,15 @@ export default {
 
           if (passwordsMatch) {
             return {
-              ...user,
               id: user.id.toString(),
+              name: user.name,
+              email: user.email,
+              userRole: user.userRole,
             };
           }
+        } catch (error) {
+          console.error("Auth error:", error);
+          return null;
         }
         return null;
       },

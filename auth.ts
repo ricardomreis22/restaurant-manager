@@ -1,10 +1,9 @@
 import NextAuth, { type DefaultSession } from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import prisma from "@/lib/prisma";
+import { UserRole } from "@prisma/client";
 
 import authConfig from "@/auth.config";
-import { getUserById } from "@/data/user";
-import { UserRole } from "@prisma/client";
 
 declare module "next-auth" {
   interface Session {
@@ -13,6 +12,7 @@ declare module "next-auth" {
     } & DefaultSession["user"];
   }
 }
+
 export const {
   handlers: { GET, POST },
   auth,
@@ -20,24 +20,23 @@ export const {
   signOut,
 } = NextAuth({
   adapter: PrismaAdapter(prisma),
-  session: {
-    strategy: "jwt",
-  },
+  session: { strategy: "jwt" },
   callbacks: {
-    // Add the user role to the token, so we can use it in the middleware, to add admin routes, and have role based access control
     async jwt({ token }) {
       if (!token.sub) return token;
-      const existingUser = await getUserById(Number(token.sub));
+
+      const existingUser = await prisma.user.findUnique({
+        where: { id: parseInt(token.sub) },
+      });
 
       if (!existingUser) return token;
 
-      token.user = existingUser;
+      token.userRole = existingUser.userRole;
       return token;
     },
-    // Add the user id to the session
     async session({ token, session }) {
-      if (token.sub && session.user) {
-        session.user.id = token.sub;
+      if (session.user) {
+        session.user.id = token.sub!;
         session.user.userRole = token.userRole as UserRole;
       }
       return session;
