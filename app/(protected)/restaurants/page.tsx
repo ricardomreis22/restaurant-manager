@@ -1,22 +1,59 @@
-import React from "react";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getRestaurants } from "@/app/(protected)/restaurants/actions";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Edit } from "lucide-react";
+import { Edit, Plus, Settings } from "lucide-react";
 import { Restaurant } from "@prisma/client";
+import { useCurrentRole } from "@/hooks/use-current-role";
 
-const RestaurantsPage = async () => {
-  const userRestaurants = await getRestaurants();
+export default function RestaurantsPage() {
+  const router = useRouter();
+  const userRole = useCurrentRole();
+  const [restaurants, setRestaurants] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadRestaurants = async () => {
+      try {
+        const data = await getRestaurants();
+        if (data?.restaurants) {
+          setRestaurants(data.restaurants);
+        }
+      } catch (error) {
+        console.error("Failed to load restaurants:", error);
+      }
+    };
+
+    loadRestaurants();
+  }, []);
+
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">My Restaurants</h1>
-        <Link href="/restaurants/newrestaurant">
-          <Button>Create a Restaurant</Button>
-        </Link>
+        <div className="flex gap-2">
+          {userRole === "ADMIN" && (
+            <>
+              <Button
+                onClick={() => router.push("/admin/restaurants")}
+                variant="outline"
+                className="gap-2"
+              >
+                <Settings className="h-4 w-4" />
+                Admin Dashboard
+              </Button>
+              <Button onClick={() => router.push("/restaurants/newrestaurant")}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Restaurant
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
-      {!userRestaurants?.restaurants.length ? (
+      {!restaurants?.length ? (
         <div className="text-center py-10">
           <p className="text-gray-500 mb-4">
             You haven't created any restaurants yet.
@@ -27,7 +64,7 @@ const RestaurantsPage = async () => {
         </div>
       ) : (
         <div className="grid gap-4">
-          {userRestaurants.restaurants.map((restaurant) => (
+          {restaurants.map((restaurant) => (
             <div
               key={restaurant.id}
               className="border p-4 rounded-lg shadow hover:shadow-md transition"
@@ -56,6 +93,4 @@ const RestaurantsPage = async () => {
       )}
     </div>
   );
-};
-
-export default RestaurantsPage;
+}
