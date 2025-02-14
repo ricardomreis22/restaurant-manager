@@ -4,13 +4,14 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { getRestaurant, getRestaurantTables } from "../actions";
 import { Button } from "@/components/ui/button";
+import { useCurrentRole } from "@/hooks/use-current-role";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Trash } from "lucide-react";
+import { MoreVertical, Trash, Settings } from "lucide-react";
 import { deleteRestaurant } from "../actions";
 import Floormap from "@/components/restaurants/FloorMap";
 import StaffPage from "@/components/restaurants/StaffPage";
@@ -27,6 +28,7 @@ interface Table {
 export default function RestaurantPage() {
   const router = useRouter();
   const params = useParams();
+  const userRole = useCurrentRole();
   const restaurantId = parseInt(params.restaurantId as string);
   const [restaurant, setRestaurant] = useState<any>(null);
   const [tables, setTables] = useState<Table[]>([]);
@@ -92,6 +94,18 @@ export default function RestaurantPage() {
               >
                 Employees
               </Button>
+              {userRole === "ADMIN" && (
+                <Button
+                  onClick={() =>
+                    router.push(`/admin/restaurants/${restaurantId}`)
+                  }
+                  variant="outline"
+                  className="gap-2"
+                >
+                  <Settings className="h-4 w-4" />
+                  Admin View
+                </Button>
+              )}
             </div>
           </div>
 
