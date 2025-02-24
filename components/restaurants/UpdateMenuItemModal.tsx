@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { MenuItems, Category } from "@prisma/client";
 
-interface MenuItemWithCategory extends MenuItem {
+interface MenuItemWithCategory extends MenuItems {
   category: Category;
 }
 

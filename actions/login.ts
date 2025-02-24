@@ -25,7 +25,6 @@ export const login = async (values: z.infer<typeof LoginSchema>) => {
     if (!user) {
       return { error: "Invalid credentials", success: undefined };
     }
-
     // Determine redirect path based on role
     const redirectTo =
       user.userRole === "ADMIN"

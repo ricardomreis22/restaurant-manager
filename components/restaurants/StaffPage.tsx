@@ -2,12 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import {
-  getRestaurantStaff,
-  deleteStaffMember,
-  updateStaffMember,
-  addStaffMember,
-} from "@/app/(protected)/restaurants/actions";
+import { getRestaurantStaff, deleteStaffMember } from "@/actions/staff";
 import { Button } from "@/components/ui/button";
 import {
   Table,

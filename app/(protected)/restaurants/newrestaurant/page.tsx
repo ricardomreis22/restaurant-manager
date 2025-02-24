@@ -4,7 +4,7 @@ import { startTransition, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RestaurantSchema } from "@/schemas/index";
-import { createRestaurant } from "../actions";
+import { createRestaurant } from "@/actions/restaurants";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,7 +42,7 @@ export default function NewRestaurantPage() {
     setIsPending(true);
 
     startTransition(() => {
-      createRestaurant(values).then((data) => {
+      createRestaurant(values).then((data: any) => {
         if (data?.error) {
           setError(data.error);
         }

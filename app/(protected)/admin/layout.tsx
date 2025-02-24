@@ -1,17 +1,36 @@
-import { checkAdmin } from "@/actions/admin";
+"use client";
 
-export default async function AdminLayout({
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // This will protect all routes under /admin
-  await checkAdmin();
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === "loading") return;
+
+    if (!session || session.user?.userRole !== "ADMIN") {
+      router.push("/restaurants");
+    }
+  }, [session, status, router]);
+
+  if (status === "loading") {
+    return <div>Loading...</div>;
+  }
+
+  if (!session || session.user?.userRole !== "ADMIN") {
+    return null;
+  }
 
   return (
     <div>
-      {/* You can add admin layout UI here, like a sidebar or header */}
-      <div className="p-6">{children}</div>
+      <div className="bg-gray-100 min-h-screen">{children}</div>
     </div>
   );
 }

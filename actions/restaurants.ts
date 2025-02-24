@@ -6,7 +6,6 @@ import { NewStaffSchema } from "@/schemas";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
-import { Prisma } from "@prisma/client";
 
 export async function getRestaurants() {
   try {
@@ -89,30 +88,6 @@ export async function createRestaurant(formData: {
       }
     }
 
-    // Define default categories
-    const defaultCategories = [
-      {
-        name: "Main Dishes",
-        description: "Our delicious main course options",
-      },
-      {
-        name: "Starters",
-        description: "Appetizers and small plates",
-      },
-      {
-        name: "Drinks",
-        description: "Beverages and cocktails",
-      },
-      {
-        name: "Desserts",
-        description: "Sweet treats to finish your meal",
-      },
-      {
-        name: "Sides",
-        description: "Perfect accompaniments to your main dish",
-      },
-    ];
-
     const restaurant = await prisma.restaurant.create({
       data: {
         name: formData.name,
@@ -130,9 +105,6 @@ export async function createRestaurant(formData: {
             capacity: index < 5 ? 2 : 4,
             isReserved: false,
           })),
-        },
-        categories: {
-          create: defaultCategories,
         },
       },
       include: {
@@ -228,122 +200,5 @@ export async function getRestaurantTables(restaurantId: number) {
   } catch (error) {
     console.error("Failed to fetch tables:", error);
     return [];
-  }
-}
-
-// Staff Management
-export async function getRestaurantStaff(restaurantId: number) {
-  try {
-    const restaurant = await prisma.restaurant.findUnique({
-      where: { id: restaurantId },
-      include: {
-        users: {
-          include: {
-            role: true,
-          },
-        },
-      },
-    });
-
-    return restaurant?.users || [];
-  } catch (error) {
-    console.error("Failed to fetch staff:", error);
-    throw new Error("Failed to fetch staff");
-  }
-}
-
-export async function deleteStaffMember(userId: number) {
-  try {
-    const user = await prisma.user.delete({
-      where: { id: userId },
-    });
-    return { success: "Staff member deleted successfully" };
-  } catch (error) {
-    console.error("Failed to delete staff member:", error);
-    return { error: "Failed to delete staff member" };
-  }
-}
-
-export async function updateStaffMember(
-  userId: number,
-  data: {
-    name: string;
-    email: string;
-    phone?: string;
-    roleId?: number;
-  }
-) {
-  try {
-    const user = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        roleId: data.roleId,
-      },
-      include: {
-        role: true,
-      },
-    });
-    return { success: "Staff member updated successfully", user };
-  } catch (error) {
-    console.error("Failed to update staff member:", error);
-    return { error: "Failed to update staff member" };
-  }
-}
-
-export async function addStaffMember(values: z.infer<typeof NewStaffSchema>) {
-  try {
-    const validatedFields = NewStaffSchema.safeParse(values);
-
-    if (!validatedFields.success) {
-      return {
-        error: "Invalid credentials",
-      };
-    }
-
-    const { name, email, password, phone, role, restaurantId } =
-      validatedFields.data;
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const existingUser = await getUserByEmail(email);
-    if (existingUser) {
-      return {
-        error: "User already exists",
-        success: undefined,
-      };
-    }
-
-    const staff = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        name,
-        phone,
-        userRole: "STAFF",
-        role: {
-          connectOrCreate: {
-            where: {
-              name: role,
-            },
-            create: {
-              name: role,
-            },
-          },
-        },
-        restaurants: {
-          connect: {
-            id: restaurantId,
-          },
-        },
-      },
-    });
-
-    return { success: "Staff member added successfully", staff };
-  } catch (error) {
-    console.error("Failed to add staff member:", error);
-    return { error: "Failed to add staff member" };
   }
 }

@@ -23,13 +23,12 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { FormError } from "@/components/form-error";
-import { addStaffMember } from "@/app/(protected)/restaurants/actions";
+import { createStaffMember } from "@/actions/staff";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 
 interface NewStaffModalProps {
@@ -66,7 +65,7 @@ const NewStaffModal = ({
     setSuccess("");
     setIsPending(true);
     startTransition(() => {
-      addStaffMember(values).then((data) => {
+      createStaffMember(values).then((data: any) => {
         if (data?.error) {
           setError(data.error);
         }
