@@ -30,7 +30,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
-import { updateStaffMember } from "@/app/(protected)/restaurants/actions";
+import { updateStaffMember } from "@/actions/staff";
 
 interface UpdateStaffModalProps {
   isOpen: boolean;
@@ -74,7 +74,7 @@ const UpdateStaffModal = ({
     setSuccess("");
     setIsPending(true);
     startTransition(() => {
-      updateStaffMember(selectedEmployee.id, values).then((data) => {
+      updateStaffMember(selectedEmployee.id, values).then((data: any) => {
         setError(data.error);
         setSuccess(data.success);
         if (data.success) {

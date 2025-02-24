@@ -19,6 +19,15 @@ import { UpdateMenuItemModal } from "./UpdateMenuItemModal";
 import { Pencil, Trash, Plus } from "lucide-react";
 import { AddCategoryModal } from "./AddCategoryModal";
 import { UpdateCategoryModal } from "./UpdateCategoryModal";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface MenuPageProps {
   restaurantId: number;
@@ -26,6 +35,13 @@ interface MenuPageProps {
 
 interface MenuItemWithCategory extends MenuItems {
   category: Category;
+}
+
+interface NewMenuItem {
+  name: string;
+  description?: string;
+  price: string;
+  categoryId: number;
 }
 
 export default function MenuPage({ restaurantId }: MenuPageProps) {
@@ -44,6 +60,12 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null
   );
+  const [newMenuItem, setNewMenuItem] = useState<NewMenuItem>({
+    name: "",
+    description: "",
+    price: "",
+    categoryId: 0,
+  });
 
   const loadMenu = async () => {
     try {
@@ -64,30 +86,31 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
     loadMenu();
   }, [restaurantId]);
 
-  const handleAddItem = (item: {
-    name: string;
-    description?: string;
-    price: number;
-    categoryId: number;
-  }) => {
+  const handleAddMenuItem = async () => {
+    if (!newMenuItem.categoryId) return;
+
     setIsPending(true);
-    startTransition(() => {
-      createMenuItem(restaurantId, {
-        name: item.name,
-        description: item.description,
-        price: item.price,
-        categoryId: item.categoryId,
-      })
-        .then(() => {
-          loadMenu();
-          setIsAddModalOpen(false);
-          setIsPending(false);
-        })
-        .catch((error) => {
-          console.error("Failed to add item:", error);
-          setIsPending(false);
-        });
-    });
+    try {
+      await createMenuItem(restaurantId, {
+        name: newMenuItem.name,
+        description: newMenuItem.description,
+        price: parseFloat(newMenuItem.price),
+        categoryId: newMenuItem.categoryId,
+      });
+
+      await loadMenu();
+      setIsAddModalOpen(false);
+      setNewMenuItem({
+        name: "",
+        description: "",
+        price: "",
+        categoryId: 0,
+      });
+    } catch (error) {
+      console.error("Failed to add menu item:", error);
+    } finally {
+      setIsPending(false);
+    }
   };
 
   const handleUpdateItem = (
@@ -226,10 +249,6 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
             <Plus className="h-4 w-4 mr-2" />
             Add Category
           </Button>
-          <Button onClick={() => setIsAddModalOpen(true)} disabled={isPending}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Menu Item
-          </Button>
         </div>
       </div>
 
@@ -265,6 +284,19 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
                 >
                   <Trash className="h-4 w-4" />
                 </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setNewMenuItem((prev) => ({
+                      ...prev,
+                      categoryId: category.id,
+                    }));
+                    setIsAddModalOpen(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
@@ -283,7 +315,9 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
                       )}
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="font-medium">${item.price}</div>
+                      <div className="font-medium">
+                        ${item.price.toFixed(2)}
+                      </div>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -312,12 +346,60 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
         ))}
       </div>
 
-      <AddMenuItemModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onSubmit={handleAddItem}
-        categories={categories}
-      />
+      {/* Add Menu Item Modal */}
+      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Menu Item</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                value={newMenuItem.name}
+                onChange={(e) =>
+                  setNewMenuItem({ ...newMenuItem, name: e.target.value })
+                }
+                placeholder="Item name"
+              />
+            </div>
+            <div>
+              <Label htmlFor="description">Description (Optional)</Label>
+              <Input
+                id="description"
+                value={newMenuItem.description}
+                onChange={(e) =>
+                  setNewMenuItem({
+                    ...newMenuItem,
+                    description: e.target.value,
+                  })
+                }
+                placeholder="Item description"
+              />
+            </div>
+            <div>
+              <Label htmlFor="price">Price</Label>
+              <Input
+                id="price"
+                type="number"
+                step="0.01"
+                value={newMenuItem.price}
+                onChange={(e) =>
+                  setNewMenuItem({ ...newMenuItem, price: e.target.value })
+                }
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddMenuItem}>Add Item</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {selectedItem && (
         <UpdateMenuItemModal

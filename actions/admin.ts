@@ -19,7 +19,3 @@ export async function checkAdmin() {
 }
 
 // Example of a protected admin action
-export async function adminOnlyAction() {
-  await checkAdmin();
-  // Your admin-only logic here
-}
