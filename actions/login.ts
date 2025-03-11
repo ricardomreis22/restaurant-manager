@@ -18,13 +18,13 @@ export const login = async (values: z.infer<typeof LoginSchema>) => {
   }
 
   const { email, password } = validatedFields.data;
-
   try {
     // Get user to check role before signing in
     const user = await getUserByEmail(email);
     if (!user) {
       return { error: "Invalid credentials", success: undefined };
     }
+
     // Determine redirect path based on role
     const redirectTo =
       user.userRole === "ADMIN"

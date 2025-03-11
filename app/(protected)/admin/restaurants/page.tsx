@@ -5,23 +5,17 @@ import { useRouter } from "next/navigation";
 import { getRestaurants } from "@/actions/restaurants";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Edit, Plus, Trash, Users, ArrowLeft } from "lucide-react";
+import { Edit, Plus, Trash, Users, ArrowLeft, Eye } from "lucide-react";
 import { useSession } from "next-auth/react";
 
 export default function AdminRestaurantsPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
   const [restaurants, setRestaurants] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     if (status === "loading") return;
-
-    // Redirect if not admin
-    if (session?.user?.userRole !== "ADMIN") {
-      router.push("/restaurants");
-      return;
-    }
 
     const loadRestaurants = async () => {
       try {
@@ -37,7 +31,7 @@ export default function AdminRestaurantsPage() {
     };
 
     loadRestaurants();
-  }, [status, session, router]);
+  }, [status]);
 
   if (loading || status === "loading") {
     return <div>Loading...</div>;
@@ -83,16 +77,6 @@ export default function AdminRestaurantsPage() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    router.push(`/admin/restaurants/${restaurant.id}/staff`)
-                  }
-                >
-                  <Users className="h-4 w-4 mr-2" />
-                  Manage Staff
-                </Button>
                 <Button
                   variant="outline"
                   size="sm"
@@ -144,23 +128,10 @@ export default function AdminRestaurantsPage() {
               <Button
                 variant="outline"
                 onClick={() =>
-                  router.push(`/admin/restaurants/${restaurant.id}/menu`)
+                  router.push(`/admin/restaurants/${restaurant.id}`)
                 }
               >
-                Manage Menu
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() =>
-                  router.push(`/admin/restaurants/${restaurant.id}/tables`)
-                }
-              >
-                Manage Tables
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => router.push(`/restaurants/${restaurant.id}`)}
-              >
+                <Eye className="h-4 w-4 mr-2" />
                 View Restaurant
               </Button>
             </div>

@@ -5,13 +5,5 @@ export default function ProtectedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div>
-      <nav className="bg-secondary p-4 flex justify-between items-center">
-        <div>Your Logo/Brand</div>
-        <LogoutButton />
-      </nav>
-      {children}
-    </div>
-  );
+  return <div>{children}</div>;
 }

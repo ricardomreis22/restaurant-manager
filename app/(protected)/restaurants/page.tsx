@@ -6,10 +6,14 @@ import { getRestaurants } from "@/actions/restaurants";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Edit, Plus, Settings } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 
 export default function RestaurantsPage() {
   const router = useRouter();
   const [restaurants, setRestaurants] = useState<any[]>([]);
+  const { data: session, status } = useSession();
+  const pathname = usePathname();
 
   useEffect(() => {
     const loadRestaurants = async () => {
@@ -26,20 +30,16 @@ export default function RestaurantsPage() {
     loadRestaurants();
   }, []);
 
+  if (status === "loading") {
+    return <div>Loading session...</div>;
+  }
+
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">My Restaurants</h1>
         <div className="flex gap-2">
           <>
-            <Button
-              onClick={() => router.push("/admin/restaurants")}
-              variant="outline"
-              className="gap-2"
-            >
-              <Settings className="h-4 w-4" />
-              Admin Dashboard
-            </Button>
             <Button onClick={() => router.push("/restaurants/newrestaurant")}>
               <Plus className="h-4 w-4 mr-2" />
               Add Restaurant
