@@ -9,6 +9,7 @@ import { createOrder, getTableOrders, payOrder } from "@/actions/orders";
 import { ArrowLeft, Clock, CreditCard, Receipt } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { FoodModal } from "./FoodModal";
 
 interface TableViewProps {
   table: {
@@ -25,8 +26,24 @@ interface MenuItemWithCategory extends MenuItems {
   category: Category;
 }
 
-interface OrderItem extends MenuItemWithCategory {
+interface OrderItem {
+  id: string;
+  menuItemId: number;
+  name: string;
+  price: number;
+  description: string | null;
+  categoryId: number;
+  restaurantId: number;
+  hasSpicyOption: boolean;
+  hasSidesOption: boolean;
+  notes: string | null;
+  category: Category;
   quantity: number;
+  spicyLevel: string | null;
+  sides: string | null;
+  orderNotes: string | null;
+  imageUrl: string | null;
+  isAvailable: boolean;
 }
 
 interface PlacedOrder {
@@ -38,6 +55,9 @@ interface PlacedOrder {
   items: {
     quantity: number;
     menuItem: MenuItems;
+    spicyLevel: string | null;
+    sides: string | null;
+    notes: string | null;
   }[];
 }
 
@@ -51,6 +71,11 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [placedOrders, setPlacedOrders] = useState<PlacedOrder[]>([]);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<MenuItemWithCategory | null>(
+    null
+  );
+  const [isFoodModalOpen, setIsFoodModalOpen] = useState(false);
+  const [formData, setFormData] = useState({});
 
   useEffect(() => {
     const loadData = async () => {
@@ -78,29 +103,81 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
     loadData();
   }, [restaurantId, table.id]);
 
-  const addToOrder = (item: MenuItemWithCategory) => {
+  const handleAddToOrder = (
+    item: MenuItemWithCategory,
+    existingOptions?: {
+      spicyLevel?: string;
+      sides?: string;
+      notes?: string;
+    }
+  ) => {
+    setSelectedItem(item);
+    if (existingOptions) {
+      setFormData(existingOptions);
+    } else {
+      setFormData({});
+    }
+    setIsFoodModalOpen(true);
+  };
+
+  const handleFoodModalSubmit = (data: {
+    spicyLevel?: string;
+    sides?: string;
+    notes?: string;
+  }) => {
+    if (!selectedItem) return;
+
     setOrder((currentOrder) => {
       const existingItem = currentOrder.find(
-        (orderItem) => orderItem.id === item.id
+        (orderItem) =>
+          orderItem.menuItemId === selectedItem.id &&
+          orderItem.spicyLevel === data.spicyLevel &&
+          orderItem.sides === data.sides &&
+          orderItem.orderNotes === data.notes
       );
 
       if (existingItem) {
         return currentOrder.map((orderItem) =>
-          orderItem.id === item.id
+          orderItem.id === existingItem.id
             ? { ...orderItem, quantity: orderItem.quantity + 1 }
             : orderItem
         );
       }
 
-      return [...currentOrder, { ...item, quantity: 1 }];
+      const newOrderItem: OrderItem = {
+        id: `order-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        menuItemId: selectedItem.id,
+        name: selectedItem.name,
+        price: selectedItem.price,
+        description: selectedItem.description,
+        categoryId: selectedItem.categoryId,
+        restaurantId: selectedItem.restaurantId,
+        hasSpicyOption: selectedItem.hasSpicyOption,
+        hasSidesOption: selectedItem.hasSidesOption,
+        notes: null,
+        category: selectedItem.category,
+        quantity: 1,
+        spicyLevel: data.spicyLevel || null,
+        sides: data.sides || null,
+        orderNotes: data.notes || null,
+        imageUrl: selectedItem.imageUrl,
+        isAvailable: selectedItem.isAvailable,
+      };
+
+      return [...currentOrder, newOrderItem];
     });
+
+    setSelectedItem(null);
+    setIsFoodModalOpen(false);
   };
 
-  const removeFromOrder = (itemId: number) => {
+  const removeFromOrder = (orderItemId: string) => {
     setOrder((currentOrder) =>
       currentOrder
         .map((item) =>
-          item.id === itemId ? { ...item, quantity: item.quantity - 1 } : item
+          item.id === orderItemId
+            ? { ...item, quantity: item.quantity - 1 }
+            : item
         )
         .filter((item) => item.quantity > 0)
     );
@@ -118,8 +195,11 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
       createOrder({
         tableId: table.id,
         items: order.map((item) => ({
-          menuItemId: item.id,
+          menuItemId: item.menuItemId,
           quantity: item.quantity,
+          spicyLevel: item.spicyLevel || undefined,
+          sides: item.sides || undefined,
+          notes: item.orderNotes || undefined,
         })),
         totalAmount: calculateTotal(),
       })
@@ -243,7 +323,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
               <Card
                 key={item.id}
                 className="p-4 cursor-pointer hover:shadow-md transition"
-                onClick={() => addToOrder(item)}
+                onClick={() => handleAddToOrder(item)}
               >
                 <div className="flex justify-between items-start">
                   <div>
@@ -277,7 +357,16 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                   >
                     <div>
                       <h4 className="font-medium">{item.name}</h4>
-                      <div className="flex items-center gap-2 mt-1">
+                      {(item.spicyLevel || item.sides || item.orderNotes) && (
+                        <div className="text-sm text-gray-600 mt-1">
+                          {item.spicyLevel && (
+                            <p>Spicy Level: {item.spicyLevel}</p>
+                          )}
+                          {item.sides && <p>Sides: {item.sides}</p>}
+                          {item.orderNotes && <p>Notes: {item.orderNotes}</p>}
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2 mt-2">
                         <Button
                           variant="outline"
                           size="sm"
@@ -289,7 +378,18 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => addToOrder(item)}
+                          onClick={() => {
+                            const menuItem = menuItems.find(
+                              (menuItem) => menuItem.id === item.menuItemId
+                            );
+                            if (menuItem) {
+                              handleAddToOrder(menuItem, {
+                                spicyLevel: item.spicyLevel || undefined,
+                                sides: item.sides || undefined,
+                                notes: item.orderNotes || undefined,
+                              });
+                            }
+                          }}
                         >
                           +
                         </Button>
@@ -364,16 +464,25 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                     </div>
                     <div className="space-y-2">
                       {placedOrder.items.map((item, index) => (
-                        <div
-                          key={index}
-                          className="flex justify-between text-sm"
-                        >
-                          <span>
-                            {item.quantity}x {item.menuItem.name}
-                          </span>
-                          <span className="text-gray-600">
-                            ${(item.menuItem.price * item.quantity).toFixed(2)}
-                          </span>
+                        <div key={index} className="flex flex-col text-sm">
+                          <div className="flex justify-between">
+                            <span>
+                              {item.quantity}x {item.menuItem.name}
+                            </span>
+                            <span className="text-gray-600">
+                              $
+                              {(item.menuItem.price * item.quantity).toFixed(2)}
+                            </span>
+                          </div>
+                          {(item.spicyLevel || item.sides || item.notes) && (
+                            <div className="text-gray-500 text-xs mt-1">
+                              {item.spicyLevel && (
+                                <p>Spicy Level: {item.spicyLevel}</p>
+                              )}
+                              {item.sides && <p>Sides: {item.sides}</p>}
+                              {item.notes && <p>Notes: {item.notes}</p>}
+                            </div>
+                          )}
                         </div>
                       ))}
                       <div className="border-t pt-2 mt-2">
@@ -390,6 +499,18 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
           </div>
         </div>
       </div>
+
+      {selectedItem && (
+        <FoodModal
+          isOpen={isFoodModalOpen}
+          onClose={() => {
+            setIsFoodModalOpen(false);
+            setSelectedItem(null);
+          }}
+          onSubmit={handleFoodModalSubmit}
+          menuItem={selectedItem}
+        />
+      )}
     </div>
   );
 }

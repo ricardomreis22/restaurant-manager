@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Category } from "@prisma/client";
 
 interface AddMenuItemModalProps {
@@ -26,6 +27,8 @@ interface AddMenuItemModalProps {
     description?: string;
     price: number;
     categoryId: number;
+    hasSpicyOption: boolean;
+    hasSidesOption: boolean;
   }) => void;
   categories: Category[];
 }
@@ -41,6 +44,8 @@ export function AddMenuItemModal({
     description: "",
     price: "",
     categoryId: "",
+    hasSpicyOption: false,
+    hasSidesOption: false,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -55,6 +60,8 @@ export function AddMenuItemModal({
       description: "",
       price: "",
       categoryId: "",
+      hasSpicyOption: false,
+      hasSidesOption: false,
     });
     onClose();
   };
@@ -126,6 +133,26 @@ export function AddMenuItemModal({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="hasSpicyOption">Has Spicy Option</Label>
+              <Switch
+                id="hasSpicyOption"
+                checked={formData.hasSpicyOption}
+                onCheckedChange={(checked: boolean) =>
+                  setFormData({ ...formData, hasSpicyOption: checked })
+                }
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="hasSidesOption">Has Sides Option</Label>
+              <Switch
+                id="hasSidesOption"
+                checked={formData.hasSidesOption}
+                onCheckedChange={(checked: boolean) =>
+                  setFormData({ ...formData, hasSidesOption: checked })
+                }
+              />
             </div>
           </div>
           <DialogFooter className="mt-4">

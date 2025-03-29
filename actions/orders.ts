@@ -6,6 +6,9 @@ import { auth } from "@/auth";
 interface OrderItem {
   menuItemId: number;
   quantity: number;
+  spicyLevel?: string;
+  sides?: string;
+  notes?: string;
 }
 
 export async function createOrder(data: {
@@ -34,6 +37,9 @@ export async function createOrder(data: {
           items: {
             create: data.items.map((item) => ({
               quantity: item.quantity,
+              spicyLevel: item.spicyLevel,
+              sides: item.sides,
+              notes: item.notes,
               menuItem: {
                 connect: { id: item.menuItemId },
               },
