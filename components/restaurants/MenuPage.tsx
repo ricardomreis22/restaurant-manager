@@ -347,59 +347,14 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
       </div>
 
       {/* Add Menu Item Modal */}
-      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Menu Item</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                value={newMenuItem.name}
-                onChange={(e) =>
-                  setNewMenuItem({ ...newMenuItem, name: e.target.value })
-                }
-                placeholder="Item name"
-              />
-            </div>
-            <div>
-              <Label htmlFor="description">Description (Optional)</Label>
-              <Input
-                id="description"
-                value={newMenuItem.description}
-                onChange={(e) =>
-                  setNewMenuItem({
-                    ...newMenuItem,
-                    description: e.target.value,
-                  })
-                }
-                placeholder="Item description"
-              />
-            </div>
-            <div>
-              <Label htmlFor="price">Price</Label>
-              <Input
-                id="price"
-                type="number"
-                step="0.01"
-                value={newMenuItem.price}
-                onChange={(e) =>
-                  setNewMenuItem({ ...newMenuItem, price: e.target.value })
-                }
-                placeholder="0.00"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleAddMenuItem}>Add Item</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {isAddModalOpen && (
+        <AddMenuItemModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onSubmit={handleAddMenuItem}
+          categories={categories}
+        />
+      )}
 
       {selectedItem && (
         <UpdateMenuItemModal

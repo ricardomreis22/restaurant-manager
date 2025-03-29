@@ -3,17 +3,19 @@
 import React, { useState, startTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash } from "lucide-react";
+import { Plus, Trash, Users } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createTable, deleteTable, getTables } from "@/actions/tables";
+import { toast } from "sonner";
 
 interface Table {
   id: number;
@@ -38,9 +40,14 @@ const Floormap = ({
   const router = useRouter();
   const [selectedTable, setSelectedTable] = useState<number | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isSeatModalOpen, setIsSeatModalOpen] = useState(false);
   const [tableNumber, setTableNumber] = useState("");
   const [isPending, setIsPending] = useState(false);
   const [localTables, setLocalTables] = useState(tables);
+  const [selectedTableData, setSelectedTableData] = useState<Table | null>(
+    null
+  );
+  const [numberOfPeople, setNumberOfPeople] = useState<number>(2);
 
   const refreshTables = async () => {
     try {
@@ -59,11 +66,46 @@ const Floormap = ({
   }, [tables]);
 
   const handleTableClick = (tableId: number) => {
-    setSelectedTable(tableId);
-    onTableSelect(tableId);
-    router.push(`/restaurants/${restaurantId}/tables/${tableId}`);
+    const table = localTables.find((t) => t.id === tableId);
+    if (table?.isReserved) {
+      setSelectedTable(table.id);
+      onTableSelect(table.id);
+      router.push(`/restaurants/${restaurantId}/tables/${table.id}`);
+    } else {
+      setSelectedTable(tableId);
+      setSelectedTableData(table || null);
+      setNumberOfPeople(table?.capacity || 2);
+      setIsSeatModalOpen(true);
+    }
   };
 
+  const handleConfirmSeating = () => {
+    if (!selectedTable) return;
+
+    // Update the table capacity if needed
+    if (selectedTableData) {
+      // In a real implementation, you would update the table capacity in the database
+      // For now, we'll just update it locally
+      setLocalTables((tables) =>
+        tables.map((table) =>
+          table.id === selectedTable
+            ? { ...table, capacity: numberOfPeople, isReserved: true }
+            : table
+        )
+      );
+
+      toast.success(
+        `Table ${selectedTableData.number} set for ${numberOfPeople} people`
+      );
+    }
+
+    // Close the modal and navigate to the table
+    setIsSeatModalOpen(false);
+    onTableSelect(selectedTable);
+    router.push(`/restaurants/${restaurantId}/tables/${selectedTable}`);
+  };
+
+  // ADMIN ONLY ///////////////////////////////////////////////////////////////
   const handleAddTable = () => {
     setIsPending(true);
     const tableId = parseInt(tableNumber);
@@ -110,6 +152,8 @@ const Floormap = ({
       });
     }
   };
+
+  /////////////////////////////////////////////////////////////////////////////
 
   return (
     <div className="relative h-full">
@@ -225,6 +269,52 @@ const Floormap = ({
             <Button onClick={handleAddTable} disabled={isPending}>
               {isPending ? "Adding..." : "Add Table"}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Seating Modal */}
+      <Dialog open={isSeatModalOpen} onOpenChange={setIsSeatModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Table {selectedTableData?.number}</DialogTitle>
+            <DialogDescription>
+              How many people will be seated at this table?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-6">
+            <div className="flex items-center justify-center gap-6">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() =>
+                  setNumberOfPeople((prev) => Math.max(1, prev - 1))
+                }
+                disabled={numberOfPeople <= 1}
+              >
+                -
+              </Button>
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-gray-500" />
+                <span className="text-2xl font-semibold">{numberOfPeople}</span>
+              </div>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() =>
+                  setNumberOfPeople((prev) => Math.min(12, prev + 1))
+                }
+                disabled={numberOfPeople >= 12}
+              >
+                +
+              </Button>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsSeatModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmSeating}>Confirm</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

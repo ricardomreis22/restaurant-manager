@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { MenuItems, Category } from "@prisma/client";
 
 interface MenuItemWithCategory extends MenuItems {
@@ -33,6 +34,8 @@ interface UpdateMenuItemModalProps {
       description?: string;
       price: number;
       categoryId: number;
+      hasSpicyOption: boolean;
+      hasSidesOption: boolean;
     }
   ) => void;
   item: MenuItemWithCategory;
@@ -50,6 +53,8 @@ export function UpdateMenuItemModal({
     description: "",
     price: "",
     categoryId: "",
+    hasSpicyOption: false,
+    hasSidesOption: false,
   });
 
   useEffect(() => {
@@ -59,6 +64,8 @@ export function UpdateMenuItemModal({
         description: item.description || "",
         price: item.price.toString(),
         categoryId: item.categoryId.toString(),
+        hasSpicyOption: item.hasSpicyOption,
+        hasSidesOption: item.hasSidesOption,
       });
     }
   }, [item]);
@@ -69,6 +76,8 @@ export function UpdateMenuItemModal({
       ...formData,
       price: parseFloat(formData.price),
       categoryId: parseInt(formData.categoryId),
+      hasSpicyOption: formData.hasSpicyOption,
+      hasSidesOption: formData.hasSidesOption,
     });
     onClose();
   };
@@ -140,6 +149,26 @@ export function UpdateMenuItemModal({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="hasSpicyOption">Has Spicy Option</Label>
+              <Switch
+                id="hasSpicyOption"
+                checked={formData.hasSpicyOption}
+                onCheckedChange={(checked: boolean) =>
+                  setFormData({ ...formData, hasSpicyOption: checked })
+                }
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="hasSidesOption">Has Sides Option</Label>
+              <Switch
+                id="hasSidesOption"
+                checked={formData.hasSidesOption}
+                onCheckedChange={(checked: boolean) =>
+                  setFormData({ ...formData, hasSidesOption: checked })
+                }
+              />
             </div>
           </div>
           <DialogFooter className="mt-4">

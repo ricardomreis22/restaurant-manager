@@ -39,12 +39,6 @@ export async function updateCategory(
 
 export async function deleteCategory(id: number) {
   try {
-    // First, update all menu items in this category to a default category or null
-    await prisma.menuItems.updateMany({
-      where: { categoryId: id },
-      data: { categoryId: null },
-    });
-
     // Then delete the category
     await prisma.category.delete({
       where: { id },
@@ -97,6 +91,8 @@ export async function createMenuItem(
     description?: string;
     price: number;
     categoryId: number;
+    hasSpicyOption?: boolean;
+    hasSidesOption?: boolean;
   }
 ) {
   if (!restaurantId) return "Restaurant not found";
@@ -106,8 +102,14 @@ export async function createMenuItem(
   try {
     const menuItem = await prisma.menuItems.create({
       data: {
-        ...data,
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        categoryId: data.categoryId,
         restaurantId,
+        hasSpicyOption: data.hasSpicyOption ?? false,
+        hasSidesOption: data.hasSidesOption ?? false,
+        notes: "", // Required field with default value
       },
       include: {
         category: true,
@@ -127,12 +129,21 @@ export async function updateMenuItem(
     description?: string;
     price: number;
     categoryId: number;
+    hasSpicyOption?: boolean;
+    hasSidesOption?: boolean;
   }
 ) {
   try {
     const menuItem = await prisma.menuItems.update({
       where: { id },
-      data,
+      data: {
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        categoryId: data.categoryId,
+        hasSpicyOption: data.hasSpicyOption ?? false,
+        hasSidesOption: data.hasSidesOption ?? false,
+      },
       include: {
         category: true,
       },
@@ -161,11 +172,7 @@ export async function getMenuWithCategories(menuId: number) {
     const menu = await prisma.menuItems.findUnique({
       where: { id: menuId },
       include: {
-        categories: {
-          include: {
-            items: true,
-          },
-        },
+        category: true,
       },
     });
     return menu;

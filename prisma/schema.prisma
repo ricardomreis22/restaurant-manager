@@ -114,6 +114,9 @@ model MenuItems {
   categoryId  Int
   description String?
   isAvailable Boolean   @default(true)
+
+  hasSpicyOption Boolean @default(false)
+  hasSidesOption Boolean @default(false)
   orderItems  OrderItem[]
   applicablePromotions Promotion[]
   restaurant  Restaurant @relation(fields: [restaurantId], references: [id])
@@ -155,6 +158,9 @@ model OrderItem {
   menuItemId  Int
   order       Order     @relation(fields: [orderId], references: [id])
   orderId     Int
+  spicyLevel  String?
+  sides       String?
+  notes       String?
 }
 
 model InventoryItem {
