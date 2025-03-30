@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -31,6 +31,7 @@ interface AddMenuItemModalProps {
     hasSidesOption: boolean;
   }) => void;
   categories: Category[];
+  initialCategoryId?: number;
 }
 
 export function AddMenuItemModal({
@@ -38,15 +39,25 @@ export function AddMenuItemModal({
   onClose,
   onSubmit,
   categories,
+  initialCategoryId,
 }: AddMenuItemModalProps) {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     price: "",
-    categoryId: "",
+    categoryId: initialCategoryId?.toString() || "",
     hasSpicyOption: false,
     hasSidesOption: false,
   });
+
+  useEffect(() => {
+    if (initialCategoryId) {
+      setFormData((prev) => ({
+        ...prev,
+        categoryId: initialCategoryId.toString(),
+      }));
+    }
+  }, [initialCategoryId]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

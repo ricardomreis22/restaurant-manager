@@ -86,26 +86,20 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
     loadMenu();
   }, [restaurantId]);
 
-  const handleAddMenuItem = async () => {
-    if (!newMenuItem.categoryId) return;
-
+  const handleAddMenuItem = async (item: {
+    name: string;
+    description?: string;
+    price: number;
+    categoryId: number;
+    hasSpicyOption: boolean;
+    hasSidesOption: boolean;
+  }) => {
     setIsPending(true);
     try {
-      await createMenuItem(restaurantId, {
-        name: newMenuItem.name,
-        description: newMenuItem.description,
-        price: parseFloat(newMenuItem.price),
-        categoryId: newMenuItem.categoryId,
-      });
-
+      console.log("Creating menu item:", item);
+      await createMenuItem(restaurantId, item);
       await loadMenu();
       setIsAddModalOpen(false);
-      setNewMenuItem({
-        name: "",
-        description: "",
-        price: "",
-        categoryId: 0,
-      });
     } catch (error) {
       console.error("Failed to add menu item:", error);
     } finally {
@@ -353,6 +347,7 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
           onClose={() => setIsAddModalOpen(false)}
           onSubmit={handleAddMenuItem}
           categories={categories}
+          initialCategoryId={newMenuItem.categoryId}
         />
       )}
 
