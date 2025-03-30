@@ -3,7 +3,7 @@
 import React, { useState, startTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash, Users } from "lucide-react";
+import { Plus, Trash, Users, Lock } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -16,17 +16,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createTable, deleteTable, getTables } from "@/actions/tables";
 import { toast } from "sonner";
+import { TableLocker } from "./TableLocker";
 
 interface Table {
   id: number;
   number: number;
   capacity: number;
   isReserved: boolean;
+  isLocked: boolean;
 }
 
 interface FloorMapProps {
   tables: Table[];
   onTableSelect: (tableId: number) => void;
+  onToggleLock?: (tableId: number, locked: boolean) => void;
   isAdminView?: boolean;
   restaurantId: number;
 }
@@ -34,6 +37,7 @@ interface FloorMapProps {
 const Floormap = ({
   tables,
   onTableSelect,
+  onToggleLock,
   isAdminView = false,
   restaurantId,
 }: FloorMapProps) => {
@@ -67,6 +71,10 @@ const Floormap = ({
 
   const handleTableClick = (tableId: number) => {
     const table = localTables.find((t) => t.id === tableId);
+    if (table?.isLocked) {
+      // Don't allow interaction with locked tables
+      return;
+    }
     if (table?.isReserved) {
       setSelectedTable(table.id);
       onTableSelect(table.id);
@@ -189,7 +197,12 @@ const Floormap = ({
                 key={table.id}
                 onClick={() => handleTableClick(table.id)}
                 className={`
-                  relative p-4 rounded-lg shadow-md text-center cursor-pointer
+                  relative p-4 rounded-lg shadow-md text-center
+                  ${
+                    table.isLocked
+                      ? "cursor-not-allowed opacity-50"
+                      : "cursor-pointer"
+                  }
                   ${table.isReserved ? "bg-yellow-100" : "bg-green-100"}
                   ${selectedTable === table.id ? "ring-2 ring-blue-500" : ""}
                   hover:shadow-lg transition-all
@@ -202,6 +215,9 @@ const Floormap = ({
                 <p className="text-sm mt-1">
                   {table.isReserved ? "Reserved" : "Available"}
                 </p>
+                {table.isLocked && (
+                  <Lock className="absolute top-2 right-2 h-4 w-4 text-red-500" />
+                )}
                 {isAdminView && (
                   <Button
                     variant="ghost"
@@ -214,6 +230,13 @@ const Floormap = ({
                   >
                     <Trash className="h-4 w-4" />
                   </Button>
+                )}
+                {onToggleLock && (
+                  <TableLocker
+                    tableId={table.id}
+                    isLocked={table.isLocked}
+                    onToggleLock={onToggleLock}
+                  />
                 )}
               </div>
             ))}

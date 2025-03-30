@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
+import { UserRole } from "@prisma/client";
 
 export async function createTable(data: {
   id: number;
@@ -82,6 +83,26 @@ export async function getTables(restaurantId: number) {
     return { success: true, tables };
   } catch (error) {
     console.error("[GET_TABLES_ERROR]", error);
+    throw error;
+  }
+}
+
+export async function toggleTableLock(tableId: number, locked: boolean) {
+  try {
+    const session = await auth();
+
+    if (!session?.user) {
+      throw new Error("Unauthorized");
+    }
+
+    const table = await prisma.table.update({
+      where: { id: tableId },
+      data: { isLocked: locked },
+    });
+
+    return table;
+  } catch (error) {
+    console.error("Failed to toggle table lock:", error);
     throw error;
   }
 }
