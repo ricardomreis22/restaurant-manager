@@ -96,7 +96,6 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
   }) => {
     setIsPending(true);
     try {
-      console.log("Creating menu item:", item);
       await createMenuItem(restaurantId, item);
       await loadMenu();
       setIsAddModalOpen(false);

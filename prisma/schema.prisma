@@ -58,6 +58,7 @@ model Table {
   number       Int
   capacity     Int
   isReserved   Boolean      @default(false)
+  isLocked     Boolean      @default(false)
   reservations Reservation[]
   orders       Order[]
   seats        Seat[]

@@ -10,6 +10,7 @@ import { ArrowLeft, Clock, CreditCard, Receipt } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FoodModal } from "./FoodModal";
+import { toggleTableLock } from "@/actions/tables";
 
 interface TableViewProps {
   table: {
@@ -102,6 +103,29 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
 
     loadData();
   }, [restaurantId, table.id]);
+
+  useEffect(() => {
+    const lockTable = async () => {
+      try {
+        await toggleTableLock(table.id, true);
+      } catch (error) {
+        console.error("Failed to lock table:", error);
+      }
+    };
+
+    lockTable();
+
+    return () => {
+      const unlockTable = async () => {
+        try {
+          await toggleTableLock(table.id, false);
+        } catch (error) {
+          console.error("Failed to unlock table:", error);
+        }
+      };
+      unlockTable();
+    };
+  }, [table.id]);
 
   const handleAddToOrder = (
     item: MenuItemWithCategory,
