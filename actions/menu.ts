@@ -109,7 +109,6 @@ export async function createMenuItem(
         restaurantId,
         hasSpicyOption: data.hasSpicyOption ?? false,
         hasSidesOption: data.hasSidesOption ?? false,
-        notes: "", // Required field with default value
       },
       include: {
         category: true,
