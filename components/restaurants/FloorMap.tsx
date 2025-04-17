@@ -69,6 +69,20 @@ const Floormap = ({
     setLocalTables(tables);
   }, [tables]);
 
+  // Set up polling for table updates
+  useEffect(() => {
+    // Initial fetch
+    refreshTables();
+
+    // Set up polling every 2 seconds
+    const interval = setInterval(() => {
+      refreshTables();
+    }, 2000);
+
+    // Cleanup interval on unmount
+    return () => clearInterval(interval);
+  }, []);
+
   const handleTableClick = (tableId: number) => {
     const table = localTables.find((t) => t.id === tableId);
     if (table?.isLocked) {
