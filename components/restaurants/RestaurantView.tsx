@@ -26,6 +26,7 @@ interface Table {
   number: number;
   capacity: number;
   isReserved: boolean;
+  isLocked: boolean;
 }
 
 interface RestaurantViewProps {
