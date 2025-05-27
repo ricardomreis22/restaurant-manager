@@ -18,6 +18,7 @@ interface TableViewProps {
     number: number;
     capacity: number;
     isReserved: boolean;
+    isLocked: boolean;
   };
   restaurantId: number;
   onClose: () => void;
@@ -104,28 +105,30 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
     loadData();
   }, [restaurantId, table.id]);
 
+  // Unlock table when leaving the view
   useEffect(() => {
-    const lockTable = async () => {
-      try {
-        await toggleTableLock(table.id, true);
-      } catch (error) {
-        console.error("Failed to lock table:", error);
+    return () => {
+      // This cleanup function runs when the component unmounts
+      if (table.isLocked) {
+        toggleTableLock(table.id, false).catch((error) => {
+          console.error("Failed to unlock table:", error);
+        });
       }
     };
+  }, [table.id, table.isLocked]);
 
-    lockTable();
-
-    return () => {
-      const unlockTable = async () => {
-        try {
-          await toggleTableLock(table.id, false);
-        } catch (error) {
-          console.error("Failed to unlock table:", error);
-        }
-      };
-      unlockTable();
-    };
-  }, [table.id]);
+  // Also unlock when explicitly closing the view
+  const handleClose = async () => {
+    if (table.isLocked) {
+      try {
+        await toggleTableLock(table.id, false);
+        console.log(table.id);
+      } catch (error) {
+        console.error("Failed to unlock table:", error);
+      }
+    }
+    onClose();
+  };
 
   const handleAddToOrder = (
     item: MenuItemWithCategory,
@@ -310,7 +313,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
       <div className="border-b p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={onClose}>
+            <Button variant="ghost" onClick={handleClose}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
             </Button>

@@ -90,19 +90,27 @@ export async function getTables(restaurantId: number) {
 export async function toggleTableLock(tableId: number, locked: boolean) {
   try {
     const session = await auth();
-
     if (!session?.user) {
       throw new Error("Unauthorized");
     }
-
     const table = await prisma.table.update({
       where: { id: tableId },
       data: { isLocked: locked },
     });
+
+    console.log("Table locked:", table);
 
     return table;
   } catch (error) {
     console.error("Failed to toggle table lock:", error);
     throw error;
   }
+}
+
+export async function checkTableLock(tableId: number) {
+  const table = await prisma.table.findUnique({
+    where: { id: tableId },
+  });
+  console.log("checkTableLock", table?.isLocked);
+  return table?.isLocked;
 }
