@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, startTransition } from "react";
+import { useState, useEffect, startTransition, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { MenuItems, Category } from "@prisma/client";
@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FoodModal } from "./FoodModal";
 import { toggleTableLock } from "@/actions/tables";
+import { io } from "socket.io-client";
 
 interface TableViewProps {
   table: {
@@ -18,6 +19,7 @@ interface TableViewProps {
     number: number;
     capacity: number;
     isReserved: boolean;
+    isLocked: boolean;
   };
   restaurantId: number;
   onClose: () => void;
@@ -64,6 +66,7 @@ interface PlacedOrder {
 
 export function TableView({ table, restaurantId, onClose }: TableViewProps) {
   const router = useRouter();
+  const isFirstRender = useRef(true);
   const [order, setOrder] = useState<OrderItem[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItemWithCategory[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -77,6 +80,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
   );
   const [isFoodModalOpen, setIsFoodModalOpen] = useState(false);
   const [formData, setFormData] = useState({});
+  const socket = io("http://localhost:3001");
 
   useEffect(() => {
     const loadData = async () => {
@@ -104,28 +108,37 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
     loadData();
   }, [restaurantId, table.id]);
 
+  // Unlock table when leaving the view
   useEffect(() => {
-    const lockTable = async () => {
-      try {
-        await toggleTableLock(table.id, true);
-      } catch (error) {
-        console.error("Failed to lock table:", error);
-      }
-    };
-
-    lockTable();
+    // Skip cleanup on first render
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
 
     return () => {
-      const unlockTable = async () => {
-        try {
-          await toggleTableLock(table.id, false);
-        } catch (error) {
+      // This cleanup function runs when the component unmounts
+      if (table.isLocked) {
+        console.log("Unlocking table2");
+        toggleTableLock(table.id, false).catch((error) => {
           console.error("Failed to unlock table:", error);
-        }
-      };
-      unlockTable();
+        });
+      }
     };
-  }, [table.id]);
+  }, [table.id, table.isLocked]);
+
+  // Also unlock when explicitly closing the view
+  const handleClose = async () => {
+    if (table.isLocked) {
+      try {
+        await toggleTableLock(table.id, false);
+        console.log(table.id);
+      } catch (error) {
+        console.error("Failed to unlock table:", error);
+      }
+    }
+    onClose();
+  };
 
   const handleAddToOrder = (
     item: MenuItemWithCategory,
@@ -310,7 +323,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
       <div className="border-b p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={onClose}>
+            <Button variant="ghost" onClick={handleClose}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
             </Button>

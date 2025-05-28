@@ -4,12 +4,14 @@ import { useParams, useRouter } from "next/navigation";
 import { TableView } from "@/components/restaurants/TableView";
 import { useEffect, useState } from "react";
 import { getTables } from "@/actions/tables";
+import { io } from "socket.io-client";
 
 interface Table {
   id: number;
   number: number;
   capacity: number;
   isReserved: boolean;
+  isLocked: boolean;
 }
 
 export default function TablePage() {
@@ -17,7 +19,12 @@ export default function TablePage() {
   const restaurantId = parseInt(params.restaurantId as string);
   const tableId = parseInt(params.tableId as string);
   const [table, setTable] = useState<Table | null>(null);
+  const socket = io("http://localhost:3001");
   const router = useRouter();
+
+  useEffect(() => {
+    socket.emit("join-table", restaurantId);
+  }, []);
 
   useEffect(() => {
     const loadTable = async () => {

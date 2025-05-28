@@ -3,7 +3,7 @@
 import React, { useState, startTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash, Users, Lock } from "lucide-react";
+import { Plus, Trash, Users, Lock, Table } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -14,9 +14,16 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createTable, deleteTable, getTables } from "@/actions/tables";
+import {
+  createTable,
+  deleteTable,
+  getTables,
+  toggleTableLock,
+} from "@/actions/tables";
 import { toast } from "sonner";
 import { TableLocker } from "./TableLocker";
+import io from "socket.io-client";
+import { checkTableLock } from "@/actions/tables";
 
 interface Table {
   id: number;
@@ -54,6 +61,7 @@ const Floormap = ({
   const [numberOfPeople, setNumberOfPeople] = useState<number>(2);
 
   const refreshTables = async () => {
+    console.log("refreshing tables");
     try {
       const response = await getTables(restaurantId);
       if (response.success) {
@@ -64,24 +72,22 @@ const Floormap = ({
     }
   };
 
+  const socket = io("http://localhost:3001");
+
+  useEffect(() => {
+    socket.on("do_something", () => {
+      refreshTables();
+    });
+  }, []);
+
+  useEffect(() => {
+    socket.emit("join-table", restaurantId);
+  }, []);
+
   // Update local tables when prop changes
   useEffect(() => {
     setLocalTables(tables);
   }, [tables]);
-
-  // Set up polling for table updates
-  useEffect(() => {
-    // Initial fetch
-    refreshTables();
-
-    // Set up polling every 2 seconds
-    const interval = setInterval(() => {
-      refreshTables();
-    }, 2000);
-
-    // Cleanup interval on unmount
-    return () => clearInterval(interval);
-  }, []);
 
   const handleTableClick = (tableId: number) => {
     const table = localTables.find((t) => t.id === tableId);
@@ -101,30 +107,34 @@ const Floormap = ({
     }
   };
 
-  const handleConfirmSeating = () => {
+  const handleConfirmSeating = async () => {
     if (!selectedTable) return;
+    if (await checkTableLock(selectedTable)) return;
 
-    // Update the table capacity if needed
-    if (selectedTableData) {
-      // In a real implementation, you would update the table capacity in the database
-      // For now, we'll just update it locally
+    try {
+      // Update the table capacity and lock it
+      await toggleTableLock(selectedTable, true);
+      // Update local state
       setLocalTables((tables) =>
         tables.map((table) =>
           table.id === selectedTable
-            ? { ...table, capacity: numberOfPeople, isReserved: true }
+            ? {
+                ...table,
+                capacity: numberOfPeople,
+                isReserved: true,
+                isLocked: true,
+              }
             : table
         )
       );
-
-      toast.success(
-        `Table ${selectedTableData.number} set for ${numberOfPeople} people`
-      );
+      // Close the modal and navigate to the table
+      setIsSeatModalOpen(false);
+      onTableSelect(selectedTable);
+      router.push(`/restaurants/${restaurantId}/tables/${selectedTable}`);
+    } catch (error) {
+      console.error("Failed to confirm seating:", error);
+      toast.error("Failed to confirm seating");
     }
-
-    // Close the modal and navigate to the table
-    setIsSeatModalOpen(false);
-    onTableSelect(selectedTable);
-    router.push(`/restaurants/${restaurantId}/tables/${selectedTable}`);
   };
 
   // ADMIN ONLY ///////////////////////////////////////////////////////////////
