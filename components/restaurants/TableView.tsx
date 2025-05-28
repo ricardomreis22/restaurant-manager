@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, startTransition } from "react";
+import { useState, useEffect, startTransition, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { MenuItems, Category } from "@prisma/client";
@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FoodModal } from "./FoodModal";
 import { toggleTableLock } from "@/actions/tables";
+import { io } from "socket.io-client";
 
 interface TableViewProps {
   table: {
@@ -65,6 +66,7 @@ interface PlacedOrder {
 
 export function TableView({ table, restaurantId, onClose }: TableViewProps) {
   const router = useRouter();
+  const isFirstRender = useRef(true);
   const [order, setOrder] = useState<OrderItem[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItemWithCategory[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -78,6 +80,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
   );
   const [isFoodModalOpen, setIsFoodModalOpen] = useState(false);
   const [formData, setFormData] = useState({});
+  const socket = io("http://localhost:3001");
 
   useEffect(() => {
     const loadData = async () => {
@@ -107,9 +110,16 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
 
   // Unlock table when leaving the view
   useEffect(() => {
+    // Skip cleanup on first render
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
     return () => {
       // This cleanup function runs when the component unmounts
       if (table.isLocked) {
+        console.log("Unlocking table2");
         toggleTableLock(table.id, false).catch((error) => {
           console.error("Failed to unlock table:", error);
         });

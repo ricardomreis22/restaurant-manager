@@ -61,6 +61,7 @@ const Floormap = ({
   const [numberOfPeople, setNumberOfPeople] = useState<number>(2);
 
   const refreshTables = async () => {
+    console.log("refreshing tables");
     try {
       const response = await getTables(restaurantId);
       if (response.success) {
@@ -74,18 +75,19 @@ const Floormap = ({
   const socket = io("http://localhost:3001");
 
   useEffect(() => {
-    socket.emit("join-table", restaurantId);
     socket.on("do_something", () => {
       refreshTables();
     });
+  }, []);
+
+  useEffect(() => {
+    socket.emit("join-table", restaurantId);
   }, []);
 
   // Update local tables when prop changes
   useEffect(() => {
     setLocalTables(tables);
   }, [tables]);
-
-  console.log(localTables);
 
   const handleTableClick = (tableId: number) => {
     const table = localTables.find((t) => t.id === tableId);
@@ -112,7 +114,6 @@ const Floormap = ({
     try {
       // Update the table capacity and lock it
       await toggleTableLock(selectedTable, true);
-      console.log(selectedTable);
       // Update local state
       setLocalTables((tables) =>
         tables.map((table) =>

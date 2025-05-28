@@ -21,6 +21,7 @@ export default function TablePage() {
   const [table, setTable] = useState<Table | null>(null);
   const socket = io("http://localhost:3001");
   const router = useRouter();
+
   useEffect(() => {
     socket.emit("join-table", restaurantId);
   }, []);
