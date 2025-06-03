@@ -12,7 +12,13 @@ export async function createUser(data: {
 }) {
   try {
     return await prisma.user.create({
-      data,
+      data: {
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        password: data.password,
+        userRole: data.role,
+      },
     });
   } catch (error) {
     throw new Error("Failed to create user");
