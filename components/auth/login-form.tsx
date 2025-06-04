@@ -20,8 +20,12 @@ import { CardWrapper } from "@/components/auth/card-wrapper";
 import { FormError } from "@/components/form-error";
 import { FormSuccess } from "@/components/form-success";
 import { login } from "@/actions/login";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export const LoginForm = () => {
+  const router = useRouter();
+  const { update } = useSession();
   const [error, setError] = useState<string | undefined>("");
   const [success, setSuccess] = useState<string | undefined>("");
   const [isPending, startTransition] = useTransition();
@@ -39,6 +43,12 @@ export const LoginForm = () => {
 
     startTransition(async () => {
       const data = await login(values);
+      if (data?.success) {
+        // Update the session on the client side
+        await update();
+        // Navigate to the appropriate page
+        router.push(data.redirectTo);
+      }
       setError(data?.error);
       setSuccess(data?.success);
     });

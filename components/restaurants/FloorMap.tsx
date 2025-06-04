@@ -89,13 +89,36 @@ const Floormap = ({
     setLocalTables(tables);
   }, [tables]);
 
-  const handleTableClick = (tableId: number) => {
+  const handleTableClick = async (tableId: number) => {
     const table = localTables.find((t) => t.id === tableId);
     if (table?.isLocked) {
       // Don't allow interaction with locked tables
       return;
     }
+
     if (table?.isReserved) {
+      if (await checkTableLock(tableId)) return;
+
+      try {
+        // Update the table capacity and lock it
+        await toggleTableLock(tableId, true);
+        // Update local state
+        setLocalTables((tables) =>
+          tables.map((table) =>
+            table.id === tableId
+              ? {
+                  ...table,
+                  capacity: numberOfPeople,
+                  isReserved: true,
+                  isLocked: true,
+                }
+              : table
+          )
+        );
+      } catch (error) {
+        console.error("Failed to lock table:", error);
+        toast.error("Failed to lock table");
+      }
       setSelectedTable(table.id);
       onTableSelect(table.id);
       router.push(`/restaurants/${restaurantId}/tables/${table.id}`);
