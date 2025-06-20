@@ -107,7 +107,6 @@ export async function payOrder(orderId: number) {
       where: { id: orderId },
       data: {
         status: "Completed",
-        paidAt: new Date(),
       },
       include: {
         items: {
@@ -118,19 +117,26 @@ export async function payOrder(orderId: number) {
       },
     });
 
-    // If this was the last active order for the table, update table status
-    const activeOrders = await prisma.order.count({
+    const orders = await prisma.order.findMany({
       where: {
         tableId: order.tableId,
-        status: "Pending",
       },
     });
 
-    if (activeOrders === 0) {
-      await prisma.table.update({
-        where: { id: order.tableId },
-        data: { isReserved: false },
-      });
+    const completedOrders = orders.filter(
+      (order) => order.status === "Completed"
+    );
+
+    if (completedOrders.length === orders.length) {
+      if (order.tableId) {
+        await prisma.table.update({
+          where: { id: order.tableId },
+          data: {
+            isReserved: false,
+            isLocked: false,
+          },
+        });
+      }
     }
 
     return { success: true, order };

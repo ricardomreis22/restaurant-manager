@@ -61,7 +61,6 @@ const Floormap = ({
   const [numberOfPeople, setNumberOfPeople] = useState<number>(2);
 
   const refreshTables = async () => {
-    console.log("refreshing tables");
     try {
       const response = await getTables(restaurantId);
       if (response.success) {
