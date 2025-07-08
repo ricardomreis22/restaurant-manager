@@ -19,11 +19,26 @@ model User {
   roleId      Int?
   shifts      Shift[]
   restaurants Restaurant[] @relation("UsersRestaurants")
+  activities  ActivityLog[]
 }
 
 enum UserRole {
   ADMIN
   STAFF
+}
+
+enum ActivityType {
+  ORDER_PLACED
+  ORDER_MODIFIED
+  ORDER_CANCELLED
+  PAYMENT_PROCESSED
+  ITEM_ADDED
+  ITEM_REMOVED
+  PAYMENT_METHOD_CHANGED
+  DISCOUNT_APPLIED
+  PROMOTION_APPLIED
+  NOTE_ADDED
+  GUEST_COUNT_CHANGED
 }
 
 model Role {
@@ -64,7 +79,7 @@ model Table {
   seats        Seat[]
   restaurant   Restaurant   @relation(fields: [restaurantId], references: [id])
   restaurantId Int
-
+  sessions     TableSession[]
   Event Event[]
 
   @@unique([number, restaurantId])
@@ -144,6 +159,8 @@ model Order {
   tableId     Int?
   seat        Seat?     @relation(fields: [seatId], references: [id])
   seatId      Int?
+  session     TableSession? @relation(fields: [sessionId], references: [id])
+  sessionId   Int?
   items       OrderItem[]
   totalAmount Float
   status      String    @default("Pending") // e.g., Pending, Completed, Cancelled
@@ -224,4 +241,33 @@ model Report {
   createdAt   DateTime  @default(now())
 
   Restaurant Restaurant[]
+}
+
+model TableSession {
+  id          Int       @id @default(autoincrement())
+  table       Table     @relation(fields: [tableId], references: [id])
+  tableId     Int
+  openedAt    DateTime  @default(now())
+  closedAt    DateTime?
+  totalAmount Float     @default(0)
+  numberOfGuests Int    @default(0)
+  duration    Int?      // Duration in minutes
+  activities  ActivityLog[]
+  orders      Order[]
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model ActivityLog {
+  id          Int       @id @default(autoincrement())
+  session     TableSession? @relation(fields: [sessionId], references: [id])
+  sessionId   Int?
+  user        User      @relation(fields: [userId], references: [id])
+  userId      Int
+  activityType ActivityType
+  description String
+  metadata    Json?     // Additional data like order details, payment info, etc.
+  timestamp   DateTime  @default(now())
+  createdAt   DateTime  @default(now())
 }

@@ -19,6 +19,7 @@ import Floormap from "@/components/restaurants/FloorMap";
 import StaffPage from "@/components/restaurants/StaffPage";
 import MenuPage from "@/components/restaurants/MenuPage";
 import { TableView } from "@/components/restaurants/TableView";
+import ActivityLogPage from "@/components/restaurants/ActivityLogPage";
 import { useCurrentRole } from "@/hooks/use-current-role";
 import { checkAdmin } from "@/actions/admin";
 interface Table {
@@ -96,15 +97,19 @@ export default function RestaurantView({
               {isAdminView ? "Admin: " : ""}
               {restaurant.name}
             </h1>
-            {isAdminView && (
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => adminSetDisplay("floormap")}
-                  variant={display === "floormap" ? "default" : "outline"}
-                >
-                  Floor Map
-                </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={() =>
+                  isAdminView
+                    ? adminSetDisplay("floormap")
+                    : setDisplay("floormap")
+                }
+                variant={display === "floormap" ? "default" : "outline"}
+              >
+                Floor Map
+              </Button>
 
+              {isAdminView && (
                 <>
                   <Button
                     onClick={() => adminSetDisplay("menu")}
@@ -119,8 +124,19 @@ export default function RestaurantView({
                     Employees
                   </Button>
                 </>
-              </div>
-            )}
+              )}
+
+              <Button
+                onClick={() =>
+                  isAdminView
+                    ? adminSetDisplay("activity")
+                    : setDisplay("activity")
+                }
+                variant={display === "activity" ? "default" : "outline"}
+              >
+                Activity Log
+              </Button>
+            </div>
           </div>
           <div>
             {userRole === "ADMIN" && !isAdminView && (
@@ -186,6 +202,8 @@ export default function RestaurantView({
           />
         ) : display === "menu" && isAdminView ? (
           <MenuPage restaurantId={restaurantId} />
+        ) : display === "activity" ? (
+          <ActivityLogPage restaurantId={restaurantId} />
         ) : null}
       </div>
     </div>
