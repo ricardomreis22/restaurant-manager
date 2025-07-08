@@ -27,8 +27,6 @@ enum UserRole {
   STAFF
 }
 
-
-
 enum ActivityType {
   ORDER_PLACED
   ORDER_MODIFIED
@@ -263,8 +261,8 @@ model TableSession {
 
 model ActivityLog {
   id          Int       @id @default(autoincrement())
-  session     TableSession @relation(fields: [sessionId], references: [id])
-  sessionId   Int
+  session     TableSession? @relation(fields: [sessionId], references: [id])
+  sessionId   Int?
   user        User      @relation(fields: [userId], references: [id])
   userId      Int
   activityType ActivityType
