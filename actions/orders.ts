@@ -137,9 +137,9 @@ export async function payOrder(orderId: number) {
           },
         });
       }
-    }
 
-    return { success: true, order };
+      return { success: true, order };
+    }
   } catch (error) {
     console.error("[PAY_ORDER_ERROR]", error);
     throw error;
