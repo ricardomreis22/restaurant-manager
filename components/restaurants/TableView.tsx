@@ -263,37 +263,6 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
     });
   };
 
-  const handlePayOrder = (orderId: number) => {
-    setIsProcessingPayment(true);
-    startTransition(() => {
-      payOrder(orderId)
-        .then(async (response) => {
-          if (response.success) {
-            toast.success("Payment processed successfully!");
-            // Refresh placed orders
-            const ordersData = await getTableOrders(table.id);
-            if (ordersData.success) {
-              setPlacedOrders(ordersData.orders);
-            }
-            router.refresh();
-          }
-        })
-        .catch((error) => {
-          console.error("Failed to process payment:", error);
-          toast.error("Failed to process payment. Please try again.");
-        })
-        .finally(() => {
-          setIsProcessingPayment(false);
-        });
-    });
-  };
-
-  const calculateTotalAmount = (orders: PlacedOrder[]) => {
-    return orders
-      .filter((order) => order.status === "Pending")
-      .reduce((sum, order) => sum + order.totalAmount, 0);
-  };
-
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleTimeString();
   };
@@ -478,59 +447,66 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
               )}
             </div>
             <div className="space-y-4">
-              {placedOrders.length === 0 ? (
+              {placedOrders.filter((order) => order.status !== "Completed")
+                .length === 0 ? (
                 <p className="text-gray-500">No orders placed yet</p>
               ) : (
-                placedOrders.map((placedOrder) => (
-                  <Card key={placedOrder.id} className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <p className="font-medium">{placedOrder.orderNumber}</p>
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <Clock className="h-4 w-4" />
-                          {formatDate(placedOrder.createdAt)}
-                        </div>
-                      </div>
-                      <div
-                        className={`px-2 py-1 rounded text-sm font-medium ${getStatusColor(
-                          placedOrder.status
-                        )}`}
-                      >
-                        {placedOrder.status}
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      {placedOrder.items.map((item, index) => (
-                        <div key={index} className="flex flex-col text-sm">
-                          <div className="flex justify-between">
-                            <span>
-                              {item.quantity}x {item.menuItem.name}
-                            </span>
-                            <span className="text-gray-600">
-                              $
-                              {(item.menuItem.price * item.quantity).toFixed(2)}
-                            </span>
+                placedOrders
+                  .filter((order) => order.status !== "Completed")
+                  .map((placedOrder) => (
+                    <Card key={placedOrder.id} className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <p className="font-medium">
+                            {placedOrder.orderNumber}
+                          </p>
+                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <Clock className="h-4 w-4" />
+                            {formatDate(placedOrder.createdAt)}
                           </div>
-                          {(item.spicyLevel || item.sides || item.notes) && (
-                            <div className="text-gray-500 text-xs mt-1">
-                              {item.spicyLevel && (
-                                <p>Spicy Level: {item.spicyLevel}</p>
-                              )}
-                              {item.sides && <p>Sides: {item.sides}</p>}
-                              {item.notes && <p>Notes: {item.notes}</p>}
-                            </div>
-                          )}
                         </div>
-                      ))}
-                      <div className="border-t pt-2 mt-2">
-                        <div className="flex justify-between font-medium">
-                          <span>Total</span>
-                          <span>${placedOrder.totalAmount.toFixed(2)}</span>
+                        <div
+                          className={`px-2 py-1 rounded text-sm font-medium ${getStatusColor(
+                            placedOrder.status
+                          )}`}
+                        >
+                          {placedOrder.status}
                         </div>
                       </div>
-                    </div>
-                  </Card>
-                ))
+                      <div className="space-y-2">
+                        {placedOrder.items.map((item, index) => (
+                          <div key={index} className="flex flex-col text-sm">
+                            <div className="flex justify-between">
+                              <span>
+                                {item.quantity}x {item.menuItem.name}
+                              </span>
+                              <span className="text-gray-600">
+                                $
+                                {(item.menuItem.price * item.quantity).toFixed(
+                                  2
+                                )}
+                              </span>
+                            </div>
+                            {(item.spicyLevel || item.sides || item.notes) && (
+                              <div className="text-gray-500 text-xs mt-1">
+                                {item.spicyLevel && (
+                                  <p>Spicy Level: {item.spicyLevel}</p>
+                                )}
+                                {item.sides && <p>Sides: {item.sides}</p>}
+                                {item.notes && <p>Notes: {item.notes}</p>}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                        <div className="border-t pt-2 mt-2">
+                          <div className="flex justify-between font-medium">
+                            <span>Total</span>
+                            <span>${placedOrder.totalAmount.toFixed(2)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  ))
               )}
             </div>
           </div>
