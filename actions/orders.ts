@@ -96,7 +96,7 @@ export async function getTableOrders(tableId: number) {
   }
 }
 
-export async function payOrder(orderId: number) {
+export async function payOrder(orderId: number, tableId: number) {
   try {
     const session = await auth();
     if (!session?.user) {
@@ -107,7 +107,6 @@ export async function payOrder(orderId: number) {
       where: { id: orderId },
       data: {
         status: "Completed",
-        paidAt: new Date(),
       },
       include: {
         items: {
@@ -128,7 +127,7 @@ export async function payOrder(orderId: number) {
 
     if (activeOrders === 0) {
       await prisma.table.update({
-        where: { id: order.tableId },
+        where: { id: tableId },
         data: { isReserved: false },
       });
     }
