@@ -119,6 +119,7 @@ export default function PaymentPage() {
         // Process all pending orders sequentially
         for (const order of pendingOrders) {
           await payOrder(order.id);
+          console.log("ORDER PAID", order.id);
         }
 
         if (paymentMethod === "CASH") {
