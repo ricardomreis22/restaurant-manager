@@ -170,7 +170,9 @@ export function AddMenuItemModal({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit">Add Item</Button>
+            <Button type="submit" variant="modal">
+              Add Item
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

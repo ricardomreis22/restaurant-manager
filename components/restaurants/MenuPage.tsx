@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { AddMenuItemModal } from "./AddMenuItemModal";
 import { UpdateMenuItemModal } from "./UpdateMenuItemModal";
-import { Pencil, Trash, Plus } from "lucide-react";
+import { Pencil, Trash, Plus, ArrowLeft } from "lucide-react";
 import { AddCategoryModal } from "./AddCategoryModal";
 import { UpdateCategoryModal } from "./UpdateCategoryModal";
 import {
@@ -31,6 +31,7 @@ import { Label } from "@/components/ui/label";
 
 interface MenuPageProps {
   restaurantId: number;
+  onBack?: () => void;
 }
 
 interface MenuItemWithCategory extends MenuItems {
@@ -44,7 +45,7 @@ interface NewMenuItem {
   categoryId: number;
 }
 
-export default function MenuPage({ restaurantId }: MenuPageProps) {
+export default function MenuPage({ restaurantId, onBack }: MenuPageProps) {
   const [menuItems, setMenuItems] = useState<MenuItemWithCategory[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -233,7 +234,15 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
   return (
     <div className="p-4">
       <div className="flex justify-between mb-6">
-        <h2 className="text-2xl font-bold">Menu</h2>
+        <div className="flex items-center gap-4">
+          {onBack && (
+            <Button variant="ghost" onClick={onBack}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+          )}
+          <h2 className="text-2xl font-bold">Menu</h2>
+        </div>
         <div className="flex gap-2">
           <Button
             onClick={() => setIsAddCategoryModalOpen(true)}

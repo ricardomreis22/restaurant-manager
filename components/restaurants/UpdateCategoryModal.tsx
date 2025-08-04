@@ -90,7 +90,9 @@ export function UpdateCategoryModal({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit">Update Category</Button>
+            <Button type="submit" variant="modal">
+              Update Category
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

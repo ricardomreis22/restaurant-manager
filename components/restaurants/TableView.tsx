@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { MenuItems, Category } from "@prisma/client";
 import { getCategories, getMenuItems } from "@/actions/menu";
 import { createOrder, getTableOrders } from "@/actions/orders";
-import { ArrowLeft, Clock, CreditCard, Receipt } from "lucide-react";
+import { ArrowLeft, Clock, CreditCard, Receipt, Menu, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FoodModal } from "./FoodModal";
@@ -80,6 +80,8 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
   );
   const [isFoodModalOpen, setIsFoodModalOpen] = useState(false);
   const [formData, setFormData] = useState({});
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isCategoriesOpen, setIsCategoriesOpen] = useState(true);
   const socket = io("http://localhost:3001");
 
   useEffect(() => {
@@ -285,27 +287,14 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
     : menuItems;
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Header */}
-      <div className="border-b p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={handleClose}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-            <h2 className="text-2xl font-bold">Table {table.number}</h2>
-          </div>
-          <div className="text-sm text-gray-500">
-            <p>Capacity: {table.capacity}</p>
-            <p>Status: {table.isReserved ? "Reserved" : "Available"}</p>
-          </div>
-        </div>
-      </div>
-
+    <div className="h-screen flex flex-col">
       <div className="flex-1 flex overflow-hidden">
-        {/* Menu Items (Left Side) */}
-        <div className="w-2/3 p-6 overflow-y-auto">
+        {/* Menu Items (Left Side) - Hidden on small screens unless menu is open */}
+        <div
+          className={`${
+            isMenuOpen ? "block" : "hidden"
+          } sm:block w-full sm:w-1/2 lg:w-2/3 xl:w-3/4 py-12 px-8 overflow-y-auto bg-black bg-opacity-80 sm:bg-white sm:bg-opacity-100 sm:bg-transparent absolute sm:relative top-0 left-0 right-0 bottom-0 z-10 sm:z-auto h-screen sm:h-full`}
+        >
           {/* Category Tabs */}
           <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
             {categories.map((category) => (
@@ -315,6 +304,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                   selectedCategory === category.id ? "default" : "outline"
                 }
                 onClick={() => setSelectedCategory(category.id)}
+                className="text-black"
               >
                 {category.name}
               </Button>
@@ -327,7 +317,11 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
               <Card
                 key={item.id}
                 className="p-4 cursor-pointer hover:shadow-md transition"
-                onClick={() => handleAddToOrder(item)}
+                onClick={() => {
+                  handleAddToOrder(item);
+                  // Close menu on mobile after selecting an item
+                  setIsMenuOpen(false);
+                }}
               >
                 <div className="flex justify-between items-start">
                   <div>
@@ -345,24 +339,44 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
           </div>
         </div>
 
-        {/* Orders (Right Side) */}
-        <div className="w-1/3 border-l bg-gray-50 overflow-hidden flex flex-col">
+        {/* Orders (Right Side) - Full width on small screens */}
+        <div className="w-full sm:w-1/2 lg:w-1/3 xl:w-1/4 sm:border-l overflow-hidden flex flex-col">
+          {/* Hamburger Menu Button - Only visible on small screens */}
+          <div className="flex justify-between items-center p-4 sm:hidden z-50">
+            <h2 className="text-xl font-bold text-white">
+              Table {table.number}
+            </h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? (
+                <X className="h-5 w-5 text-white" />
+              ) : (
+                <Menu className="h-5 w-5 text-white" />
+              )}
+            </Button>
+          </div>
+
           {/* Current Order */}
-          <div className="p-6 border-b bg-white">
-            <h3 className="text-xl font-semibold mb-4">Current Order</h3>
+          <div className="p-6  border border-gray-600">
+            <h3 className="text-xl font-semibold mb-4 text-white">
+              Current Order
+            </h3>
             {order.length === 0 ? (
-              <p className="text-gray-500">No items in order</p>
+              <p className="text-gray-400">No items in order</p>
             ) : (
               <div className="space-y-4">
                 {order.map((item) => (
                   <div
                     key={item.id}
-                    className="flex justify-between items-start p-3 bg-gray-50 rounded-lg shadow-sm"
+                    className="flex justify-between items-start p-3 rounded-lg shadow-sm sm:border sm:border-gray-600"
                   >
                     <div>
-                      <h4 className="font-medium">{item.name}</h4>
+                      <h4 className="font-medium text-white">{item.name}</h4>
                       {(item.spicyLevel || item.sides || item.orderNotes) && (
-                        <div className="text-sm text-gray-600 mt-1">
+                        <div className="text-sm text-gray-300 mt-1">
                           {item.spicyLevel && (
                             <p>Spicy Level: {item.spicyLevel}</p>
                           )}
@@ -378,21 +392,23 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                         >
                           -
                         </Button>
-                        <span className="text-sm">{item.quantity}</span>
+                        <span className="text-sm text-white">
+                          {item.quantity}
+                        </span>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            const menuItem = menuItems.find(
-                              (menuItem) => menuItem.id === item.menuItemId
+                            setOrder((currentOrder) =>
+                              currentOrder.map((orderItem) =>
+                                orderItem.id === item.id
+                                  ? {
+                                      ...orderItem,
+                                      quantity: orderItem.quantity + 1,
+                                    }
+                                  : orderItem
+                              )
                             );
-                            if (menuItem) {
-                              handleAddToOrder(menuItem, {
-                                spicyLevel: item.spicyLevel || undefined,
-                                sides: item.sides || undefined,
-                                notes: item.orderNotes || undefined,
-                              });
-                            }
                           }}
                         >
                           +
@@ -400,15 +416,15 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">
+                      <p className="font-medium text-white">
                         ${(item.price * item.quantity).toFixed(2)}
                       </p>
                     </div>
                   </div>
                 ))}
 
-                <div className="border-t pt-4 mt-4">
-                  <div className="flex justify-between font-semibold text-lg">
+                <div className="sm:border-t sm:border-gray-600 pt-4 mt-4">
+                  <div className="flex justify-between font-semibold text-lg text-white">
                     <span>Total</span>
                     <span>${calculateTotal().toFixed(2)}</span>
                   </div>
@@ -429,7 +445,9 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
           {/* Placed Orders */}
           <div className="flex-1 overflow-y-auto p-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold">Placed Orders</h3>
+              <h3 className="text-xl font-semibold text-white">
+                Placed Orders
+              </h3>
               {placedOrders.some((order) => order.status === "Pending") && (
                 <Button
                   onClick={() =>
@@ -446,13 +464,15 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
             </div>
             <div className="space-y-4">
               {placedOrders.length === 0 ? (
-                <p className="text-gray-500">No orders placed yet</p>
+                <p className="text-gray-400">No orders placed yet</p>
               ) : (
                 placedOrders.map((placedOrder) => (
                   <Card key={placedOrder.id} className="p-4">
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <p className="font-medium">{placedOrder.orderNumber}</p>
+                        <p className="font-medium text-gray-900">
+                          {placedOrder.orderNumber}
+                        </p>
                         <div className="flex items-center gap-2 text-sm text-gray-500">
                           <Clock className="h-4 w-4" />
                           {formatDate(placedOrder.createdAt)}
@@ -470,7 +490,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                       {placedOrder.items.map((item, index) => (
                         <div key={index} className="flex flex-col text-sm">
                           <div className="flex justify-between">
-                            <span>
+                            <span className="text-gray-900">
                               {item.quantity}x {item.menuItem.name}
                             </span>
                             <span className="text-gray-600">
@@ -489,8 +509,8 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                           )}
                         </div>
                       ))}
-                      <div className="border-t pt-2 mt-2">
-                        <div className="flex justify-between font-medium">
+                      <div className="sm:border-t pt-2 mt-2">
+                        <div className="flex justify-between font-medium text-gray-900">
                           <span>Total</span>
                           <span>${placedOrder.totalAmount.toFixed(2)}</span>
                         </div>

@@ -152,6 +152,13 @@ export async function updateRestaurant(
 }
 
 export async function deleteRestaurant(id: number) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error("Not authenticated");
+  }
+  const user = await prisma.user.findUnique({
+    where: { id: parseInt(session.user.id) },
+  });
   try {
     return await prisma.restaurant.delete({
       where: { id },

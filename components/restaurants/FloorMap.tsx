@@ -39,6 +39,10 @@ interface FloorMapProps {
   onToggleLock?: (tableId: number, locked: boolean) => void;
   isAdminView?: boolean;
   restaurantId: number;
+  restaurantName: string;
+  display: string;
+  setDisplay: (display: string) => void;
+  adminSetDisplay: (display: string) => void;
 }
 
 const Floormap = ({
@@ -47,6 +51,10 @@ const Floormap = ({
   onToggleLock,
   isAdminView = false,
   restaurantId,
+  restaurantName,
+  display,
+  setDisplay,
+  adminSetDisplay,
 }: FloorMapProps) => {
   const router = useRouter();
   const [selectedTable, setSelectedTable] = useState<number | null>(null);
@@ -210,8 +218,39 @@ const Floormap = ({
   /////////////////////////////////////////////////////////////////////////////
 
   return (
-    <div className="relative h-full">
-      <div className="h-full bg-gray-50 rounded-lg">
+    <div className=" h-full">
+      {/* Title and nav buttons at the top of the floor map */}
+      {/* Navigation buttons outside the white div */}
+      <div className="p-6 space-y-6">
+        <div className="flex gap-2">
+          <Button
+            onClick={() =>
+              isAdminView ? adminSetDisplay("floormap") : setDisplay("floormap")
+            }
+            variant={display === "floormap" ? "default" : "outline"}
+          >
+            Floor Map
+          </Button>
+          <Button
+            onClick={() =>
+              isAdminView ? adminSetDisplay("activity") : setDisplay("activity")
+            }
+            variant={display === "activity" ? "default" : "outline"}
+          >
+            Activity Log
+          </Button>
+          {isAdminView && (
+            <Button
+              onClick={() => adminSetDisplay("menu-management")}
+              variant={display === "menu-management" ? "default" : "outline"}
+            >
+              Menu Management
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <div className="relative h-[90%] bg-gray-50 rounded-l mr-6 ml-6">
         {/* Add Table Button - Top Right */}
         {isAdminView && (
           <div className="absolute top-4 right-4 z-10">
@@ -223,27 +262,27 @@ const Floormap = ({
         )}
 
         {/* Kitchen - Left Side */}
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-24 h-48 bg-gray-200 rounded-r-lg flex items-center justify-center">
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-12 md:w-24 h-24 md:h-48 bg-gray-200 rounded-r-lg flex items-center justify-center">
           <span className="font-semibold text-gray-700 -rotate-90">
             Kitchen
           </span>
         </div>
 
         {/* Entrance - Right Side */}
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-24 h-32 flex flex-col items-center justify-center">
-          <div className="w-12 h-20 border-2 border-gray-400 rounded-r-lg"></div>
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-12 md:w-24 h-16 md:h-32 flex flex-col items-center justify-center">
+          <div className="w-6 md:w-12 h-10 md:h-20 border-2 border-gray-400 rounded-r-lg"></div>
           <span className="mt-2 text-sm text-gray-700">Entrance</span>
         </div>
 
         {/* Tables Grid */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2/3">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4/5 md:w-2/3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-4">
             {localTables.map((table) => (
               <div
                 key={table.id}
                 onClick={() => handleTableClick(table.id)}
                 className={`
-                  relative p-4 rounded-lg shadow-md text-center
+                  relative p-2 md:p-4 rounded-lg shadow-md text-center
                   ${
                     table.isLocked
                       ? "cursor-not-allowed opacity-50"
@@ -254,11 +293,13 @@ const Floormap = ({
                   hover:shadow-lg transition-all
                 `}
               >
-                <h3 className="font-bold text-lg">Table {table.number}</h3>
-                <p className="text-sm text-gray-600">
+                <h3 className="font-bold text-sm md:text-lg">
+                  Table {table.number}
+                </h3>
+                <p className="text-xs md:text-sm text-gray-600">
                   Capacity: {table.capacity}
                 </p>
-                <p className="text-sm mt-1">
+                <p className="text-xs md:text-sm mt-1">
                   {table.isReserved ? "Reserved" : "Available"}
                 </p>
                 {table.isLocked && (
@@ -290,21 +331,20 @@ const Floormap = ({
         </div>
 
         {/* Bar - Bottom */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2/3 h-20 bg-gray-200 rounded-t-lg flex items-center justify-center">
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4/5 md:w-2/3 h-12 md:h-20 bg-gray-200 rounded-t-lg flex items-center justify-center">
           <span className="font-semibold text-gray-700">Bar</span>
         </div>
-      </div>
-
-      {/* Legend */}
-      <div className="absolute bottom-4 left-4 flex items-center gap-4">
-        <div className="flex gap-4 text-sm text-gray-600">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-green-100 rounded"></div>
-            <span>Available</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-yellow-100 rounded"></div>
-            <span>Reserved</span>
+        {/* Legend absolutely positioned in the bottom left of the white div */}
+        <div className="absolute bottom-4 left-4 flex items-center gap-4">
+          <div className="flex gap-4 text-sm text-gray-600">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-green-100 rounded"></div>
+              <span>Available</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-yellow-100 rounded"></div>
+              <span>Reserved</span>
+            </div>
           </div>
         </div>
       </div>

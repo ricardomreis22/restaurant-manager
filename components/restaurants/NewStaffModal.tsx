@@ -206,9 +206,18 @@ const NewStaffModal = ({
                 )}
               />
               <FormError message={error} />
-              <Button type="submit" disabled={isPending}>
-                {isPending ? "Adding..." : "Add Staff Member"}
-              </Button>
+              <div className="flex gap-2">
+                <Button type="submit" disabled={isPending}>
+                  {isPending ? "Adding..." : "Add Staff Member"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
             </form>
           </Form>
         </div>

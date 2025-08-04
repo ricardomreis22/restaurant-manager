@@ -14,7 +14,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Trash, ArrowLeft, Settings } from "lucide-react";
+import {
+  MoreVertical,
+  Trash,
+  ArrowLeft,
+  Settings,
+  Menu as MenuIcon,
+} from "lucide-react";
 import Floormap from "@/components/restaurants/FloorMap";
 import StaffPage from "@/components/restaurants/StaffPage";
 import MenuPage from "@/components/restaurants/MenuPage";
@@ -22,12 +28,41 @@ import { TableView } from "@/components/restaurants/TableView";
 import ActivityLogPage from "@/components/restaurants/ActivityLogPage";
 import { useCurrentRole } from "@/hooks/use-current-role";
 import { checkAdmin } from "@/actions/admin";
+import { LogoutButton } from "@/components/auth/logout-button";
 interface Table {
   id: number;
   number: number;
   capacity: number;
   isReserved: boolean;
   isLocked: boolean;
+}
+
+interface ActivityLog {
+  id: number;
+  sessionId: number;
+  userId: number;
+  activityType: string;
+  description: string;
+  metadata: any;
+  timestamp: Date;
+  user: {
+    name: string;
+  };
+}
+
+interface TableSession {
+  id: number;
+  tableId: number;
+  openedAt: Date;
+  closedAt: Date | null;
+  totalAmount: number;
+  numberOfGuests: number;
+  duration: number | null;
+  notes: string | null;
+  activities: ActivityLog[];
+  table: {
+    number: number;
+  };
 }
 
 interface RestaurantViewProps {
@@ -43,7 +78,22 @@ export default function RestaurantView({
   const restaurantId = parseInt(params.restaurantId as string);
   const [restaurant, setRestaurant] = useState<any>(null);
   const [tables, setTables] = useState<Table[]>([]);
+
   const [display, setDisplay] = useState<string>("floormap");
+
+  // Check for initial display from URL search params
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialDisplay = urlParams.get("tab");
+    if (
+      initialDisplay &&
+      ["floormap", "menu", "menu-management", "employees", "activity"].includes(
+        initialDisplay
+      )
+    ) {
+      setDisplay(initialDisplay);
+    }
+  }, []);
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
 
   const adminSetDisplay = async (newDisplay: string) => {
@@ -59,6 +109,7 @@ export default function RestaurantView({
     const loadData = async () => {
       const restaurantData = await getRestaurant(restaurantId);
       const tablesData = await getRestaurantTables(restaurantId);
+
       setRestaurant(restaurantData);
       setTables(tablesData);
     };
@@ -89,100 +140,6 @@ export default function RestaurantView({
   }
   return (
     <div className="h-screen flex flex-col">
-      {/* Top Navigation */}
-      <div className="border-b">
-        <div className="flex justify-between items-center px-6 py-3">
-          <div className="flex items-center gap-4">
-            <h1 className="text-xl font-semibold">
-              {isAdminView ? "Admin: " : ""}
-              {restaurant.name}
-            </h1>
-            <div className="flex gap-2">
-              <Button
-                onClick={() =>
-                  isAdminView
-                    ? adminSetDisplay("floormap")
-                    : setDisplay("floormap")
-                }
-                variant={display === "floormap" ? "default" : "outline"}
-              >
-                Floor Map
-              </Button>
-
-              {isAdminView && (
-                <>
-                  <Button
-                    onClick={() => adminSetDisplay("menu")}
-                    variant={display === "menu" ? "default" : "outline"}
-                  >
-                    Menu
-                  </Button>
-                  <Button
-                    onClick={() => adminSetDisplay("employees")}
-                    variant={display === "employees" ? "default" : "outline"}
-                  >
-                    Employees
-                  </Button>
-                </>
-              )}
-
-              <Button
-                onClick={() =>
-                  isAdminView
-                    ? adminSetDisplay("activity")
-                    : setDisplay("activity")
-                }
-                variant={display === "activity" ? "default" : "outline"}
-              >
-                Activity Log
-              </Button>
-            </div>
-          </div>
-          <div>
-            {userRole === "ADMIN" && !isAdminView && (
-              <Button
-                onClick={() =>
-                  router.push(`/admin/restaurants/${restaurantId}`)
-                }
-                variant="outline"
-                className="gap-2"
-              >
-                <Settings className="h-4 w-4" />
-                Admin View
-              </Button>
-            )}
-            {userRole === "ADMIN" && isAdminView && (
-              <Button
-                onClick={() => router.push(`/restaurants/${restaurantId}`)}
-                variant="outline"
-                className="gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to Restaurant View
-              </Button>
-            )}
-            {isAdminView && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    className="text-red-600 cursor-pointer"
-                    onClick={handleDelete}
-                  >
-                    <Trash className="mr-2 h-4 w-4" />
-                    Delete Restaurant
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
-        </div>
-      </div>
-
       {/* Main Content */}
       <div className="flex-1 overflow-hidden">
         {selectedTable ? (
@@ -199,13 +156,42 @@ export default function RestaurantView({
             onTableSelect={handleTableSelect}
             isAdminView={isAdminView}
             restaurantId={restaurantId}
+            restaurantName={restaurant.name}
+            display={display}
+            setDisplay={setDisplay}
+            adminSetDisplay={adminSetDisplay}
           />
         ) : display === "menu" && isAdminView ? (
           <MenuPage restaurantId={restaurantId} />
+        ) : display === "menu-management" && isAdminView ? (
+          <MenuPage
+            restaurantId={restaurantId}
+            onBack={() => adminSetDisplay("floormap")}
+          />
         ) : display === "activity" ? (
-          <ActivityLogPage restaurantId={restaurantId} />
+          <ActivityLogPage
+            restaurantId={restaurantId}
+            isAdminView={isAdminView}
+            setDisplay={setDisplay}
+            adminSetDisplay={adminSetDisplay}
+          />
         ) : null}
       </div>
+      {userRole === "ADMIN" && !isAdminView && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <Button
+            onClick={() => router.push(`/admin/restaurants/${restaurantId}`)}
+            variant="outline"
+            size="sm"
+            className="transform transition-transform duration-200 hover:scale-110 group shadow-lg text-black gap-2 px-3 py-2"
+          >
+            <Settings className="h-4 w-4" />
+            <span className="hidden group-hover:inline ml-2 sm:inline">
+              Admin View
+            </span>
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

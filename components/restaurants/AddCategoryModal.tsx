@@ -81,7 +81,9 @@ export function AddCategoryModal({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit">Add Category</Button>
+            <Button type="submit" variant="modal">
+              Add Category
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

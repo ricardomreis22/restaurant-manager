@@ -129,7 +129,9 @@ export function FoodModal({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit">Add to Order</Button>
+            <Button type="submit" variant="modal">
+              Add to Order
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

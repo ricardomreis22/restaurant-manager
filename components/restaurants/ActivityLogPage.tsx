@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Clock, Users, DollarSign, Calendar } from "lucide-react";
+import { Clock, Users, DollarSign, Calendar, X } from "lucide-react";
 
 interface ActivityLog {
   id: number;
@@ -35,10 +35,16 @@ interface TableSession {
 
 interface ActivityLogPageProps {
   restaurantId: number;
+  isAdminView?: boolean;
+  setDisplay?: (display: string) => void;
+  adminSetDisplay?: (display: string) => void;
 }
 
 export default function ActivityLogPage({
   restaurantId,
+  isAdminView = false,
+  setDisplay,
+  adminSetDisplay,
 }: ActivityLogPageProps) {
   const [sessions, setSessions] = useState<TableSession[]>([]);
   const [loading, setLoading] = useState(true);
@@ -98,17 +104,32 @@ export default function ActivityLogPage({
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Activity Log</h2>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setSelectedSession(null)}
-            disabled={!selectedSession}
-          >
-            View All Sessions
-          </Button>
-        </div>
+      {/* Navigation buttons */}
+      <div className="flex gap-2">
+        <Button
+          onClick={() => {
+            if (isAdminView && adminSetDisplay) {
+              adminSetDisplay("floormap");
+            } else if (setDisplay) {
+              setDisplay("floormap");
+            }
+          }}
+          variant="outline"
+        >
+          Floor Map
+        </Button>
+        <Button
+          onClick={() => {
+            if (isAdminView && adminSetDisplay) {
+              adminSetDisplay("activity");
+            } else if (setDisplay) {
+              setDisplay("activity");
+            }
+          }}
+          variant="default"
+        >
+          Activity Log
+        </Button>
       </div>
 
       {selectedSession ? (
@@ -127,12 +148,15 @@ export default function ActivityLogPage({
                     : "Active"}
                 </p>
               </div>
-              <Button
-                variant="outline"
-                onClick={() => setSelectedSession(null)}
-              >
-                Back to All Sessions
-              </Button>
+              <div className="flex items-center border-2 border-gray-800  p-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSelectedSession(null)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">

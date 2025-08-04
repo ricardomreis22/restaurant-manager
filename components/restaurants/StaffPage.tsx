@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { getRestaurantStaff, deleteStaffMember } from "@/actions/staff";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +15,7 @@ import {
 import NewStaffModal from "./NewStaffModal";
 import UpdateStaffModal from "./UpdateStaffModal";
 import { UserRole } from "@prisma/client";
+import { ArrowLeft, Plus } from "lucide-react";
 
 export interface StaffMember {
   id: number;
@@ -37,6 +38,8 @@ export default function StaffPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("all");
+  const router = useRouter();
 
   const loadStaff = async () => {
     try {
@@ -81,16 +84,64 @@ export default function StaffPage() {
     }
   };
 
+  const getFilteredStaff = () => {
+    switch (activeTab) {
+      case "managers":
+        return staff.filter((member) =>
+          member.role?.name?.toLowerCase().includes("manager")
+        );
+      case "waiters":
+        return staff.filter((member) =>
+          member.role?.name?.toLowerCase().includes("waiter")
+        );
+      case "kitchen":
+        return staff.filter(
+          (member) =>
+            member.role?.name?.toLowerCase().includes("kitchen") ||
+            member.role?.name?.toLowerCase().includes("chef") ||
+            member.role?.name?.toLowerCase().includes("cook")
+        );
+      case "admin":
+        return staff.filter((member) => member.userRole === "ADMIN");
+      default:
+        return staff;
+    }
+  };
+
+  const tabs = [
+    { id: "all", label: "All Staff" },
+    { id: "managers", label: "Managers" },
+    { id: "waiters", label: "Waiters" },
+    { id: "kitchen", label: "Kitchen" },
+    { id: "admin", label: "Admin" },
+  ];
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
+  const filteredStaff = getFilteredStaff();
+
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Staff Members</h1>
-        <Button onClick={() => setIsOpen(true)}>Add Staff Member</Button>
+      {/* Tab Buttons */}
+      <div className="flex gap-2 mb-6 border-b">
+        {tabs.map((tab) => (
+          <Button
+            key={tab.id}
+            variant={activeTab === tab.id ? "default" : "ghost"}
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-4 py-2 rounded-t-lg ${
+              activeTab === tab.id
+                ? "bg-primary text-primary-foreground"
+                : "hover:bg-gray-100"
+            }`}
+          >
+            {tab.label}
+          </Button>
+        ))}
       </div>
+
       <NewStaffModal
         isOpen={isOpen}
         setIsOpen={setIsOpen}
@@ -114,7 +165,7 @@ export default function StaffPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {staff.map((staffMember) => (
+          {filteredStaff.map((staffMember) => (
             <TableRow key={staffMember.id}>
               <TableCell>{staffMember.name}</TableCell>
               <TableCell className="capitalize">
@@ -144,6 +195,30 @@ export default function StaffPage() {
           ))}
         </TableBody>
       </Table>
+      <div className="fixed bottom-4 right-4 flex flex-col gap-2 z-50 ">
+        <Button
+          variant="ghost"
+          onClick={() => router.push("/admin/restaurants")}
+          className=" border border-white border-1 transform transition-transform duration-200 hover:scale-110 shadow-lg "
+          size="sm"
+        >
+          <ArrowLeft className="h-4 w-4 " />
+          <span className="hidden group-hover:inline sm:inline">
+            Back to Restaurant
+          </span>
+        </Button>
+
+        <Button
+          onClick={() => setIsOpen(true)}
+          className="transform transition-transform duration-200 hover:scale-110 shadow-lg"
+          size="sm"
+        >
+          <Plus className="h-4 w-4" />
+          <span className="hidden group-hover:inline ml-2 sm:inline">
+            Add Staff Member
+          </span>
+        </Button>
+      </div>
     </div>
   );
 }

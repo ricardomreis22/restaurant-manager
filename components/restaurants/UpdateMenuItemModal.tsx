@@ -175,7 +175,9 @@ export function UpdateMenuItemModal({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit">Update Item</Button>
+            <Button type="submit" variant="modal">
+              Update Item
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

@@ -153,7 +153,7 @@ export default function PaymentPage() {
   const totalAmount = calculateTotalAmount(placedOrders);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <div className="max-w-4xl mx-auto p-6">
         <div className="flex items-center justify-between mb-6">
           <Button
@@ -165,7 +165,7 @@ export default function PaymentPage() {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Table
           </Button>
-          <h1 className="text-2xl font-bold">Payment Summary</h1>
+          <h1 className="text-2xl font-bold text-white">Payment Summary</h1>
         </div>
 
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
@@ -173,7 +173,7 @@ export default function PaymentPage() {
           <Card className="p-6 bg-white shadow-md">
             <div className="flex items-center gap-2 mb-4">
               <Receipt className="h-5 w-5" />
-              <h2 className="text-xl font-semibold">
+              <h2 className="text-xl font-semibold text-gray-900">
                 Table {table.number} - Pending Orders
               </h2>
             </div>
