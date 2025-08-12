@@ -94,6 +94,33 @@ export default function RestaurantView({
       setDisplay(initialDisplay);
     }
   }, []);
+
+  // Listen for URL changes when in admin view
+  useEffect(() => {
+    if (isAdminView) {
+      const handleUrlChange = () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentTab = urlParams.get("tab");
+        if (
+          currentTab &&
+          [
+            "floormap",
+            "menu",
+            "menu-management",
+            "employees",
+            "activity",
+          ].includes(currentTab)
+        ) {
+          setDisplay(currentTab);
+        }
+      };
+
+      // Check URL on mount and when URL changes
+      handleUrlChange();
+      window.addEventListener("popstate", handleUrlChange);
+      return () => window.removeEventListener("popstate", handleUrlChange);
+    }
+  }, [isAdminView]);
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
 
   const adminSetDisplay = async (newDisplay: string) => {

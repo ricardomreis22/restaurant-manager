@@ -82,6 +82,9 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
   const [formData, setFormData] = useState({});
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(true);
+  const [selectedMobileCategory, setSelectedMobileCategory] = useState<
+    number | null
+  >(null);
   const socket = io("http://localhost:3001");
 
   useEffect(() => {
@@ -293,26 +296,139 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
         <div
           className={`${
             isMenuOpen ? "block" : "hidden"
-          } sm:block w-full sm:w-1/2 lg:w-2/3 xl:w-3/4 py-12 px-8 overflow-y-auto bg-black bg-opacity-80 sm:bg-white sm:bg-opacity-100 sm:bg-transparent absolute sm:relative top-0 left-0 right-0 bottom-0 z-10 sm:z-auto h-screen sm:h-full`}
+          } sm:block w-full sm:w-1/2 lg:w-2/3 xl:w-3/4 py-12 px-8 overflow-y-auto  bg-[rgba(36,49,52,255)] bg-opacity-80  sm:bg-white sm:bg-opacity-100 sm:bg-transparent absolute sm:relative top-0 left-0 right-0 bottom-0 z-10 sm:z-auto h-screen sm:h-full`}
         >
-          {/* Category Tabs */}
-          <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-            {categories.map((category) => (
-              <Button
-                key={category.id}
-                variant={
-                  selectedCategory === category.id ? "default" : "outline"
-                }
-                onClick={() => setSelectedCategory(category.id)}
-                className="text-black"
-              >
-                {category.name}
-              </Button>
-            ))}
+          {/* Category Tabs - Hidden on small screens */}
+          <div className="flex justify-between items-center mb-16 ">
+            <div className="hidden sm:flex gap-2 overflow-x-auto pb-2  ">
+              {categories.map((category) => (
+                <Button
+                  key={category.id}
+                  variant={
+                    selectedCategory === category.id ? "default" : "outline"
+                  }
+                  onClick={() => setSelectedCategory(category.id)}
+                  className="text-black"
+                >
+                  {category.name}
+                </Button>
+              ))}
+            </div>
           </div>
 
-          {/* Menu Items Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Categories List - Only visible on small screens */}
+          {selectedMobileCategory === null ? (
+            <div className="block sm:hidden mb-6 mt-10 ">
+              <h3 className="text-xl font-semibold text-white mb-4">
+                Categories
+              </h3>
+              <div className="space-y-2 border-b-2 border-white pb-6">
+                {categories
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map((category) => (
+                    <Button
+                      key={category.id}
+                      variant="ghost"
+                      className="w-full justify-start text-white hover:bg-white hover:text-black transition-colors"
+                      onClick={() => {
+                        setSelectedMobileCategory(category.id);
+                      }}
+                    >
+                      {category.name}
+                    </Button>
+                  ))}
+              </div>
+
+              {/* All Menu Items - Only visible when no category is selected */}
+              <div className="mt-8">
+                <h3 className="text-xl font-semibold text-white mb-4">
+                  All Menu Items
+                </h3>
+                <div className="space-y-2">
+                  {menuItems
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex justify-between items-center p-3 bg-white bg-opacity-10 rounded-lg cursor-pointer hover:bg-white hover:bg-opacity-20 transition-colors"
+                        onClick={() => {
+                          handleAddToOrder(item);
+                          setIsMenuOpen(false);
+                        }}
+                      >
+                        <div className="flex-1">
+                          <h4 className="font-medium text-white">
+                            {item.name}
+                          </h4>
+                          {item.description && (
+                            <p className="text-sm text-gray-300 mt-1">
+                              {item.description}
+                            </p>
+                          )}
+                          <p className="text-xs text-gray-400 mt-1">
+                            {item.category.name}
+                          </p>
+                        </div>
+                        <p className="font-medium text-white ml-4">
+                          ${item.price.toFixed(2)}
+                        </p>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* Category Items View - Only visible on small screens when category is selected */
+            <div className="block sm:hidden mb-6 mt-10">
+              {/* Back button and category title */}
+              <div className="flex items-center gap-3 mb-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-white hover:bg-white hover:text-black transition-colors"
+                  onClick={() => {
+                    setSelectedMobileCategory(null);
+                  }}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Categories
+                </Button>
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-4">
+                {categories.find((c) => c.id === selectedMobileCategory)?.name}{" "}
+              </h3>
+              <div className="space-y-2">
+                {menuItems
+                  .filter((item) => item.categoryId === selectedMobileCategory)
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex justify-between items-center p-3 bg-white bg-opacity-10 rounded-lg cursor-pointer hover:bg-white hover:bg-opacity-20 transition-colors"
+                      onClick={() => {
+                        handleAddToOrder(item);
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      <div className="flex-1">
+                        <h4 className="font-medium text-white">{item.name}</h4>
+                        {item.description && (
+                          <p className="text-sm text-gray-300 mt-1">
+                            {item.description}
+                          </p>
+                        )}
+                      </div>
+                      <p className="font-medium text-white ml-4">
+                        ${item.price.toFixed(2)}
+                      </p>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* Menu Items Grid - Hidden on small screens */}
+          <div className="hidden sm:grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredItems.map((item) => (
               <Card
                 key={item.id}
@@ -340,27 +456,34 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
         </div>
 
         {/* Orders (Right Side) - Full width on small screens */}
-        <div className="w-full sm:w-1/2 lg:w-1/3 xl:w-1/4 sm:border-l overflow-hidden flex flex-col">
+        <div className="w-full sm:w-1/2 lg:w-1/3 xl:w-1/4 sm:border-l overflow-hidden flex flex-col text-white">
           {/* Hamburger Menu Button - Only visible on small screens */}
-          <div className="flex justify-between items-center p-4 sm:hidden z-50">
-            <h2 className="text-xl font-bold text-white">
-              Table {table.number}
-            </h2>
+          <div className="flex justify-between items-center p-4 sm:hidden z-50 border-b-2 border-white bg-[rgba(36,49,52,1)]">
+            <Button
+              variant="ghost"
+              size="sm"
+              className=" hover:bg-white hover:text-black transition-colors"
+              onClick={handleClose}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h2 className="text-xl font-bold ">Table {table.number}</h2>
+
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               {isMenuOpen ? (
-                <X className="h-5 w-5 text-white" />
+                <X className="h-5 w-5" />
               ) : (
-                <Menu className="h-5 w-5 text-white" />
+                <Menu className="h-5 w-5" />
               )}
             </Button>
           </div>
 
           {/* Current Order */}
-          <div className="p-6  border border-gray-600">
+          <div className=" p-10 border-b-2 border-white sm:mt-0 sm:mb-0 sm:border sm:border-gray-600">
             <h3 className="text-xl font-semibold mb-4 text-white">
               Current Order
             </h3>

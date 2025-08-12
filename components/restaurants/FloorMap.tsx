@@ -218,39 +218,8 @@ const Floormap = ({
   /////////////////////////////////////////////////////////////////////////////
 
   return (
-    <div className=" h-full">
-      {/* Title and nav buttons at the top of the floor map */}
-      {/* Navigation buttons outside the white div */}
-      <div className="p-6 space-y-6">
-        <div className="flex gap-2">
-          <Button
-            onClick={() =>
-              isAdminView ? adminSetDisplay("floormap") : setDisplay("floormap")
-            }
-            variant={display === "floormap" ? "default" : "outline"}
-          >
-            Floor Map
-          </Button>
-          <Button
-            onClick={() =>
-              isAdminView ? adminSetDisplay("activity") : setDisplay("activity")
-            }
-            variant={display === "activity" ? "default" : "outline"}
-          >
-            Activity Log
-          </Button>
-          {isAdminView && (
-            <Button
-              onClick={() => adminSetDisplay("menu-management")}
-              variant={display === "menu-management" ? "default" : "outline"}
-            >
-              Menu Management
-            </Button>
-          )}
-        </div>
-      </div>
-
-      <div className="relative h-[90%] bg-gray-50 rounded-l mr-6 ml-6">
+    <div className="h-full">
+      <div className="relative h-full bg-gray-50 rounded-l mr-6 ml-6">
         {/* Add Table Button - Top Right */}
         {isAdminView && (
           <div className="absolute top-4 right-4 z-10">

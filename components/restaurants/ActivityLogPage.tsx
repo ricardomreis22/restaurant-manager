@@ -104,34 +104,6 @@ export default function ActivityLogPage({
 
   return (
     <div className="p-6 space-y-6">
-      {/* Navigation buttons */}
-      <div className="flex gap-2">
-        <Button
-          onClick={() => {
-            if (isAdminView && adminSetDisplay) {
-              adminSetDisplay("floormap");
-            } else if (setDisplay) {
-              setDisplay("floormap");
-            }
-          }}
-          variant="outline"
-        >
-          Floor Map
-        </Button>
-        <Button
-          onClick={() => {
-            if (isAdminView && adminSetDisplay) {
-              adminSetDisplay("activity");
-            } else if (setDisplay) {
-              setDisplay("activity");
-            }
-          }}
-          variant="default"
-        >
-          Activity Log
-        </Button>
-      </div>
-
       {selectedSession ? (
         // Single session view
         <div className="space-y-4">

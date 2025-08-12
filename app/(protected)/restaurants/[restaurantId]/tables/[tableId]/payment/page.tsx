@@ -153,9 +153,9 @@ export default function PaymentPage() {
   const totalAmount = calculateTotalAmount(placedOrders);
 
   return (
-    <div className="min-h-screen">
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="flex items-center justify-between mb-6">
+    <div className="min-h-screen flex justify-center items-center">
+      <div className=" p-6">
+        <div className="flex justify-between">
           <Button
             variant="ghost"
             onClick={() =>
@@ -307,6 +307,16 @@ export default function PaymentPage() {
             </div>
           </Card>
         </div>
+      </div>
+
+      {/* Vertical divider */}
+      <div className="w-px bg-gray-300 hidden sm:block"></div>
+
+      <div className="justify-center items-center overflow-y-auto hidden sm:flex">
+        <h1>
+          Frase Inspiradora sobre o restaurant managar com a possibilide de ter
+          uma imagem tbm
+        </h1>
       </div>
     </div>
   );
