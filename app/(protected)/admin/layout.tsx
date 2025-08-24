@@ -29,15 +29,5 @@ export default function AdminLayout({
     return null;
   }
 
-  return (
-    <div>
-      <nav className="p-4 flex justify-between items-center bg-[rgba(36,49,52,255)] text-white">
-        <div className="flex items-center gap-4">
-          <img src="/favicon.ico" alt="logo" className="w-15 h-12" />
-        </div>
-        <LogoutButton />
-      </nav>
-      <div className="min-h-screen">{children}</div>
-    </div>
-  );
+  return <div className="h-full">{children}</div>;
 }

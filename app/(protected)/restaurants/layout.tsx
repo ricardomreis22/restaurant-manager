@@ -27,18 +27,5 @@ export default function ProtectedLayout({
     loadRestaurant();
   }, [restaurantId]);
 
-  return (
-    <div>
-      <nav className="hidden sm:flex p-4 justify-between items-center bg-[rgba(36,49,52,255)] text-white">
-        <div className="flex items-center gap-4">
-          <img src="/favicon.ico" alt="logo" className="w-15 h-12" />
-        </div>
-        {restaurantName && (
-          <h1 className="text-xl font-semibold">{restaurantName}</h1>
-        )}
-        <LogoutButton />
-      </nav>
-      {children}
-    </div>
-  );
+  return <div className="h-full">{children}</div>;
 }

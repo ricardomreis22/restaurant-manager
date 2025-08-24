@@ -70,7 +70,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
   const [order, setOrder] = useState<OrderItem[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItemWithCategory[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [placedOrders, setPlacedOrders] = useState<PlacedOrder[]>([]);
@@ -296,11 +296,12 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
         <div
           className={`${
             isMenuOpen ? "block" : "hidden"
-          } sm:block w-full sm:w-1/2 lg:w-2/3 xl:w-3/4 py-12 px-8 overflow-y-auto  bg-[rgba(36,49,52,255)] bg-opacity-80  sm:bg-white sm:bg-opacity-100 sm:bg-transparent absolute sm:relative top-0 left-0 right-0 bottom-0 z-10 sm:z-auto h-screen sm:h-full`}
+          } md:block w-full md:w-1/2 lg:w-2/3 xl:w-3/4 py-12 px-8 overflow-y-auto bg-[rgba(36,49,52,255)] bg-opacity-80  md:bg-white md:bg-opacity-100 md:bg-transparent
+          absolute md:relative top-0 left-0 right-0 bottom-0 z-10 md:z-auto h-screen md:h-full`}
         >
           {/* Category Tabs - Hidden on small screens */}
-          <div className="flex justify-between items-center mb-16 ">
-            <div className="hidden sm:flex gap-2 overflow-x-auto pb-2  ">
+          <div className="flex just ify-between items-center mb-16 ">
+            <div className="hidden md:flex gap-2 overflow-x-auto pb-2  ">
               {categories.map((category) => (
                 <Button
                   key={category.id}
@@ -318,7 +319,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
 
           {/* Categories List - Only visible on small screens */}
           {selectedMobileCategory === null ? (
-            <div className="block sm:hidden mb-6 mt-10 ">
+            <div className="block md:hidden mb-6 mt-10 ">
               <h3 className="text-xl font-semibold text-white mb-4">
                 Categories
               </h3>
@@ -379,7 +380,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
             </div>
           ) : (
             /* Category Items View - Only visible on small screens when category is selected */
-            <div className="block sm:hidden mb-6 mt-10">
+            <div className="block md:hidden mb-6 mt-10">
               {/* Back button and category title */}
               <div className="flex items-center gap-3 mb-4">
                 <Button
@@ -428,7 +429,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
           )}
 
           {/* Menu Items Grid - Hidden on small screens */}
-          <div className="hidden sm:grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="hidden md:grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredItems.map((item) => (
               <Card
                 key={item.id}
@@ -456,9 +457,9 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
         </div>
 
         {/* Orders (Right Side) - Full width on small screens */}
-        <div className="w-full sm:w-1/2 lg:w-1/3 xl:w-1/4 sm:border-l overflow-hidden flex flex-col text-white">
+        <div className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 md:border-l overflow-hidden flex flex-col text-white">
           {/* Hamburger Menu Button - Only visible on small screens */}
-          <div className="flex justify-between items-center p-4 sm:hidden z-50 border-b-2 border-white bg-[rgba(36,49,52,1)]">
+          <div className="flex justify-between items-center p-4 md:hidden z-50 border-b-2 border-white bg-[rgba(36,49,52,1)]">
             <Button
               variant="ghost"
               size="sm"
@@ -467,7 +468,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <h2 className="text-xl font-bold ">Table {table.number}</h2>
+            <h2 className="text-lg font-bold ">Table {table.number}</h2>
 
             <Button
               variant="ghost"
@@ -483,7 +484,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
           </div>
 
           {/* Current Order */}
-          <div className=" p-10 border-b-2 border-white sm:mt-0 sm:mb-0 sm:border sm:border-gray-600">
+          <div className=" p-10 border-b-2 border-white md:mt-0 md:mb-0 md:border md:border-gray-600">
             <h3 className="text-xl font-semibold mb-4 text-white">
               Current Order
             </h3>
@@ -494,7 +495,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                 {order.map((item) => (
                   <div
                     key={item.id}
-                    className="flex justify-between items-start p-3 rounded-lg shadow-sm sm:border sm:border-gray-600"
+                    className="flex justify-between items-start p-3 rounded-lg shadow-sm md:border md:border-gray-600"
                   >
                     <div>
                       <h4 className="font-medium text-white">{item.name}</h4>
@@ -546,7 +547,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                   </div>
                 ))}
 
-                <div className="sm:border-t sm:border-gray-600 pt-4 mt-4">
+                <div className="md:border-t md:border-gray-600 pt-4 mt-4">
                   <div className="flex justify-between font-semibold text-lg text-white">
                     <span>Total</span>
                     <span>${calculateTotal().toFixed(2)}</span>
@@ -632,7 +633,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                           )}
                         </div>
                       ))}
-                      <div className="sm:border-t pt-2 mt-2">
+                      <div className="md:border-t pt-2 mt-2">
                         <div className="flex justify-between font-medium text-gray-900">
                           <span>Total</span>
                           <span>${placedOrder.totalAmount.toFixed(2)}</span>

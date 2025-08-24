@@ -197,26 +197,12 @@ export default function StaffPage() {
       </Table>
       <div className="fixed bottom-4 right-4 flex flex-col gap-2 z-50 ">
         <Button
-          variant="ghost"
-          onClick={() => router.push("/admin/restaurants")}
-          className=" border border-white border-1 transform transition-transform duration-200 hover:scale-110 shadow-lg "
-          size="sm"
-        >
-          <ArrowLeft className="h-4 w-4 " />
-          <span className="hidden group-hover:inline sm:inline">
-            Back to Restaurant
-          </span>
-        </Button>
-
-        <Button
           onClick={() => setIsOpen(true)}
           className="transform transition-transform duration-200 hover:scale-110 shadow-lg"
           size="sm"
         >
           <Plus className="h-4 w-4" />
-          <span className="hidden group-hover:inline ml-2 sm:inline">
-            Add Staff Member
-          </span>
+          <span className="hidden ml-2 sm:inline">Add Staff Member</span>
         </Button>
       </div>
     </div>
