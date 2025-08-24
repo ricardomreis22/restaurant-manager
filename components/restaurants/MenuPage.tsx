@@ -19,19 +19,9 @@ import { UpdateMenuItemModal } from "./UpdateMenuItemModal";
 import { Pencil, Trash, Plus, ArrowLeft } from "lucide-react";
 import { AddCategoryModal } from "./AddCategoryModal";
 import { UpdateCategoryModal } from "./UpdateCategoryModal";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 interface MenuPageProps {
   restaurantId: number;
-  onBack?: () => void;
 }
 
 interface MenuItemWithCategory extends MenuItems {
@@ -45,10 +35,10 @@ interface NewMenuItem {
   categoryId: number;
 }
 
-export default function MenuPage({ restaurantId, onBack }: MenuPageProps) {
+export default function MenuPage({ restaurantId }: MenuPageProps) {
   const [menuItems, setMenuItems] = useState<MenuItemWithCategory[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
@@ -70,6 +60,7 @@ export default function MenuPage({ restaurantId, onBack }: MenuPageProps) {
 
   const loadMenu = async () => {
     try {
+      setLoading(true);
       const [categoriesData, menuItemsData] = await Promise.all([
         getCategories(restaurantId),
         getMenuItems(restaurantId),
@@ -235,12 +226,6 @@ export default function MenuPage({ restaurantId, onBack }: MenuPageProps) {
     <div className="p-4">
       <div className="flex justify-between mb-6">
         <div className="flex items-center gap-4">
-          {onBack && (
-            <Button variant="ghost" onClick={onBack}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-          )}
           <h2 className="text-2xl font-bold">Menu</h2>
         </div>
         <div className="flex gap-2">

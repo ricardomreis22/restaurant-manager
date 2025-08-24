@@ -54,37 +54,43 @@ export default function RestaurantsPage() {
           {restaurants.map((restaurant) => (
             <div
               key={restaurant.id}
-              className="border p-4 rounded-lg shadow hover:shadow-md transition"
+              className="border p-4 rounded-lg shadow hover:shadow-md transition cursor-pointer"
+              onClick={() => router.push(`/restaurants/${restaurant.id}`)}
             >
-              <Link href={`/restaurants/${restaurant.id}`}>
-                <h2 className="flex justify-center text-lg sm:text-xl font-semibold mb-10">
+              {/* Header */}
+              <div className="flex justify-between items-center min-w-0 mb-10">
+                <h2 className="flex text-lg sm:text-xl font-semibold justify-center flex-1">
                   {restaurant.name}
                 </h2>
-                <div className="flex flex-col gap-3 mb-5">
+              </div>
+
+              <div className="flex flex-col gap-4 mb-5">
+                {/* Contact Info */}
+                <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    <p className="text-sm sm:text-base flex gap-2 ">
+                    <MapPin className="h-4 w-4 text-blue-500" />
+                    <p className="text-sm sm:text-base flex gap-2">
                       {restaurant.address}
                     </p>
                   </div>
                   {restaurant.phone && (
                     <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4" />
-                      <p className="text-sm sm:text-base flex gap-2 ">
+                      <Phone className="h-4 w-4 text-green-500" />
+                      <p className="text-sm sm:text-base flex gap-2">
                         {restaurant.phone}
                       </p>
                     </div>
                   )}
                   {restaurant.email && (
                     <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4" />
-                      <p className="text-sm sm:text-base flex gap-2 ">
+                      <Mail className="h-4 w-4 text-purple-500" />
+                      <p className="text-sm sm:text-base flex gap-2">
                         {restaurant.email}
                       </p>
                     </div>
                   )}
                 </div>
-              </Link>
+              </div>
             </div>
           ))}
         </div>
