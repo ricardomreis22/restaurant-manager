@@ -19,11 +19,15 @@ import {
   deleteTable,
   getTables,
   toggleTableLock,
+  updateTablePosition,
 } from "@/actions/tables";
 import { toast } from "sonner";
 import { TableLocker } from "./TableLocker";
 import io from "socket.io-client";
 import { checkTableLock } from "@/actions/tables";
+import { DndContext } from "@dnd-kit/core";
+import { Droppable } from "../dnd/Droppable";
+import { Draggable } from "../dnd/Draggable";
 
 interface Table {
   id: number;
@@ -31,6 +35,8 @@ interface Table {
   capacity: number;
   isReserved: boolean;
   isLocked: boolean;
+  x?: number; // Add this
+  y?: number; // Add this
 }
 
 interface FloorMapProps {
@@ -67,6 +73,9 @@ const Floormap = ({
     null
   );
   const [numberOfPeople, setNumberOfPeople] = useState<number>(2);
+  const [tablePositions, setTablePositions] = useState<
+    Record<number, { x: number; y: number }>
+  >({});
 
   const refreshTables = async () => {
     try {
@@ -95,6 +104,18 @@ const Floormap = ({
   useEffect(() => {
     setLocalTables(tables);
   }, [tables]);
+
+  // Initialize table positions when tables change
+  useEffect(() => {
+    const initialPositions: Record<number, { x: number; y: number }> = {};
+    localTables.forEach((table) => {
+      initialPositions[table.id] = {
+        x: table.x || 0,
+        y: table.y || 0,
+      };
+    });
+    setTablePositions(initialPositions);
+  }, [localTables]);
 
   const handleTableClick = async (tableId: number) => {
     const table = localTables.find((t) => t.id === tableId);
@@ -215,108 +236,135 @@ const Floormap = ({
     }
   };
 
+  const handleDragEnd = async ({ active, over, delta }: any) => {
+    if (!over) {
+      return; // Exit early if not dropped on anything
+    }
+
+    // Handle table dragging (only for admin users)
+    if (active && active.id.startsWith("table-") && isAdminView) {
+      const tableId = parseInt(active.id.replace("table-", ""));
+
+      const newX = (tablePositions[tableId]?.x || 0) + delta.x;
+      const newY = (tablePositions[tableId]?.y || 0) + delta.y;
+
+      // Update local state immediately for responsive UI
+      setTablePositions((prevPositions) => ({
+        ...prevPositions,
+        [tableId]: {
+          x: newX,
+          y: newY,
+        },
+      }));
+
+      // Save to database
+      try {
+        await updateTablePosition(tableId, newX, newY);
+      } catch (error) {
+        console.error("Failed to update table position:", error);
+        toast.error("Failed to save table position");
+      }
+    }
+  };
+
   /////////////////////////////////////////////////////////////////////////////
 
   return (
     <div className="h-full">
-      <div className="relative h-full bg-gray-50 rounded-l mr-6 ml-6">
-        {/* Add Table Button - Top Right */}
-        {isAdminView && (
-          <div className="absolute top-4 right-4 z-10">
-            <Button onClick={() => setIsAddModalOpen(true)} variant="outline">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Table
-            </Button>
-          </div>
-        )}
-
-        {/* Kitchen - Left Side */}
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-12 md:w-24 h-24 md:h-48 bg-gray-200 rounded-r-lg flex items-center justify-center">
-          <span className="font-semibold text-gray-700 -rotate-90">
-            Kitchen
-          </span>
-        </div>
-
-        {/* Entrance - Right Side */}
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-12 md:w-24 h-16 md:h-32 flex flex-col items-center justify-center">
-          <div className="w-6 md:w-12 h-10 md:h-20 border-2 border-gray-400 rounded-r-lg"></div>
-          <span className="mt-2 text-sm text-gray-700">Entrance</span>
-        </div>
-
-        {/* Tables Grid */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4/5 md:w-2/3">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-4">
-            {localTables.map((table) => (
-              <div
-                key={table.id}
-                onClick={() => handleTableClick(table.id)}
-                className={`
-                  relative p-2 md:p-4 rounded-lg shadow-md text-center
-                  ${
-                    table.isLocked
-                      ? "cursor-not-allowed opacity-50"
-                      : "cursor-pointer"
-                  }
-                  ${table.isReserved ? "bg-yellow-100" : "bg-green-100"}
-                  ${selectedTable === table.id ? "ring-2 ring-blue-500" : ""}
-                  hover:shadow-lg transition-all
-                `}
-              >
-                <h3 className="font-bold text-sm md:text-lg">
-                  Table {table.number}
-                </h3>
-                <p className="text-xs md:text-sm text-gray-600">
-                  Capacity: {table.capacity}
-                </p>
-                <p className="text-xs md:text-sm mt-1">
-                  {table.isReserved ? "Reserved" : "Available"}
-                </p>
-                {table.isLocked && (
-                  <Lock className="absolute top-2 right-2 h-4 w-4 text-red-500" />
-                )}
-                {isAdminView && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute -top-2 -right-2 text-red-600 hover:text-red-800 bg-white rounded-full p-1"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteTable(table.id);
-                    }}
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
-                )}
-                {onToggleLock && (
-                  <TableLocker
-                    tableId={table.id}
-                    isLocked={table.isLocked}
-                    onToggleLock={onToggleLock}
-                  />
-                )}
+      <DndContext onDragEnd={handleDragEnd}>
+        <Droppable id="floor-map">
+          <div className="relative h-full bg-gray-50 rounded-l mr-6 ml-6 ">
+            {/* Add Table Button - Top Right */}
+            {isAdminView && (
+              <div className="absolute top-4 right-4 z-10">
+                <Button
+                  onClick={() => setIsAddModalOpen(true)}
+                  variant="outline"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Table
+                </Button>
               </div>
-            ))}
-          </div>
-        </div>
+            )}
 
-        {/* Bar - Bottom */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4/5 md:w-2/3 h-12 md:h-20 bg-gray-200 rounded-t-lg flex items-center justify-center">
-          <span className="font-semibold text-gray-700">Bar</span>
-        </div>
-        {/* Legend absolutely positioned in the bottom left of the white div */}
-        <div className="absolute bottom-4 left-4 flex items-center gap-4">
-          <div className="flex gap-4 text-sm text-gray-600">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-green-100 rounded"></div>
-              <span>Available</span>
+            {/* Tables Grid */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4/5 md:w-2/3">
+              <div className="h-full w-full overflow-hidden">
+                {localTables.map((table) => (
+                  <Draggable
+                    key={table.id}
+                    position={tablePositions[table.id] || { x: 0, y: 0 }}
+                    id={`table-${table.id}`}
+                    disabled={!isAdminView}
+                  >
+                    <div
+                      onClick={() => handleTableClick(table.id)}
+                      className={`
+                    relative h-50 w-50 p-2 md:p-4 rounded-lg shadow-md text-center
+                    ${
+                      table.isLocked
+                        ? "cursor-not-allowed opacity-50"
+                        : "cursor-pointer"
+                    }
+                    ${table.isReserved ? "bg-yellow-100" : "bg-green-100"}
+                    ${selectedTable === table.id ? "ring-2 ring-blue-500" : ""}
+                    hover:shadow-lg transition-all
+                  `}
+                    >
+                      <h3 className="font-bold text-sm md:text-lg">
+                        Table {table.number}
+                      </h3>
+                      <p className="text-xs md:text-sm text-gray-600">
+                        Capacity: {table.capacity}
+                      </p>
+                      <p className="text-xs md:text-sm mt-1">
+                        {table.isReserved ? "Reserved" : "Available"}
+                      </p>
+                      {table.isLocked && (
+                        <Lock className="absolute top-2 right-2 h-4 w-4 text-red-500" />
+                      )}
+                      {isAdminView && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="absolute -top-2 -right-2 text-red-600 hover:text-red-800 bg-white rounded-full p-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteTable(table.id);
+                          }}
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {onToggleLock && (
+                        <TableLocker
+                          tableId={table.id}
+                          isLocked={table.isLocked}
+                          onToggleLock={onToggleLock}
+                        />
+                      )}
+                    </div>
+                  </Draggable>
+                ))}
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-yellow-100 rounded"></div>
-              <span>Reserved</span>
+
+            {/* Legend absolutely positioned in the bottom left of the white div */}
+            <div className="absolute bottom-4 left-4 flex items-center gap-4">
+              <div className="flex gap-4 text-sm text-gray-600">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-green-100 rounded"></div>
+                  <span>Available</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-yellow-100 rounded"></div>
+                  <span>Reserved</span>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        </Droppable>
+      </DndContext>
 
       {/* Add Table Modal */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>

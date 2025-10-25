@@ -114,3 +114,30 @@ export async function checkTableLock(tableId: number) {
   console.log("checkTableLock", table?.isLocked);
   return table?.isLocked;
 }
+
+export async function updateTablePosition(
+  tableId: number,
+  x: number,
+  y: number
+) {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      throw new Error("Unauthorized");
+    }
+
+    if (session.user.userRole !== "ADMIN") {
+      throw new Error("Unauthorized");
+    }
+
+    const table = await prisma.table.update({
+      where: { id: tableId },
+      data: { x, y },
+    });
+
+    return { success: true, table };
+  } catch (error) {
+    console.error("[UPDATE_TABLE_POSITION_ERROR]", error);
+    throw error;
+  }
+}
