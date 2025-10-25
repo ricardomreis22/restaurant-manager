@@ -29,6 +29,8 @@ import ActivityLogPage from "@/components/restaurants/ActivityLogPage";
 import { useCurrentRole } from "@/hooks/use-current-role";
 import { checkAdmin } from "@/actions/admin";
 
+import { LogoutButton } from "@/components/auth/logout-button";
+import { useAdminRestaurant } from "@/contexts/AdminRestaurantContext";
 interface Table {
   id: number;
   number: number;
@@ -81,54 +83,40 @@ export default function RestaurantView({
   const [restaurant, setRestaurant] = useState<any>(null);
   const [tables, setTables] = useState<Table[]>([]);
 
+  // Use context for admin view, local state for regular view
+  const adminContext = isAdminView ? useAdminRestaurant() : null;
   const [display, setDisplay] = useState<string>("floormap");
 
-  // Check for initial display from URL search params
+  // Check for initial display from URL search params (only for non-admin view)
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const initialDisplay = urlParams.get("tab");
-    if (
-      initialDisplay &&
-      ["floormap", "menu", "menu-management", "employees", "activity"].includes(
-        initialDisplay
-      )
-    ) {
-      setDisplay(initialDisplay);
-    }
-  }, []);
-
-  // Listen for URL changes when in admin view
-  useEffect(() => {
-    if (isAdminView) {
-      const handleUrlChange = () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const currentTab = urlParams.get("tab");
-        if (
-          currentTab &&
-          [
-            "floormap",
-            "menu",
-            "menu-management",
-            "employees",
-            "activity",
-          ].includes(currentTab)
-        ) {
-          setDisplay(currentTab);
-        }
-      };
-
-      // Check URL on mount and when URL changes
-      handleUrlChange();
-      window.addEventListener("popstate", handleUrlChange);
-      return () => window.removeEventListener("popstate", handleUrlChange);
+    if (!isAdminView) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const initialDisplay = urlParams.get("tab");
+      if (
+        initialDisplay &&
+        [
+          "floormap",
+          "menu",
+          "menu-management",
+          "employees",
+          "activity",
+        ].includes(initialDisplay)
+      ) {
+        setDisplay(initialDisplay);
+      }
     }
   }, [isAdminView]);
+
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
 
   const adminSetDisplay = async (newDisplay: string) => {
     try {
       await checkAdmin();
-      setDisplay(newDisplay);
+      if (isAdminView && adminContext) {
+        adminContext.setCurrentTab(newDisplay as any);
+      } else {
+        setDisplay(newDisplay);
+      }
     } catch (error) {
       console.error("Unauthorized action");
     }
@@ -146,21 +134,23 @@ export default function RestaurantView({
     loadData();
   }, [restaurantId]);
 
-  const handleDelete = async () => {
-    if (window.confirm("Are you sure you want to delete this restaurant?")) {
-      try {
-        await deleteRestaurant(restaurantId);
-        router.push(isAdminView ? "/admin/restaurants" : "/restaurants");
-      } catch (error) {
-        console.error("Failed to delete restaurant:", error);
-      }
-    }
-  };
-
   const handleTableSelect = (tableId: number) => {
     const table = tables.find((t) => t.id === tableId);
     if (table) {
       setSelectedTable(table);
+    }
+  };
+
+  // Get the current display value
+  const currentDisplay =
+    isAdminView && adminContext ? adminContext.currentTab : display;
+
+  // Create wrapper functions for setDisplay to handle type conversion
+  const handleSetDisplay = (newDisplay: string) => {
+    if (isAdminView && adminContext) {
+      adminContext.setCurrentTab(newDisplay as any);
+    } else {
+      setDisplay(newDisplay);
     }
   };
 
@@ -177,31 +167,28 @@ export default function RestaurantView({
             restaurantId={restaurantId}
             onClose={() => setSelectedTable(null)}
           />
-        ) : display === "employees" && isAdminView ? (
+        ) : currentDisplay === "employees" && isAdminView ? (
           <StaffPage />
-        ) : display === "floormap" ? (
+        ) : currentDisplay === "floormap" ? (
           <Floormap
             tables={tables}
             onTableSelect={handleTableSelect}
             isAdminView={isAdminView}
             restaurantId={restaurantId}
             restaurantName={restaurant.name}
-            display={display}
-            setDisplay={setDisplay}
+            display={currentDisplay}
+            setDisplay={handleSetDisplay}
             adminSetDisplay={adminSetDisplay}
           />
-        ) : display === "menu" && isAdminView ? (
+        ) : currentDisplay === "menu" && isAdminView ? (
           <MenuPage restaurantId={restaurantId} />
-        ) : display === "menu-management" && isAdminView ? (
-          <MenuPage
-            restaurantId={restaurantId}
-            onBack={() => adminSetDisplay("floormap")}
-          />
-        ) : display === "activity" ? (
+        ) : currentDisplay === "menu-management" && isAdminView ? (
+          <MenuPage restaurantId={restaurantId} />
+        ) : currentDisplay === "activity" ? (
           <ActivityLogPage
             restaurantId={restaurantId}
             isAdminView={isAdminView}
-            setDisplay={setDisplay}
+            setDisplay={handleSetDisplay}
             adminSetDisplay={adminSetDisplay}
           />
         ) : null}

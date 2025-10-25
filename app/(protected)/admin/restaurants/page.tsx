@@ -82,49 +82,30 @@ export default function AdminRestaurantsPage() {
   return (
     <div className="p-4 sm:p-8">
       <h1 className="flex justify-center items-center mt-4 mb-16 sm:mb-24 text-2xl sm:text-3xl font-bold">
-        Restaurant Management
+        Restaurant Administration
       </h1>
 
       <div className="grid sm:grid-cols-2 gap-4 xl:grid-cols-3">
         {restaurants.map((restaurant) => (
           <div
             key={restaurant.id}
-            className="border p-4 rounded-lg shadow hover:shadow-md transition"
+            className="border p-4 rounded-lg shadow hover:shadow-md transition cursor-pointer"
+            onClick={() => router.push(`/admin/restaurants/${restaurant.id}`)}
           >
             {/* Header */}
-
             <div className="flex justify-between items-center min-w-0 mb-10">
-              <h2 className="flex text-lg sm:text-xl font-semibold ">
+              <h2 className="flex text-lg sm:text-xl font-semibold justify-center flex-1">
                 {restaurant.name}
               </h2>
-              {/* Action Buttons */}
+              {/* Action Buttons - Only keep delete */}
               <div className="flex gap-2 justify-center">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => router.push(`/restaurants/${restaurant.id}`)}
-                  className="flex-shrink-0 bg-transparent border-white text-white hover:bg-white hover:text-gray-900"
-                >
-                  View
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    router.push(
-                      `/admin/restaurants/${restaurant.id}?tab=employees`
-                    )
-                  }
-                  className="flex-shrink-0 bg-transparent border-white text-white hover:bg-white hover:text-gray-900"
-                >
-                  Staff
-                </Button>
                 <Button
                   variant="destructive"
                   size="sm"
-                  onClick={() =>
-                    handleDeleteRestaurant(restaurant.id, restaurant.name)
-                  }
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent card click when deleting
+                    handleDeleteRestaurant(restaurant.id, restaurant.name);
+                  }}
                   disabled={deleting === restaurant.id}
                   className="flex-shrink-0"
                 >
@@ -137,14 +118,14 @@ export default function AdminRestaurantsPage() {
               {/* Contact Info */}
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
+                  <MapPin className="h-4 w-4 text-blue-500" />
                   <p className="text-sm sm:text-base flex gap-2">
                     {restaurant.address}
                   </p>
                 </div>
                 {restaurant.phone && (
                   <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
+                    <Phone className="h-4 w-4 text-green-500" />
                     <p className="text-sm sm:text-base flex gap-2">
                       {restaurant.phone}
                     </p>
@@ -152,7 +133,7 @@ export default function AdminRestaurantsPage() {
                 )}
                 {restaurant.email && (
                   <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4" />
+                    <Mail className="h-4 w-4 text-purple-500" />
                     <p className="text-sm sm:text-base flex gap-2">
                       {restaurant.email}
                     </p>
