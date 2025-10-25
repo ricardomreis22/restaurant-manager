@@ -28,13 +28,15 @@ import { TableView } from "@/components/restaurants/TableView";
 import ActivityLogPage from "@/components/restaurants/ActivityLogPage";
 import { useCurrentRole } from "@/hooks/use-current-role";
 import { checkAdmin } from "@/actions/admin";
-import { LogoutButton } from "@/components/auth/logout-button";
+
 interface Table {
   id: number;
   number: number;
   capacity: number;
   isReserved: boolean;
   isLocked: boolean;
+  x: number;
+  y: number;
 }
 
 interface ActivityLog {
@@ -215,6 +217,21 @@ export default function RestaurantView({
             <Settings className="h-4 w-4" />
             <span className="hidden group-hover:inline ml-2 sm:inline">
               Admin View
+            </span>
+          </Button>
+        </div>
+      )}
+      {userRole === "ADMIN" && isAdminView && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <Button
+            onClick={() => router.push(`/restaurants/${restaurantId}`)}
+            variant="outline"
+            size="sm"
+            className="transform transition-transform duration-200 hover:scale-110 group shadow-lg text-red-600 hover:text-red-800 gap-2 px-3 py-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="hidden group-hover:inline ml-2 sm:inline">
+              Leave Admin
             </span>
           </Button>
         </div>

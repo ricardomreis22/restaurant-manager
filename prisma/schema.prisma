@@ -54,6 +54,8 @@ model Restaurant {
   address     String?      @unique
   phone       String?       @unique
   email       String?       @unique
+  kitchenX    Int          @default(0)
+  kitchenY    Int          @default(0)
   tables      Table[]
   users       User[]       @relation("UsersRestaurants")
   menuItems   MenuItems[]
@@ -74,6 +76,8 @@ model Table {
   capacity     Int
   isReserved   Boolean      @default(false)
   isLocked     Boolean      @default(false)
+  x            Int          @default(0)
+  y            Int          @default(0)
   reservations Reservation[]
   orders       Order[]
   seats        Seat[]
