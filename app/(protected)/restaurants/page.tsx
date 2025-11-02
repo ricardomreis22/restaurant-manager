@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { getRestaurants } from "@/actions/restaurants";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Edit, Mail, MapPin, Phone, Plus, Settings } from "lucide-react";
+import { Mail, MapPin, Phone, Plus, Settings } from "lucide-react";
 
 export default function RestaurantsPage() {
   const router = useRouter();

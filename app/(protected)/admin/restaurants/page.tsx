@@ -3,15 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getRestaurants, deleteRestaurant } from "@/actions/restaurants";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
-  Edit,
   Plus,
   Trash,
-  Users,
   ArrowLeft,
-  Settings,
   MapPin,
   Phone,
   Mail,

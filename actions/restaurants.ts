@@ -1,11 +1,7 @@
 "use server";
 
 import { auth } from "@/auth";
-import { getUserByEmail } from "@/data/user";
-import { NewStaffSchema } from "@/schemas";
 import prisma from "@/lib/prisma";
-import { z } from "zod";
-import bcrypt from "bcryptjs";
 
 export async function getRestaurants() {
   try {
