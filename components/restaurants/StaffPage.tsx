@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getRestaurantStaff, deleteStaffMember } from "@/actions/staff";
 import { Button } from "@/components/ui/button";
@@ -41,7 +41,7 @@ export default function StaffPage() {
   const [activeTab, setActiveTab] = useState("all");
   const router = useRouter();
 
-  const loadStaff = async () => {
+  const loadStaff = useCallback(async () => {
     try {
       const data = await getRestaurantStaff(restaurantId);
       const mappedStaff = data.map((staff: any) => ({
@@ -54,11 +54,11 @@ export default function StaffPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [restaurantId]);
 
   useEffect(() => {
     loadStaff();
-  }, [restaurantId]);
+  }, [loadStaff]);
 
   const handleEditClick = (staff: StaffMember) => {
     setSelectedStaff(staff);
