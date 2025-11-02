@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import {
   getRestaurant,
@@ -86,6 +86,7 @@ export default function RestaurantView({
   // Use context for admin view, local state for regular view
   const adminContext = isAdminView ? useAdminRestaurant() : null;
   const [display, setDisplay] = useState<string>("floormap");
+  const prevDisplayRef = useRef<string | null>(null);
 
   // Check for initial display from URL search params (only for non-admin view)
   useEffect(() => {
@@ -133,6 +134,28 @@ export default function RestaurantView({
 
     loadData();
   }, [restaurantId]);
+
+  // Refresh tables when switching back to floormap view to get latest positions
+  useEffect(() => {
+    const currentDisplayValue =
+      isAdminView && adminContext ? adminContext.currentTab : display;
+
+    // Only refresh when switching TO floormap from another tab (not on initial load)
+    if (
+      currentDisplayValue === "floormap" &&
+      prevDisplayRef.current !== null &&
+      prevDisplayRef.current !== "floormap"
+    ) {
+      const refreshTables = async () => {
+        const tablesData = await getRestaurantTables(restaurantId);
+        setTables(tablesData);
+      };
+      refreshTables();
+    }
+
+    // Update the previous display value
+    prevDisplayRef.current = currentDisplayValue;
+  }, [display, isAdminView, adminContext?.currentTab, restaurantId]);
 
   const handleTableSelect = (tableId: number) => {
     const table = tables.find((t) => t.id === tableId);

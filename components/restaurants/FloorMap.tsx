@@ -273,7 +273,7 @@ const Floormap = ({
     <div className="h-full">
       <DndContext onDragEnd={handleDragEnd}>
         <Droppable id="floor-map">
-          <div className="relative h-full bg-gray-50 rounded-l mr-6 ml-6 ">
+          <div className="relative h-full bg-gray-50 rounded-l mr-6 ml-6 mb-6 overflow-hidden">
             {/* Add Table Button - Top Right */}
             {isAdminView && (
               <div className="absolute top-4 right-4 z-10">
@@ -300,7 +300,7 @@ const Floormap = ({
                     <div
                       onClick={() => handleTableClick(table.id)}
                       className={`
-                    relative h-50 w-50 p-2 md:p-4 rounded-lg shadow-md text-center
+                    relative w-24 h-24 md:w-32 md:h-32 p-2 md:p-4 rounded-lg shadow-md text-center
                     ${
                       table.isLocked
                         ? "cursor-not-allowed opacity-50"

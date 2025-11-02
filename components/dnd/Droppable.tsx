@@ -10,7 +10,6 @@ export function Droppable(props: any) {
     color: isOver ? "green" : undefined,
     height: "100%",
     width: "100%",
-    border: "2px solid green",
   };
 
   return (
