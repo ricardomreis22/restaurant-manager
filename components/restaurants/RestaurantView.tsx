@@ -2,25 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
-import {
-  getRestaurant,
-  getRestaurantTables,
-  deleteRestaurant,
-} from "@/actions/restaurants";
+import { getRestaurant, getRestaurantTables } from "@/actions/restaurants";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  MoreVertical,
-  Trash,
-  ArrowLeft,
-  Settings,
-  Menu as MenuIcon,
-} from "lucide-react";
+import { ArrowLeft, Settings } from "lucide-react";
 import Floormap from "@/components/restaurants/FloorMap";
 import StaffPage from "@/components/restaurants/StaffPage";
 import MenuPage from "@/components/restaurants/MenuPage";
@@ -28,8 +12,6 @@ import { TableView } from "@/components/restaurants/TableView";
 import ActivityLogPage from "@/components/restaurants/ActivityLogPage";
 import { useCurrentRole } from "@/hooks/use-current-role";
 import { checkAdmin } from "@/actions/admin";
-
-import { LogoutButton } from "@/components/auth/logout-button";
 import { useAdminRestaurant } from "@/contexts/AdminRestaurantContext";
 interface Table {
   id: number;

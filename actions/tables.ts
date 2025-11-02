@@ -2,7 +2,6 @@
 
 import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
-import { UserRole } from "@prisma/client";
 
 export async function createTable(data: {
   id: number;

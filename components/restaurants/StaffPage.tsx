@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { getRestaurantStaff, deleteStaffMember } from "@/actions/staff";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +15,7 @@ import {
 import NewStaffModal from "./NewStaffModal";
 import UpdateStaffModal from "./UpdateStaffModal";
 import { UserRole } from "@prisma/client";
-import { ArrowLeft, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 
 export interface StaffMember {
   id: number;
@@ -39,7 +39,6 @@ export default function StaffPage() {
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
-  const router = useRouter();
 
   const loadStaff = useCallback(async () => {
     try {

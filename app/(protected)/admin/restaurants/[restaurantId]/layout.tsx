@@ -4,7 +4,6 @@ import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { getRestaurant } from "@/actions/restaurants";
-import { LogoutButton } from "@/components/auth/logout-button";
 import {
   AdminRestaurantProvider,
   useAdminRestaurant,

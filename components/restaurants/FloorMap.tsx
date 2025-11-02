@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, startTransition, useEffect } from "react";
+import { useState, startTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash, Users, Lock, Table } from "lucide-react";
+import { Plus, Trash, Users, Lock } from "lucide-react";
 import {
   Dialog,
   DialogContent,
