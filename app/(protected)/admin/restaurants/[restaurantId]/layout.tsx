@@ -3,7 +3,6 @@
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { getRestaurant } from "@/actions/restaurants";
 import {
   AdminRestaurantProvider,
   useAdminRestaurant,
@@ -17,7 +16,6 @@ function AdminRestaurantLayoutContent({
   children: React.ReactNode;
 }) {
   const params = useParams();
-  const [restaurantName, setRestaurantName] = useState<string>("");
   const restaurantId = parseInt(params.restaurantId as string);
   const { currentTab, setCurrentTab } = useAdminRestaurant();
   const router = useRouter();
@@ -25,11 +23,8 @@ function AdminRestaurantLayoutContent({
 
   useEffect(() => {
     const loadRestaurant = async () => {
-      if (restaurantId) {
-        const restaurantData = await getRestaurant(restaurantId);
-        if (restaurantData) {
-          setRestaurantName(restaurantData.name);
-        }
+      if (!restaurantId) {
+        return;
       }
     };
 
