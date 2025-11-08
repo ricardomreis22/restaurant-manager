@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
-type AdminTab =
+export type AdminTab =
   | "floormap"
   | "menu"
   | "menu-management"

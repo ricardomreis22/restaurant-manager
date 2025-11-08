@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   AdminRestaurantProvider,
   useAdminRestaurant,
+  AdminTab,
 } from "@/contexts/AdminRestaurantContext";
 import { ArrowLeft, Menu, X } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -32,7 +33,7 @@ function AdminRestaurantLayoutContent({
   }, [restaurantId]);
 
   const handleDisplayChange = (newDisplay: string) => {
-    setCurrentTab(newDisplay as any);
+    setCurrentTab(newDisplay as AdminTab);
     setIsMenuOpen(false); // Close menu when tab is selected
   };
 

@@ -4,20 +4,14 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getRestaurants, deleteRestaurant } from "@/actions/restaurants";
 import { Button } from "@/components/ui/button";
-import {
-  Plus,
-  Trash,
-  ArrowLeft,
-  MapPin,
-  Phone,
-  Mail,
-} from "lucide-react";
+import { Plus, Trash, ArrowLeft, MapPin, Phone, Mail } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { Restaurant } from "@prisma/client";
 
 export default function AdminRestaurantsPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const [restaurants, setRestaurants] = useState<any[]>([]);
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<number | null>(null);
 
