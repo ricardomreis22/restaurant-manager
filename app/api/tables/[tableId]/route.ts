@@ -4,7 +4,7 @@ import { auth } from "@/auth";
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { tableId: string } }
+  { params }: { params: Promise<{ tableId: string }> }
 ) {
   try {
     const session = await auth();
@@ -12,7 +12,8 @@ export async function DELETE(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const tableId = parseInt(params.tableId);
+    const resolvedParams = await params;
+    const tableId = parseInt(resolvedParams.tableId);
     if (!tableId) {
       return new NextResponse("Table ID is required", { status: 400 });
     }

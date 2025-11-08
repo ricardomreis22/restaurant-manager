@@ -4,7 +4,7 @@ import { auth } from "@/auth";
 
 export async function GET(
   req: Request,
-  { params }: { params: { restaurantId: string } }
+  { params }: { params: Promise<{ restaurantId: string }> }
 ) {
   try {
     const session = await auth();
@@ -12,7 +12,8 @@ export async function GET(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const restaurantId = parseInt(params.restaurantId);
+    const resolvedParams = await params;
+    const restaurantId = parseInt(resolvedParams.restaurantId);
     if (!restaurantId) {
       return new NextResponse("Restaurant ID is required", { status: 400 });
     }

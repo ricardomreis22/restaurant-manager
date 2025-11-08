@@ -25,7 +25,7 @@ import { toast } from "sonner";
 import { TableLocker } from "./TableLocker";
 import io from "socket.io-client";
 import { checkTableLock } from "@/actions/tables";
-import { DndContext } from "@dnd-kit/core";
+import { DndContext, DragEndEvent } from "@dnd-kit/core";
 import { Droppable } from "../dnd/Droppable";
 import { Draggable } from "../dnd/Draggable";
 
@@ -234,22 +234,16 @@ const Floormap = ({
     }
   };
 
-  const handleDragEnd = async ({
-    active,
-    over,
-    delta,
-  }: {
-    active: { id: string };
-    over: { id: string };
-    delta: { x: number; y: number };
-  }) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over, delta } = event;
+
     if (!over) {
       return; // Exit early if not dropped on anything
     }
 
     // Handle table dragging (only for admin users)
-    if (active && active.id.startsWith("table-") && isAdminView) {
-      const tableId = parseInt(active.id.replace("table-", ""));
+    if (active && String(active.id).startsWith("table-") && isAdminView) {
+      const tableId = parseInt(String(active.id).replace("table-", ""));
 
       const newX = (tablePositions[tableId]?.x || 0) + delta.x;
       const newY = (tablePositions[tableId]?.y || 0) + delta.y;
