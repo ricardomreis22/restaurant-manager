@@ -43,17 +43,23 @@ export default function NewRestaurantPage() {
     setIsPending(true);
 
     startTransition(() => {
-      createRestaurant(values).then((data: any) => {
-        if (data?.error) {
-          setError(data.error);
+      createRestaurant(values).then(
+        (data: {
+          error?: string;
+          success?: string;
+          restaurant?: Restaurant;
+        }) => {
+          if (data?.error) {
+            setError(data.error);
+          }
+          if (data?.success) {
+            setSuccess("Restaurant created successfully!");
+            form.reset();
+            router.push("/restaurants");
+          }
+          setIsPending(false);
         }
-        if (data?.success) {
-          setSuccess("Restaurant created successfully!");
-          form.reset();
-          router.push("/restaurants");
-        }
-        setIsPending(false);
-      });
+      );
     });
   };
 

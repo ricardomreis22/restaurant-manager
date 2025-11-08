@@ -57,10 +57,6 @@ const Floormap = ({
   onToggleLock,
   isAdminView = false,
   restaurantId,
-  restaurantName,
-  display,
-  setDisplay,
-  adminSetDisplay,
 }: FloorMapProps) => {
   const router = useRouter();
   const [selectedTable, setSelectedTable] = useState<number | null>(null);
@@ -88,17 +84,19 @@ const Floormap = ({
     }
   };
 
-  const socket = io("http://localhost:3001");
-
   useEffect(() => {
+    const socket = io("http://localhost:3001");
+
+    socket.emit("join-table", restaurantId);
+
     socket.on("do_something", () => {
       refreshTables();
     });
-  }, []);
 
-  useEffect(() => {
-    socket.emit("join-table", restaurantId);
-  }, []);
+    return () => {
+      socket.disconnect();
+    };
+  }, [restaurantId]);
 
   // Update local tables when prop changes
   useEffect(() => {
@@ -236,7 +234,15 @@ const Floormap = ({
     }
   };
 
-  const handleDragEnd = async ({ active, over, delta }: any) => {
+  const handleDragEnd = async ({
+    active,
+    over,
+    delta,
+  }: {
+    active: { id: string };
+    over: { id: string };
+    delta: { x: number; y: number };
+  }) => {
     if (!over) {
       return; // Exit early if not dropped on anything
     }

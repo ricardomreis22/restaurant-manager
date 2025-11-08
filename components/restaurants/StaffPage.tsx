@@ -43,7 +43,7 @@ export default function StaffPage() {
   const loadStaff = useCallback(async () => {
     try {
       const data = await getRestaurantStaff(restaurantId);
-      const mappedStaff = data.map((staff: any) => ({
+      const mappedStaff = data.map((staff: StaffMember) => ({
         ...staff,
         restaurantId,
       }));

@@ -21,6 +21,7 @@ export async function createUser(data: {
       },
     });
   } catch (error) {
+    console.error("Failed to create user:", error);
     throw new Error("Failed to create user");
   }
 }
@@ -39,6 +40,7 @@ export async function updateUser(
       data,
     });
   } catch (error) {
+    console.error("Failed to update user:", error);
     throw new Error("Failed to update user");
   }
 }
@@ -49,6 +51,7 @@ export async function deleteUser(id: number) {
       where: { id },
     });
   } catch (error) {
+    console.error("Failed to delete user:", error);
     throw new Error("Failed to delete user");
   }
 }

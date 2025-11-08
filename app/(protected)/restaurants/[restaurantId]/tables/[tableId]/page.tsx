@@ -19,12 +19,16 @@ export default function TablePage() {
   const restaurantId = parseInt(params.restaurantId as string);
   const tableId = parseInt(params.tableId as string);
   const [table, setTable] = useState<Table | null>(null);
-  const socket = io("http://localhost:3001");
   const router = useRouter();
 
   useEffect(() => {
+    const socket = io("http://localhost:3001");
     socket.emit("join-table", restaurantId);
-  }, []);
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [restaurantId]);
 
   useEffect(() => {
     const loadTable = async () => {

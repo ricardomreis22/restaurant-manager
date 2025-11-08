@@ -1,6 +1,6 @@
 import { useDroppable } from "@dnd-kit/core";
 
-export function Droppable(props: any) {
+export function Droppable(props: { id: string; children: React.ReactNode }) {
   const { isOver, setNodeRef } = useDroppable({
     id: props.id,
   });

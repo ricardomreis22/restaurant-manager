@@ -6,12 +6,11 @@ import { Card } from "@/components/ui/card";
 import { MenuItems, Category } from "@prisma/client";
 import { getCategories, getMenuItems } from "@/actions/menu";
 import { createOrder, getTableOrders } from "@/actions/orders";
-import { ArrowLeft, Clock, CreditCard, Receipt, Menu, X } from "lucide-react";
+import { ArrowLeft, Clock, CreditCard, Menu, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FoodModal } from "./FoodModal";
 import { toggleTableLock } from "@/actions/tables";
-import { io } from "socket.io-client";
 
 interface TableViewProps {
   table: {
@@ -74,18 +73,14 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [placedOrders, setPlacedOrders] = useState<PlacedOrder[]>([]);
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuItemWithCategory | null>(
     null
   );
   const [isFoodModalOpen, setIsFoodModalOpen] = useState(false);
-  const [formData, setFormData] = useState({});
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isCategoriesOpen, setIsCategoriesOpen] = useState(true);
   const [selectedMobileCategory, setSelectedMobileCategory] = useState<
     number | null
   >(null);
-  const socket = io("http://localhost:3001");
 
   useEffect(() => {
     const loadData = async () => {
@@ -143,20 +138,8 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
     onClose();
   };
 
-  const handleAddToOrder = (
-    item: MenuItemWithCategory,
-    existingOptions?: {
-      spicyLevel?: string;
-      sides?: string;
-      notes?: string;
-    }
-  ) => {
+  const handleAddToOrder = (item: MenuItemWithCategory) => {
     setSelectedItem(item);
-    if (existingOptions) {
-      setFormData(existingOptions);
-    } else {
-      setFormData({});
-    }
     setIsFoodModalOpen(true);
   };
 

@@ -16,6 +16,8 @@ import { getTables } from "@/actions/tables";
 import { toast } from "sonner";
 
 import { Input } from "@/components/ui/input";
+import Image from "next/image";
+import { Table } from "@prisma/client";
 
 interface PlacedOrder {
   id: number;
@@ -41,7 +43,7 @@ export default function PaymentPage() {
   const tableId = parseInt(params.tableId as string);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [placedOrders, setPlacedOrders] = useState<PlacedOrder[]>([]);
-  const [table, setTable] = useState<any>(null);
+  const [table, setTable] = useState<Table>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("CARD");
   const [cashReceived, setCashReceived] = useState<string>("");
   const [showChange, setShowChange] = useState(false);
@@ -310,10 +312,12 @@ export default function PaymentPage() {
           </div>
         </div>
         <div className="hidden xl:flex md:w-1/2 md:mx-20 md:h-4/5 justify-center items-center border-2 border-white rounded-full relative overflow-hidden">
-          <img
-            src="/restaurant.jpg"
+          <Image
+            src="/images/restaurant.jpg"
             alt="restaurant"
             className="absolute inset-0 w-full h-full object-cover opacity-30"
+            width={1000}
+            height={1000}
           />
           <h1 className="text-white text-2xl text-center font-bold max-w-md leading-[4rem] relative z-10">
             Frase Inspiradora sobre o restaurant

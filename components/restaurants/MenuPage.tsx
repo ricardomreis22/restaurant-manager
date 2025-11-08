@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { AddMenuItemModal } from "./AddMenuItemModal";
 import { UpdateMenuItemModal } from "./UpdateMenuItemModal";
-import { Pencil, Trash, Plus, ArrowLeft } from "lucide-react";
+import { Pencil, Trash, Plus } from "lucide-react";
 import { AddCategoryModal } from "./AddCategoryModal";
 import { UpdateCategoryModal } from "./UpdateCategoryModal";
 

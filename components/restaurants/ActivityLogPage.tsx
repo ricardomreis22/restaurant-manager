@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Clock, Users, DollarSign, Calendar, X } from "lucide-react";
+import { Clock, Users, DollarSign, X } from "lucide-react";
 
 interface ActivityLog {
   id: number;
@@ -11,7 +11,7 @@ interface ActivityLog {
   userId: number;
   activityType: string;
   description: string;
-  metadata: any;
+  metadata: Record<string>;
   timestamp: Date;
   user: {
     name: string;
@@ -42,9 +42,6 @@ interface ActivityLogPageProps {
 
 export default function ActivityLogPage({
   restaurantId,
-  isAdminView = false,
-  setDisplay,
-  adminSetDisplay,
 }: ActivityLogPageProps) {
   const [sessions, setSessions] = useState<TableSession[]>([]);
   const [loading, setLoading] = useState(true);

@@ -45,7 +45,6 @@ const NewStaffModal = ({
   restaurantId,
 }: NewStaffModalProps) => {
   const [error, setError] = useState<string | undefined>("");
-  const [success, setSuccess] = useState<string | undefined>("");
   const [isPending, setIsPending] = useState(false);
 
   const form = useForm<z.infer<typeof NewStaffSchema>>({
@@ -65,18 +64,20 @@ const NewStaffModal = ({
     setSuccess("");
     setIsPending(true);
     startTransition(() => {
-      createStaffMember(values).then((data: any) => {
-        if (data?.error) {
-          setError(data.error);
+      createStaffMember(values).then(
+        (data: { error?: string; success?: string }) => {
+          if (data?.error) {
+            setError(data.error);
+          }
+          if (data?.success) {
+            setSuccess(data.success);
+            form.reset();
+            onSuccess();
+            setIsOpen(false);
+          }
+          setIsPending(false);
         }
-        if (data?.success) {
-          setSuccess(data.success);
-          form.reset();
-          onSuccess();
-          setIsOpen(false);
-        }
-        setIsPending(false);
-      });
+      );
     });
   };
 

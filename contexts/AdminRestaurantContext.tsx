@@ -37,3 +37,8 @@ export function useAdminRestaurant() {
   }
   return context;
 }
+
+// Optional version that doesn't throw when used outside provider
+export function useAdminRestaurantOptional() {
+  return useContext(AdminRestaurantContext);
+}

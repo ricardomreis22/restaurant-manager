@@ -9,7 +9,7 @@ import { Mail, MapPin, Phone, Plus, Settings } from "lucide-react";
 
 export default function RestaurantsPage() {
   const router = useRouter();
-  const [restaurants, setRestaurants] = useState<any[]>([]);
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -43,7 +43,7 @@ export default function RestaurantsPage() {
       ) : !restaurants?.length ? (
         <div className="text-center py-10">
           <p className="text-gray-500 mb-4">
-            You haven't created any restaurants yet.
+            You haven not created any restaurants yet.
           </p>
           <Link href="/restaurants/newrestaurant">
             <Button variant="outline">Create your first restaurant</Button>

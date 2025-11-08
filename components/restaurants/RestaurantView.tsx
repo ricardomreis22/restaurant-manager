@@ -12,7 +12,9 @@ import { TableView } from "@/components/restaurants/TableView";
 import ActivityLogPage from "@/components/restaurants/ActivityLogPage";
 import { useCurrentRole } from "@/hooks/use-current-role";
 import { checkAdmin } from "@/actions/admin";
-import { useAdminRestaurant } from "@/contexts/AdminRestaurantContext";
+import { useAdminRestaurantOptional } from "@/contexts/AdminRestaurantContext";
+import { AdminTab } from "@/contexts/AdminRestaurantContext";
+
 interface Table {
   id: number;
   number: number;
@@ -21,34 +23,6 @@ interface Table {
   isLocked: boolean;
   x: number;
   y: number;
-}
-
-interface ActivityLog {
-  id: number;
-  sessionId: number;
-  userId: number;
-  activityType: string;
-  description: string;
-  metadata: any;
-  timestamp: Date;
-  user: {
-    name: string;
-  };
-}
-
-interface TableSession {
-  id: number;
-  tableId: number;
-  openedAt: Date;
-  closedAt: Date | null;
-  totalAmount: number;
-  numberOfGuests: number;
-  duration: number | null;
-  notes: string | null;
-  activities: ActivityLog[];
-  table: {
-    number: number;
-  };
 }
 
 interface RestaurantViewProps {
@@ -62,11 +36,11 @@ export default function RestaurantView({
   const params = useParams();
   const userRole = useCurrentRole();
   const restaurantId = parseInt(params.restaurantId as string);
-  const [restaurant, setRestaurant] = useState<any>(null);
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [tables, setTables] = useState<Table[]>([]);
 
-  // Use context for admin view, local state for regular view
-  const adminContext = isAdminView ? useAdminRestaurant() : null;
+  // Always call the hook, then conditionally use its value
+  const adminContext = useAdminRestaurantOptional();
   const [display, setDisplay] = useState<string>("floormap");
   const prevDisplayRef = useRef<string | null>(null);
 
@@ -96,12 +70,12 @@ export default function RestaurantView({
     try {
       await checkAdmin();
       if (isAdminView && adminContext) {
-        adminContext.setCurrentTab(newDisplay as any);
+        adminContext.setCurrentTab(newDisplay as AdminTab);
       } else {
         setDisplay(newDisplay);
       }
     } catch (error) {
-      console.error("Unauthorized action");
+      console.error("Unauthorized action:", error);
     }
   };
 
@@ -153,7 +127,7 @@ export default function RestaurantView({
   // Create wrapper functions for setDisplay to handle type conversion
   const handleSetDisplay = (newDisplay: string) => {
     if (isAdminView && adminContext) {
-      adminContext.setCurrentTab(newDisplay as any);
+      adminContext.setCurrentTab(newDisplay as AdminTab);
     } else {
       setDisplay(newDisplay);
     }

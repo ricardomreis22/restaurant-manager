@@ -61,7 +61,6 @@ const UpdateStaffModal = ({
     },
   });
 
-  const [success, setSuccess] = useState<string | undefined>("");
   const [error, setError] = useState<string | undefined>("");
   const [isPending, setIsPending] = useState(false);
 
@@ -74,15 +73,17 @@ const UpdateStaffModal = ({
     setSuccess("");
     setIsPending(true);
     startTransition(() => {
-      updateStaffMember(selectedEmployee.id, values).then((data: any) => {
-        setError(data.error);
-        setSuccess(data.success);
-        if (data.success) {
-          onSuccess();
-          setIsOpen(false);
+      updateStaffMember(selectedEmployee.id, values).then(
+        (data: { error?: string; success?: string }) => {
+          setError(data.error);
+          setSuccess(data.success);
+          if (data.success) {
+            onSuccess();
+            setIsOpen(false);
+          }
+          setIsPending(false);
         }
-        setIsPending(false);
-      });
+      );
     });
   };
 
