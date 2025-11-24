@@ -6,6 +6,7 @@ import { getRestaurants } from "@/actions/restaurants";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Mail, MapPin, Phone, Plus, Settings } from "lucide-react";
+import { Restaurant } from "@prisma/client";
 
 export default function RestaurantsPage() {
   const router = useRouter();
