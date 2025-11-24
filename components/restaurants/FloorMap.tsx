@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, startTransition, useEffect } from "react";
+import { useState, startTransition, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash, Users, Lock } from "lucide-react";
@@ -73,7 +73,7 @@ const Floormap = ({
     Record<number, { x: number; y: number }>
   >({});
 
-  const refreshTables = async () => {
+  const refreshTables = useCallback(async () => {
     try {
       const response = await getTables(restaurantId);
       if (response.success) {
@@ -82,7 +82,7 @@ const Floormap = ({
     } catch (error) {
       console.error("Failed to refresh tables:", error);
     }
-  };
+  }, [restaurantId]);
 
   useEffect(() => {
     const socket = io("http://localhost:3001");
@@ -96,7 +96,7 @@ const Floormap = ({
     return () => {
       socket.disconnect();
     };
-  }, [restaurantId]);
+  }, [restaurantId, refreshTables]);
 
   // Update local tables when prop changes
   useEffect(() => {

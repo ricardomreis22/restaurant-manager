@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, startTransition } from "react";
+import { useState, useEffect, useCallback, startTransition } from "react";
 import {
   createMenuItem,
   updateMenuItem,
@@ -58,7 +58,7 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
     categoryId: 0,
   });
 
-  const loadMenu = async () => {
+  const loadMenu = useCallback(async () => {
     try {
       setLoading(true);
       const [categoriesData, menuItemsData] = await Promise.all([
@@ -72,11 +72,11 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [restaurantId]);
 
   useEffect(() => {
     loadMenu();
-  }, [restaurantId]);
+  }, [loadMenu]);
 
   const handleAddMenuItem = async (item: {
     name: string;

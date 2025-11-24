@@ -126,7 +126,7 @@ export default function RestaurantView({
 
     // Update the previous display value
     prevDisplayRef.current = currentDisplayValue;
-  }, [display, isAdminView, adminContext?.currentTab, restaurantId]);
+  }, [display, isAdminView, adminContext, restaurantId]);
 
   const handleTableSelect = (tableId: number) => {
     const table = tables.find((t) => t.id === tableId);
