@@ -43,7 +43,7 @@ export default function PaymentPage() {
   const tableId = parseInt(params.tableId as string);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [placedOrders, setPlacedOrders] = useState<PlacedOrder[]>([]);
-  const [table, setTable] = useState<Table>(null);
+  const [table, setTable] = useState<Table | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("CARD");
   const [cashReceived, setCashReceived] = useState<string>("");
   const [showChange, setShowChange] = useState(false);

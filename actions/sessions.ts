@@ -44,7 +44,7 @@ export async function logActivity(
 ) {
   try {
     const session = await auth();
-    if (!session?.user) {
+    if (!session?.user?.id) {
       throw new Error("Unauthorized");
     }
 
@@ -170,16 +170,6 @@ export async function getTableSessionHistory(tableId: number) {
           },
         },
         orders: true,
-        openedBy: {
-          select: {
-            name: true,
-          },
-        },
-        closedBy: {
-          select: {
-            name: true,
-          },
-        },
       },
       orderBy: {
         openedAt: "desc",

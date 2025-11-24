@@ -1,4 +1,4 @@
-/*"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { getUsers, createUser, updateUser, deleteUser } from "./actions";
@@ -8,19 +8,25 @@ interface User {
   id: number;
   name: string;
   email: string;
-  phone: string;
+  phone: string | null;
   role: UserRole;
 }
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    email: string;
+    phone: string;
+    password: string;
+    role: UserRole;
+  }>({
     name: "",
     email: "",
     phone: "",
     password: "",
-    role: UserRole,
+    role: UserRole.STAFF,
   });
   const [editingId, setEditingId] = useState<number | null>(null);
 
@@ -50,7 +56,7 @@ export default function UsersPage() {
       }
 
       // Reset form and refresh data
-      setFormData({ name: "", email: "", phone: "", password: "", role: USER });
+      setFormData({ name: "", email: "", phone: "", password: "", role: UserRole.STAFF });
       setEditingId(null);
       fetchUsers();
     } catch (error) {
@@ -73,7 +79,9 @@ export default function UsersPage() {
     setFormData({
       name: user.name,
       email: user.email,
-      phone: user.phone,
+      phone: user.phone || "",
+      password: "",
+      role: user.role,
     });
     setEditingId(user.id);
   };
@@ -157,4 +165,4 @@ export default function UsersPage() {
       </div>
     </div>
   );
-}*/
+}
