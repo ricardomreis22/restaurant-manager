@@ -20,6 +20,15 @@ import { FormError } from "@/components/form-error";
 import { FormSuccess } from "@/components/form-success";
 import { Phone, Mail, MapPin } from "lucide-react";
 import type { z } from "zod";
+import type { Prisma } from "@prisma/client";
+
+type RestaurantWithRelations = Prisma.RestaurantGetPayload<{
+  include: {
+    users: true;
+    tables: true;
+    categories: true;
+  };
+}>;
 
 export default function NewRestaurantPage() {
   const router = useRouter();
@@ -47,7 +56,7 @@ export default function NewRestaurantPage() {
         (data: {
           error?: string;
           success?: boolean;
-          restaurant?: any;
+          restaurant?: RestaurantWithRelations;
         }) => {
           if (data?.error) {
             setError(data.error);
