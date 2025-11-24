@@ -14,6 +14,21 @@ import { useCurrentRole } from "@/hooks/use-current-role";
 import { checkAdmin } from "@/actions/admin";
 import { useAdminRestaurantOptional } from "@/contexts/AdminRestaurantContext";
 import { AdminTab } from "@/contexts/AdminRestaurantContext";
+import type { Prisma } from "@prisma/client";
+
+type Restaurant = Prisma.RestaurantGetPayload<{
+  include: {
+    users: true;
+    tables: true;
+    menuItems: true;
+    inventory: true;
+    promotions: true;
+    reviews: true;
+    events: true;
+    suppliers: true;
+    reports: true;
+  };
+}>;
 
 interface Table {
   id: number;

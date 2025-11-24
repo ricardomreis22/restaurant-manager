@@ -70,13 +70,11 @@ const UpdateStaffModal = ({
 
   const onSubmit = async (values: z.infer<typeof UpdateStaffSchema>) => {
     setError("");
-    setSuccess("");
     setIsPending(true);
     startTransition(() => {
       updateStaffMember(selectedEmployee.id, values).then(
         (data: { error?: string; success?: string }) => {
           setError(data.error);
-          setSuccess(data.success);
           if (data.success) {
             onSuccess();
             setIsOpen(false);

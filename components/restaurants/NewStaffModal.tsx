@@ -61,7 +61,6 @@ const NewStaffModal = ({
 
   const onSubmit = async (values: z.infer<typeof NewStaffSchema>) => {
     setError("");
-    setSuccess("");
     setIsPending(true);
     startTransition(() => {
       createStaffMember(values).then(
@@ -70,7 +69,6 @@ const NewStaffModal = ({
             setError(data.error);
           }
           if (data?.success) {
-            setSuccess(data.success);
             form.reset();
             onSuccess();
             setIsOpen(false);

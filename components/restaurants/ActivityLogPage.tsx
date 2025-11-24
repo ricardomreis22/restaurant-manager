@@ -11,7 +11,7 @@ interface ActivityLog {
   userId: number;
   activityType: string;
   description: string;
-  metadata: Record<string>;
+  metadata: Record<string, unknown>;
   timestamp: Date;
   user: {
     name: string;

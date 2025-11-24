@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import NewStaffModal from "./NewStaffModal";
 import UpdateStaffModal from "./UpdateStaffModal";
-import { UserRole } from "@prisma/client";
+import { Prisma, UserRole } from "@prisma/client";
 import { Plus } from "lucide-react";
 
 export interface StaffMember {
@@ -43,10 +43,19 @@ export default function StaffPage() {
   const loadStaff = useCallback(async () => {
     try {
       const data = await getRestaurantStaff(restaurantId);
-      const mappedStaff = data.map((staff: StaffMember) => ({
-        ...staff,
-        restaurantId,
-      }));
+      const mappedStaff = data.map(
+        (
+          staff: Prisma.UserGetPayload<{
+            include: {
+              role: true;
+              restaurants: true;
+            };
+          }>
+        ) => ({
+          ...staff,
+          restaurantId,
+        })
+      );
       setStaff(mappedStaff);
     } catch (error) {
       console.error("Failed to load staff:", error);
