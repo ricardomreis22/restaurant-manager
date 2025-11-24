@@ -1,5 +1,5 @@
-import authConfig from "./auth.config";
 import NextAuth from "next-auth";
+import { middlewareConfig } from "./middleware.config";
 
 import {
   DEFAULT_LOGIN_REDIRECT,
@@ -8,7 +8,9 @@ import {
   publicRoutes,
 } from "@/routes";
 
-const { auth } = NextAuth(authConfig);
+// Use minimal config for middleware to avoid importing heavy dependencies (Prisma, bcrypt)
+// The full auth config with providers is only used in API routes
+const { auth } = NextAuth(middlewareConfig);
 
 export default auth(async (req) => {
   const { nextUrl } = req;
