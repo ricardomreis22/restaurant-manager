@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
 
+// Mark this route as dynamic to prevent static generation during build
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ restaurantId: string }> }
