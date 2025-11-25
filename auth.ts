@@ -1,5 +1,4 @@
 import NextAuth, { type DefaultSession } from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import prisma from "@/lib/prisma";
 import { UserRole } from "@prisma/client";
 
@@ -19,8 +18,10 @@ export const {
   signIn,
   signOut,
 } = NextAuth({
-  adapter: PrismaAdapter(prisma),
+  // No adapter needed when using JWT strategy - JWT tokens are stateless
   session: { strategy: "jwt" },
+  // Trust host for Vercel deployments
+  trustHost: true,
   callbacks: {
     async jwt({ token }) {
       if (!token.sub) return token;
