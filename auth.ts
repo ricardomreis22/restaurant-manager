@@ -26,13 +26,14 @@ export const {
     async jwt({ token }) {
       if (!token.sub) return token;
 
-      const existingUser = await prisma.user.findUnique({
-        where: { id: parseInt(token.sub) },
-      });
-
-      if (!existingUser) return token;
-
-      token.userRole = existingUser.userRole;
+      try {
+        const existingUser = await prisma.user.findUnique({
+          where: { id: parseInt(token.sub) },
+        });
+        if (existingUser) token.userRole = existingUser.userRole;
+      } catch {
+        // DB unreachable (e.g. wrong DATABASE_URL); keep existing token
+      }
       return token;
     },
     async session({ token, session }) {
