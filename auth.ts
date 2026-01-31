@@ -18,9 +18,9 @@ export const {
   signIn,
   signOut,
 } = NextAuth({
-  // Required: set AUTH_SECRET in .env (run: npx auth secret)
-  secret: process.env.AUTH_SECRET,
+  // No adapter needed when using JWT strategy - JWT tokens are stateless
   session: { strategy: "jwt" },
+  // Trust host for Vercel deployments
   trustHost: true,
   callbacks: {
     async jwt({ token }) {
