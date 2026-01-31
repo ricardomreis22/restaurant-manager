@@ -4,6 +4,12 @@ import { UserRole } from "@prisma/client";
 
 import authConfig from "@/auth.config";
 
+if (!process.env.AUTH_SECRET?.trim()) {
+  throw new Error(
+    "AUTH_SECRET is missing. Add it to .env (run: npx auth secret)"
+  );
+}
+
 declare module "next-auth" {
   interface Session {
     user: {
@@ -18,7 +24,6 @@ export const {
   signIn,
   signOut,
 } = NextAuth({
-  // Required: set AUTH_SECRET in .env (run: npx auth secret)
   secret: process.env.AUTH_SECRET,
   session: { strategy: "jwt" },
   trustHost: true,
