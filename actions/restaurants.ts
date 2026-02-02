@@ -27,19 +27,8 @@ export async function getRestaurants() {
   }
 }
 
-export async function getRestaurantName(id: number): Promise<{ name: string } | null> {
-  try {
-    const restaurant = await prisma.restaurant.findUnique({
-      where: { id },
-      select: { name: true },
-    });
-    return restaurant;
-  } catch {
-    return null;
-  }
-}
-
 export async function getRestaurant(id: number) {
+  console.log("getRestaurant", id);
   try {
     return await prisma.restaurant.findUnique({
       where: { id },

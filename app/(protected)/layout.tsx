@@ -3,7 +3,7 @@
 import { LogoutButton } from "@/components/auth/logout-button";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import { getRestaurantName } from "@/actions/restaurants";
+import { getRestaurant } from "@/actions/restaurants";
 import Image from "next/image";
 
 export default function ProtectedLayout({
@@ -24,8 +24,10 @@ export default function ProtectedLayout({
       setIsLoading(false);
     } else if (pathname.includes("/tables/")) {
       setCurrentPage("table");
+      // Extract restaurant ID from path for table pages
       const match = pathname.match(/\/restaurants\/(\d+)\/tables\/(\d+)/);
       if (match) {
+        console.log("match", match);
         const restaurantId = parseInt(match[1]);
         loadRestaurant(restaurantId);
       } else {
@@ -36,13 +38,6 @@ export default function ProtectedLayout({
       !pathname.includes("/tables/")
     ) {
       setCurrentPage("restaurant");
-      const match = pathname.match(/\/restaurants\/(\d+)/);
-      if (match) {
-        const restaurantId = parseInt(match[1]);
-        loadRestaurant(restaurantId);
-      } else {
-        setIsLoading(false);
-      }
     } else {
       setCurrentPage("general");
       setIsLoading(false);
@@ -51,8 +46,10 @@ export default function ProtectedLayout({
 
   const loadRestaurant = async (restaurantId: number) => {
     try {
-      const data = await getRestaurantName(restaurantId);
-      if (data) setRestaurantName(data.name);
+      const restaurantData = await getRestaurant(restaurantId);
+      if (restaurantData) {
+        setRestaurantName(restaurantData.name);
+      }
     } catch (error) {
       console.error("Failed to load restaurant:", error);
     } finally {
