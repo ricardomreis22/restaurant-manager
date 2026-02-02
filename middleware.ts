@@ -8,8 +8,13 @@ import {
   publicRoutes,
 } from "@/routes";
 
-// Use minimal config for middleware to avoid importing heavy dependencies (Prisma, bcrypt)
-// The full auth config with providers is only used in API routes
+// Auth.js reads AUTH_URL when middleware runs; set fallback so it's never undefined
+if (!process.env.AUTH_URL) {
+  process.env.AUTH_URL = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "http://localhost:3000";
+}
+
 const { auth } = NextAuth(middlewareConfig);
 
 export default auth(async (req) => {

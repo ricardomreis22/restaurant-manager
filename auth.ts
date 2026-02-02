@@ -4,6 +4,13 @@ import { UserRole } from "@prisma/client";
 
 import authConfig from "@/auth.config";
 
+// Auth.js requires AUTH_URL; fallback so /home and callbacks don't throw ERR_INVALID_URL
+if (!process.env.AUTH_URL) {
+  process.env.AUTH_URL = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "http://localhost:3000";
+}
+
 declare module "next-auth" {
   interface Session {
     user: {
