@@ -85,7 +85,8 @@ const Floormap = ({
   }, [restaurantId]);
 
   useEffect(() => {
-    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001";
+    const socketUrl =
+      process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001";
     const socket = io(socketUrl);
 
     socket.emit("join-table", restaurantId);
@@ -93,6 +94,9 @@ const Floormap = ({
     socket.on("do_something", () => {
       refreshTables();
     });
+
+    console.log("socketUrl", socketUrl);
+    console.log("joined table");
 
     return () => {
       socket.disconnect();

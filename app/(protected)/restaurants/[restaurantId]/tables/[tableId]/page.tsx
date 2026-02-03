@@ -22,9 +22,12 @@ export default function TablePage() {
   const router = useRouter();
 
   useEffect(() => {
-    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001";
+    const socketUrl =
+      process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001";
     const socket = io(socketUrl);
     socket.emit("join-table", restaurantId);
+
+    console.log("joined table");
 
     return () => {
       socket.disconnect();
