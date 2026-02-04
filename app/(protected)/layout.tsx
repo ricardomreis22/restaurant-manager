@@ -27,7 +27,6 @@ export default function ProtectedLayout({
       // Extract restaurant ID from path for table pages
       const match = pathname.match(/\/restaurants\/(\d+)\/tables\/(\d+)/);
       if (match) {
-        console.log("match", match);
         const restaurantId = parseInt(match[1]);
         loadRestaurant(restaurantId);
       } else {
