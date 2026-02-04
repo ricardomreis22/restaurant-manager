@@ -323,8 +323,8 @@ export default function PaymentPage() {
           />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 mx-12 max-w-2xl">
             <p className="text-center text-4xl font-bold px-12 py-10 bg-white/95 rounded-lg shadow-xl text-[rgb(36,49,52)] border-2 border-[rgb(36,49,52)] leading-relaxed">
-              "Great food and great company are the two life simplest and yet
-              most rewarding pleasures."
+              &ldquo;Great food and great company are the two life simplest and
+              yet most rewarding pleasures.&rdquo;
             </p>
           </div>
         </div>
