@@ -115,7 +115,6 @@ export default function PaymentPage() {
         // Process all pending orders sequentially
         for (const order of pendingOrders) {
           await payOrder(order.id);
-          console.log("ORDER PAID", order.id);
         }
 
         if (paymentMethod === "CASH") {
@@ -169,30 +168,34 @@ export default function PaymentPage() {
       </div>
 
       <div className="flex flex-1 overflow-hidden justify-center items-center">
-        <div className="w-full xl:w-1/2 flex justify-center items-start overflow-y-auto h-full">
-          <div className="p-6 grid gap-6 grid-cols-1 w-full xl:w-4/5 max-w-2xl my-6">
+        <div className="w-full xl:w-2/5 flex justify-center items-start overflow-y-auto h-full">
+          <div className="p-6 grid gap-6 grid-cols-1 w-full xl:w-[95%] xl:max-w-xl xl:px-6 my-6">
             {/* Orders Summary */}
-            <Card className="p-6 bg-transparent text-white shadow-md ">
-              <div className="flex items-center gap-2 mb-6">
+            <Card className="p-4 bg-transparent text-white shadow-md">
+              <div className="flex items-center gap-2 mb-4">
                 <Receipt className="h-5 w-5" />
-                Table {table.number} - Pending Orders
+                <span className="text-base font-semibold">
+                  Table {table.number} - Pending Orders
+                </span>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {pendingOrders.map((order) => (
                   <Card
                     key={order.id}
-                    className="p-4 bg-transparent text-white"
+                    className="p-3 bg-transparent text-white"
                   >
                     <div className="flex justify-between text-sm mb-2">
-                      <span>{order.orderNumber}</span>
-                      <span>${order.totalAmount.toFixed(2)}</span>
+                      <span className="font-medium">{order.orderNumber}</span>
+                      <span className="font-semibold">
+                        ${order.totalAmount.toFixed(2)}
+                      </span>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       {order.items.map((item, index) => (
                         <div
                           key={index}
-                          className="flex justify-between text-sm text-gray-500"
+                          className="flex justify-between text-xs text-gray-400"
                         >
                           <span>
                             {item.quantity}x {item.menuItem.name}
@@ -206,8 +209,8 @@ export default function PaymentPage() {
                   </Card>
                 ))}
 
-                <div className="border-t mt-6 pt-4">
-                  <div className="flex justify-between text-xl font-semibold">
+                <div className="border-t mt-4 pt-4">
+                  <div className="flex justify-between text-lg font-semibold">
                     <span>Total Amount</span>
                     <span>${totalAmount.toFixed(2)}</span>
                   </div>
@@ -311,19 +314,19 @@ export default function PaymentPage() {
             </Card>
           </div>
         </div>
-        <div className="hidden xl:flex md:w-1/2 md:mx-20 md:h-4/5 justify-center items-center border-2 border-white rounded-full relative overflow-hidden">
+        <div className="hidden xl:flex xl:w-3/5 xl:h-full relative overflow-hidden">
           <Image
-            src="/images/restaurant.jpg"
-            alt="restaurant"
-            className="absolute inset-0 w-full h-full object-cover opacity-30"
-            width={1000}
-            height={1000}
+            src="/restaurant.jpg"
+            alt="Restaurant"
+            fill
+            className="object-cover"
           />
-          <h1 className="text-white text-2xl text-center font-bold max-w-md leading-[4rem] relative z-10">
-            Frase Inspiradora sobre o restaurant
-            <br></br> managar com a possibilidade
-            <br></br> de ter uma imagem tbm
-          </h1>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 mx-12 max-w-2xl">
+            <p className="text-center text-4xl font-bold px-12 py-10 bg-white/95 rounded-lg shadow-xl text-[rgb(36,49,52)] border-2 border-[rgb(36,49,52)] leading-relaxed">
+              &ldquo;Great food and great company are the two life simplest and
+              yet most rewarding pleasures.&rdquo;
+            </p>
+          </div>
         </div>
       </div>
     </div>

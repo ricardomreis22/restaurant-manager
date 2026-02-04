@@ -97,8 +97,6 @@ export async function toggleTableLock(tableId: number, locked: boolean) {
       data: { isLocked: locked },
     });
 
-    console.log("Table locked:", table);
-
     return table;
   } catch (error) {
     console.error("Failed to toggle table lock:", error);
@@ -110,7 +108,6 @@ export async function checkTableLock(tableId: number) {
   const table = await prisma.table.findUnique({
     where: { id: tableId },
   });
-  console.log("checkTableLock", table?.isLocked);
   return table?.isLocked;
 }
 

@@ -27,8 +27,6 @@ export default function TablePage() {
     const socket = io(socketUrl);
     socket.emit("join-table", restaurantId);
 
-    console.log("joined table");
-
     return () => {
       socket.disconnect();
     };

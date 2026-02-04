@@ -95,9 +95,6 @@ const Floormap = ({
       refreshTables();
     });
 
-    console.log("socketUrl", socketUrl);
-    console.log("joined table");
-
     return () => {
       socket.disconnect();
     };
