@@ -1,7 +1,6 @@
 import { Card, CardContent, CardFooter, CardHeader } from "../ui/card";
 import { Social } from "./social";
 import Link from "next/link";
-
 interface CardWrapperProps {
   children: React.ReactNode;
   headerLabel: string;
@@ -18,11 +17,12 @@ export const CardWrapper = ({
   showSocial,
 }: CardWrapperProps) => {
   return (
-    <Card className="w-[400px] shadow-md">
+    <Card className="w-full min-w-[280px] max-w-sm sm:max-w-md lg:max-w-lg mt-6">
       <CardHeader>
         <div className="w-full flex flex-col gap-y-4 items-center justify-center">
-          <h1 className="text-3xl font-semibold">🍽️ Auth</h1>
-          <p className="text-muted-foreground text-sm">{headerLabel}</p>
+          <p className="font-franklin-gothic-medium font-bold text-3xl text-[rgba(36,49,52,255)] mb-6">
+            {headerLabel}
+          </p>
         </div>
       </CardHeader>
       <CardContent>{children}</CardContent>

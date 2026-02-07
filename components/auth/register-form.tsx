@@ -47,7 +47,7 @@ export const RegisterForm = () => {
   };
   return (
     <CardWrapper
-      headerLabel="Create your account"
+      headerLabel="Hello there!"
       backButtonLabel="Already have an account?"
       backButtonHref="/auth/login"
       showSocial
@@ -60,13 +60,14 @@ export const RegisterForm = () => {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel className="text-black">Email</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
                       placeholder="example@example.com"
                       type="email"
                       disabled={isPending}
+                      className="text-xs"
                     />
                   </FormControl>
                   <FormMessage />
@@ -78,13 +79,14 @@ export const RegisterForm = () => {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel className="text-black">Password</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
                       placeholder="**********"
                       type="password"
                       disabled={isPending}
+                      className="text-xs"
                     />
                   </FormControl>
                   <FormMessage />
@@ -96,13 +98,14 @@ export const RegisterForm = () => {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel className="text-black">Name</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
                       placeholder="Ricardo Reis"
                       type="text"
                       disabled={isPending}
+                      className="text-xs"
                     />
                   </FormControl>
                   <FormMessage />
