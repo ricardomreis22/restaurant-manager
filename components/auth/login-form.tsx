@@ -56,7 +56,7 @@ export const LoginForm = () => {
 
   return (
     <CardWrapper
-      headerLabel="Welcome back"
+      headerLabel="Welcome back!"
       backButtonLabel="Don't have an account?"
       backButtonHref="/auth/register"
       showSocial
@@ -69,13 +69,14 @@ export const LoginForm = () => {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel className="text-black">Email</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
                       placeholder="example@example.com"
                       type="email"
                       disabled={isPending}
+                      className="text-xs"
                     />
                   </FormControl>
                   <FormMessage />
@@ -87,13 +88,14 @@ export const LoginForm = () => {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel className="text-black">Password</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
                       placeholder="**********"
                       type="password"
                       disabled={isPending}
+                      className="text-xs"
                     />
                   </FormControl>
                   <FormMessage />
