@@ -17,16 +17,16 @@ export const CardWrapper = ({
   showSocial,
 }: CardWrapperProps) => {
   return (
-    <Card className="w-full min-w-[280px] max-w-sm sm:max-w-md lg:max-w-lg mt-6">
-      <CardHeader>
-        <div className="w-full flex flex-col gap-y-4 items-center justify-center">
-          <p className="font-franklin-gothic-medium font-bold text-3xl text-[rgba(36,49,52,255)] mb-6">
+    <Card className="w-full min-w-[280px] flex flex-col justify-center h-full max-w-sm sm:max-w-md lg:max-w-lg">
+      <CardHeader className=" lg:pb-12">
+        <div className="w-full flex flex-col items-center justify-center mb-5 lg:mb-8">
+          <p className="font-franklin-gothic-medium font-bold text-3xl lg:text-4xl text-[rgba(36,49,52,255)]">
             {headerLabel}
           </p>
         </div>
       </CardHeader>
-      <CardContent>{children}</CardContent>
-      <CardFooter>
+      <CardContent className="lg:pb-8">{children}</CardContent>
+      <CardFooter className="lg:pt-4">
         <div className="w-full flex flex-col gap-y-4">
           {showSocial && <Social />}
           <div className="text-center">

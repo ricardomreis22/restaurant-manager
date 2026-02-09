@@ -14,7 +14,7 @@ const LoginPage = () => {
           className="w-24 h-20 sm:w-24 sm:h-20"
         />
       </div>
-      <div className="h-[75vh] bg-white animate-in slide-in-from-bottom-8 fade-in duration-1000 rounded-t-2xl flex items-center justify-center">
+      <div className="h-[80vh] bg-white  animate-in slide-in-from-bottom-64 fade-in-0 duration-1000 rounded-t-2xl flex items-center justify-center">
         <LoginForm />
       </div>
     </div>

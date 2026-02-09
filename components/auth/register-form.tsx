@@ -53,21 +53,23 @@ export const RegisterForm = () => {
       showSocial
     >
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 lg:my-4 lg:space-y-8 lg:text-3xl">
+          <div className="space-y-4 sm:mt-4 mb-2 lg:space-y-6">
             <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-black">Email</FormLabel>
+                <FormItem className="lg:space-y-3">
+                  <FormLabel className="text-[rgba(36,49,52,255)] font-franklin-gothic-medium lg:text-base">
+                    Email
+                  </FormLabel>
                   <FormControl>
                     <Input
                       {...field}
                       placeholder="example@example.com"
                       type="email"
                       disabled={isPending}
-                      className="text-xs"
+                      className="text-xs lg:text-base bg-[rgba(36,49,52,255)] text-white"
                     />
                   </FormControl>
                   <FormMessage />
@@ -78,15 +80,17 @@ export const RegisterForm = () => {
               control={form.control}
               name="password"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-black">Password</FormLabel>
+                <FormItem className="lg:space-y-3">
+                  <FormLabel className="text-[rgba(36,49,52,255)] font-franklin-gothic-medium lg:text-base">
+                    Password
+                  </FormLabel>
                   <FormControl>
                     <Input
                       {...field}
                       placeholder="**********"
                       type="password"
                       disabled={isPending}
-                      className="text-xs"
+                      className="text-xs lg:text-base bg-[rgba(36,49,52,255)] text-white"
                     />
                   </FormControl>
                   <FormMessage />
@@ -97,15 +101,17 @@ export const RegisterForm = () => {
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-black">Name</FormLabel>
+                <FormItem className="lg:space-y-3">
+                  <FormLabel className="text-[rgba(36,49,52,255)] font-franklin-gothic-medium lg:text-base">
+                    Name
+                  </FormLabel>
                   <FormControl>
                     <Input
                       {...field}
                       placeholder="Ricardo Reis"
                       type="text"
                       disabled={isPending}
-                      className="text-xs"
+                      className="text-xs lg:text-base bg-[rgba(36,49,52,255)] text-white"
                     />
                   </FormControl>
                   <FormMessage />
@@ -115,7 +121,7 @@ export const RegisterForm = () => {
           </div>
           <FormError message={error} />
           <FormSuccess message={success} />
-          <Button type="submit" className="w-full" disabled={isPending}>
+          <Button type="submit" className="w-full mb-2 lg:mt-2" disabled={isPending}>
             {isPending ? "Loading..." : "Create account"}
           </Button>
         </form>
