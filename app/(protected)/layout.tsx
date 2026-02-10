@@ -21,7 +21,6 @@ export default function ProtectedLayout({
     // Determine current page context
     if (pathname.includes("/admin/")) {
       setCurrentPage("admin");
-      setIsLoading(false);
     } else if (pathname.includes("/tables/")) {
       setCurrentPage("table");
       // Extract restaurant ID from path for table pages
@@ -39,8 +38,9 @@ export default function ProtectedLayout({
       setCurrentPage("restaurant");
     } else {
       setCurrentPage("general");
-      setIsLoading(false);
+      
     }
+    setIsLoading(false);
   }, [pathname]);
 
   const loadRestaurant = async (restaurantId: number) => {
