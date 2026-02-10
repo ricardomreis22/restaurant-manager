@@ -34,7 +34,7 @@ export default function RestaurantsPage() {
   return (
     <div className="p-4 sm:p-8">
       <div className="flex items-center gap-4 mb-8 justify-center">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-10">My Restaurants</h1>
+        <h1 className="hidden md:block text-2xl sm:text-3xl font-bold mb-10">My Restaurants</h1>
       </div>
 
       {isLoading ? (
@@ -51,7 +51,7 @@ export default function RestaurantsPage() {
           </Link>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 gap-4 xl:grid-cols-3">
+        <div className="mx-auto grid sm:grid-cols-2 gap-4 xl:grid-cols-3">
           {restaurants.map((restaurant) => (
             <div
               key={restaurant.id}
