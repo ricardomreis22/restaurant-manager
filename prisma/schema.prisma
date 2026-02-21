@@ -77,8 +77,8 @@ model Table {
   capacity     Int
   isReserved   Boolean      @default(false)
   isLocked     Boolean      @default(false)
-  x            Int          @default(0)
-  y            Int          @default(0)
+  x            Float        @default(0)  // ratio 0-1: distance from left / map width
+  y            Float        @default(0)  // ratio 0-1: distance from top / map height
   reservations Reservation[]
   orders       Order[]
   seats        Seat[]
