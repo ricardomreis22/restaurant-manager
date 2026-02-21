@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, startTransition, useEffect, useCallback, useRef, useMemo } from "react";
+import {
+  useState,
+  startTransition,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash, Users, Lock } from "lucide-react";
@@ -42,7 +49,10 @@ const TABLE_GAP_PX = 6;
 function getTableSize(mapW: number, mapH: number) {
   const side = Math.max(
     TABLE_MIN_SIZE_PX,
-    Math.min(TABLE_MAX_SIZE_PX, Math.min(mapW * TABLE_SIZE_RATIO, mapH * TABLE_SIZE_RATIO))
+    Math.min(
+      TABLE_MAX_SIZE_PX,
+      Math.min(mapW * TABLE_SIZE_RATIO, mapH * TABLE_SIZE_RATIO),
+    ),
   );
   return { width: side, height: side };
 }
@@ -55,12 +65,14 @@ function resolveOverlap(
   w: number,
   h: number,
   maxRx: number,
-  maxRy: number
+  maxRy: number,
 ): { rx: number; ry: number } {
   const { width: tw, height: th } = getTableSize(w, h);
   let rx = newRx;
   let ry = newRy;
-  const ids = Object.keys(positions).map(Number).filter((id) => id !== tableId);
+  const ids = Object.keys(positions)
+    .map(Number)
+    .filter((id) => id !== tableId);
   for (let iter = 0; iter < 15; iter++) {
     let changed = false;
     for (const otherId of ids) {
@@ -103,7 +115,7 @@ function resolveOverlap(
 function resolveAllOverlaps(
   positions: Record<number, { x: number; y: number }>,
   w: number,
-  h: number
+  h: number,
 ): Record<number, { x: number; y: number }> {
   const { width: tw, height: th } = getTableSize(w, h);
   const maxRx = w > tw ? 1 - tw / w : 0;
@@ -115,8 +127,20 @@ function resolveAllOverlaps(
     let changed = false;
     const next = { ...current };
     for (const tableId of ids) {
-      const { rx, ry } = resolveOverlap(tableId, next[tableId].x, next[tableId].y, next, w, h, maxRx, maxRy);
-      if (Math.abs(rx - next[tableId].x) > 1e-6 || Math.abs(ry - next[tableId].y) > 1e-6) {
+      const { rx, ry } = resolveOverlap(
+        tableId,
+        next[tableId].x,
+        next[tableId].y,
+        next,
+        w,
+        h,
+        maxRx,
+        maxRy,
+      );
+      if (
+        Math.abs(rx - next[tableId].x) > 1e-6 ||
+        Math.abs(ry - next[tableId].y) > 1e-6
+      ) {
         next[tableId] = { x: rx, y: ry };
         changed = true;
       }
@@ -171,10 +195,15 @@ const Floormap = ({
     Record<number, { x: number; y: number }>
   >({}); // x,y are ratios 0-1
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const [mapSize, setMapSize] = useState({ width: REFERENCE_MAP_WIDTH, height: REFERENCE_MAP_HEIGHT });
+  const [mapSize, setMapSize] = useState({
+    width: REFERENCE_MAP_WIDTH,
+    height: REFERENCE_MAP_HEIGHT,
+  });
   const tablePositionsRef = useRef(tablePositions);
   const mapSizeRef = useRef(mapSize);
-  const displayPositionsRef = useRef<Record<number, { x: number; y: number }>>({});
+  const displayPositionsRef = useRef<Record<number, { x: number; y: number }>>(
+    {},
+  );
   tablePositionsRef.current = tablePositions;
   mapSizeRef.current = mapSize;
 
@@ -264,7 +293,8 @@ const Floormap = ({
         }
         next[table.id] = { x: rx, y: ry };
       });
-      if (!changed && Object.keys(prev).length === Object.keys(next).length) return prev;
+      if (!changed && Object.keys(prev).length === Object.keys(next).length)
+        return prev;
       return next;
     });
   }, [localTables]);
@@ -274,7 +304,7 @@ const Floormap = ({
   const h = mapSize.height > 0 ? mapSize.height : REFERENCE_MAP_HEIGHT;
   const displayPositions = useMemo(
     () => resolveAllOverlaps(tablePositions, w, h),
-    [tablePositions, w, h]
+    [tablePositions, w, h],
   );
   displayPositionsRef.current = displayPositions;
 
@@ -411,8 +441,14 @@ const Floormap = ({
       const w = wRaw > 0 ? wRaw : REFERENCE_MAP_WIDTH;
       const h = hRaw > 0 ? hRaw : REFERENCE_MAP_HEIGHT;
 
-      const rx = displayPositionsRef.current[tableId]?.x ?? tablePositionsRef.current[tableId]?.x ?? 0;
-      const ry = displayPositionsRef.current[tableId]?.y ?? tablePositionsRef.current[tableId]?.y ?? 0;
+      const rx =
+        displayPositionsRef.current[tableId]?.x ??
+        tablePositionsRef.current[tableId]?.x ??
+        0;
+      const ry =
+        displayPositionsRef.current[tableId]?.y ??
+        tablePositionsRef.current[tableId]?.y ??
+        0;
       const newPixelX = rx * w + delta.x;
       const newPixelY = ry * h + delta.y;
       const { width: tw, height: th } = getTableSize(w, h);
@@ -428,7 +464,7 @@ const Floormap = ({
         w,
         h,
         maxRx,
-        maxRy
+        maxRy,
       );
       newRx = resolved.rx;
       newRy = resolved.ry;
@@ -450,10 +486,13 @@ const Floormap = ({
   /////////////////////////////////////////////////////////////////////////////
 
   return (
-    <div className="h-full">
+    <div className="h-full w-full min-h-0 flex items-center justify-center py-6 px-0 sm:px-6">
       <DndContext onDragEnd={handleDragEnd}>
         <Droppable id="floor-map">
-          <div className="relative h-full bg-gray-50 rounded-l mr-6 ml-6 mb-6 ">
+          <div
+            className="relative bg-gray-50 rounded-lg overflow-hidden w-full max-h-full lg:max-h-[85%] min-w-0"
+            style={{ aspectRatio: "4/3" }}
+          >
             {/* Add Table Button - Top Right */}
             {isAdminView && (
               <div className="absolute top-4 right-4 z-10">
@@ -469,32 +508,35 @@ const Floormap = ({
 
             {/* Tables Grid - fills entire floor-map so tables can go edge to edge */}
             <div className="absolute inset-0 min-h-[200px]">
-              <div ref={mapContainerRef} className="h-full w-full relative min-h-[200px]">
+              <div
+                ref={mapContainerRef}
+                className="h-full w-full relative min-h-[200px]"
+              >
                 {localTables.map((table) => {
                   const pos = displayPositions[table.id] ?? { x: 0, y: 0 };
                   const pixelX = pos.x * mapSize.width;
                   const pixelY = pos.y * mapSize.height;
                   const tableSize = getTableSize(mapSize.width, mapSize.height);
                   return (
-                  <Draggable
-                    key={table.id}
-                    position={{ x: pixelX, y: pixelY }}
-                    id={`table-${table.id}`}
-                    disabled={!isAdminView}
-                  >
-                    <div
-                      onClick={() => handleTableClick(table.id)}
-                      style={{
-                        width: `${tableSize.width}px`,
-                        height: `${tableSize.height}px`,
-                        minWidth: 0,
-                        minHeight: 0,
-                        boxSizing: "border-box",
-                        overflow: "hidden",
-                        padding: `${Math.max(2, Math.min(12, Math.round(tableSize.width * 0.08)))}px`,
-                        borderRadius: `${Math.max(4, Math.round(tableSize.width * 0.06))}px`,
-                      }}
-                      className={`
+                    <Draggable
+                      key={table.id}
+                      position={{ x: pixelX, y: pixelY }}
+                      id={`table-${table.id}`}
+                      disabled={!isAdminView}
+                    >
+                      <div
+                        onClick={() => handleTableClick(table.id)}
+                        style={{
+                          width: `${tableSize.width}px`,
+                          height: `${tableSize.height}px`,
+                          minWidth: 0,
+                          minHeight: 0,
+                          boxSizing: "border-box",
+                          overflow: "hidden",
+                          padding: `${Math.max(2, Math.min(12, Math.round(tableSize.width * 0.08)))}px`,
+                          borderRadius: `${Math.max(4, Math.round(tableSize.width * 0.06))}px`,
+                        }}
+                        className={`
                     relative shadow-md flex items-center justify-center md:block text-center
                     ${
                       table.isLocked
@@ -505,73 +547,83 @@ const Floormap = ({
                     ${selectedTable === table.id ? "ring-2 ring-blue-500" : ""}
                     hover:shadow-lg transition-all
                   `}
-                    >
-                      {/* Small screens: only table number */}
-                      <span
-                        className="font-bold md:hidden"
-                        style={{ fontSize: `${Math.max(10, Math.min(18, Math.round(tableSize.width * 0.22)))}px` }}
                       >
-                        {table.number}
-                      </span>
-                      {/* Medium screens and up: full table info */}
-                      <h3
-                        className="hidden md:block font-bold"
-                        style={{ fontSize: `${Math.max(11, Math.min(20, Math.round(tableSize.width * 0.16)))}px` }}
-                      >
-                        Table {table.number}
-                      </h3>
-                      <p
-                        className="hidden md:block text-gray-600 mt-0.5"
-                        style={{ fontSize: `${Math.max(10, Math.min(14, Math.round(tableSize.width * 0.12)))}px` }}
-                      >
-                        Capacity: {table.capacity}
-                      </p>
-                      <p
-                        className="hidden md:block mt-0.5"
-                        style={{ fontSize: `${Math.max(10, Math.min(14, Math.round(tableSize.width * 0.12)))}px` }}
-                      >
-                        {table.isReserved ? "Reserved" : "Available"}
-                      </p>
-                      {table.isLocked && (
-                        <Lock
-                          className="absolute top-[0.125rem] right-[0.125rem] md:top-2 md:right-2 text-red-500 shrink-0"
+                        {/* Small screens: only table number */}
+                        <span
+                          className="font-bold md:hidden"
                           style={{
-                            width: `${Math.max(10, Math.min(16, Math.round(tableSize.width * 0.12)))}px`,
-                            height: `${Math.max(10, Math.min(16, Math.round(tableSize.width * 0.12)))}px`,
-                          }}
-                        />
-                      )}
-                      {isAdminView && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="absolute -top-1 -right-1 md:-top-2 md:-right-2 text-red-600 hover:text-red-800 bg-white rounded-full min-w-0 h-auto"
-                          style={{ padding: `${Math.max(2, Math.round(tableSize.width * 0.04))}px` }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteTable(table.id);
+                            fontSize: `${Math.max(10, Math.min(18, Math.round(tableSize.width * 0.22)))}px`,
                           }}
                         >
-                          <Trash
-                            className="shrink-0"
+                          {table.number}
+                        </span>
+                        {/* Medium screens and up: full table info */}
+                        <h3
+                          className="hidden md:block font-bold"
+                          style={{
+                            fontSize: `${Math.max(11, Math.min(20, Math.round(tableSize.width * 0.16)))}px`,
+                          }}
+                        >
+                          Table {table.number}
+                        </h3>
+                        <p
+                          className="hidden md:block text-gray-600 mt-0.5"
+                          style={{
+                            fontSize: `${Math.max(10, Math.min(14, Math.round(tableSize.width * 0.12)))}px`,
+                          }}
+                        >
+                          Capacity: {table.capacity}
+                        </p>
+                        <p
+                          className="hidden md:block mt-0.5"
+                          style={{
+                            fontSize: `${Math.max(10, Math.min(14, Math.round(tableSize.width * 0.12)))}px`,
+                          }}
+                        >
+                          {table.isReserved ? "Reserved" : "Available"}
+                        </p>
+                        {table.isLocked && (
+                          <Lock
+                            className="absolute top-[0.125rem] right-[0.125rem] md:top-2 md:right-2 text-red-500 shrink-0"
                             style={{
                               width: `${Math.max(10, Math.min(16, Math.round(tableSize.width * 0.12)))}px`,
                               height: `${Math.max(10, Math.min(16, Math.round(tableSize.width * 0.12)))}px`,
                             }}
                           />
-                        </Button>
-                      )}
-                      {onToggleLock && (
-                        <div className="hidden md:block">
-                          <TableLocker
-                            tableId={table.id}
-                            isLocked={table.isLocked}
-                            onToggleLock={onToggleLock}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </Draggable>
+                        )}
+                        {isAdminView && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="absolute -top-1 -right-1 md:-top-2 md:-right-2 text-red-600 hover:text-red-800 bg-white rounded-full min-w-0 h-auto"
+                            style={{
+                              padding: `${Math.max(2, Math.round(tableSize.width * 0.04))}px`,
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteTable(table.id);
+                            }}
+                          >
+                            <Trash
+                              className="shrink-0"
+                              style={{
+                                width: `${Math.max(10, Math.min(16, Math.round(tableSize.width * 0.12)))}px`,
+                                height: `${Math.max(10, Math.min(16, Math.round(tableSize.width * 0.12)))}px`,
+                              }}
+                            />
+                          </Button>
+                        )}
+                        {onToggleLock && (
+                          <div className="hidden md:block">
+                            <TableLocker
+                              tableId={table.id}
+                              isLocked={table.isLocked}
+                              onToggleLock={onToggleLock}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </Draggable>
                   );
                 })}
               </div>
