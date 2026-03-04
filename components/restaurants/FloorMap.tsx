@@ -133,12 +133,18 @@ const Floormap = ({
     [pixelToGrid, gridToPixel],
   );
 
-  // pos.x = col, pos.y = row (grid coords). Returns pixel position for display.
+  const TABLE_GAP = 2;
+
+  // pos.x = col, pos.y = row (grid coords). Returns pixel position offset by half the gap so the table is centered in the cell.
   const getDisplayPosition = useCallback(
     (pos: { x: number; y: number }) => {
       if (cellSizePx == null || cellSizePx <= 0)
-        return { x: pos.x * REF_CELL_PX, y: pos.y * REF_CELL_PX };
-      return gridToPixel(pos.x, pos.y);
+        return {
+          x: pos.x * REF_CELL_PX + TABLE_GAP / 2,
+          y: pos.y * REF_CELL_PX + TABLE_GAP / 2,
+        };
+      const px = gridToPixel(pos.x, pos.y);
+      return { x: px.x + TABLE_GAP / 2, y: px.y + TABLE_GAP / 2 };
     },
     [cellSizePx, gridToPixel],
   );
@@ -355,62 +361,64 @@ const Floormap = ({
   /////////////////////////////////////////////////////////////////////////////
 
   return (
-    <div className="h-full">
-      <DndContext onDragEnd={handleDragEnd}>
-        <Droppable id="floor-map">
-          <div className="h-full flex items-center justify-center lg:justify-end rounded-l mb-6 overflow-hidden">
-            {/* 16:10 aspect ratio on all screens; on lg fixed 640px width, right-aligned */}
-            <div
-              className="relative w-full xl:w-[66%] xl:mr-10 "
-              style={{ aspectRatio: "16/10" }}
-            >
-              <div
-                ref={gridRef}
-                className="absolute inset-0 rounded-lg overflow-hidden border-2 border-gray-300 bg-white"
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(16, minmax(0, 1fr))",
-                  gridTemplateRows: "repeat(10, minmax(0, 1fr))",
-                  backgroundImage: `
-                    linear-gradient(to right, rgba(0,0,0,0.08) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(0,0,0,0.08) 1px, transparent 1px)
-                  `,
-                  backgroundSize: "calc(100% / 16) calc(100% / 10)",
-                  backgroundColor: "white",
-                  // Each cell is square; one cell = 100%/16 = 100%/10
-                  ["--cell-size" as string]: "calc(100% / 16)",
-                }}
-              >
-                {/* Content spans the full 16x10 grid */}
-                <div className="col-span-full row-span-full relative">
-                  {/* Add Table Button - Top Right */}
-                  {isAdminView && (
-                    <div className="absolute top-4 right-4 z-10">
-                      <Button
-                        onClick={() => setIsAddModalOpen(true)}
-                        variant="outline"
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Table
-                      </Button>
-                    </div>
-                  )}
+    <div className="h-full flex flex-col">
+      {/* Controls above the floormap */}
+      <div className="flex items-center justify-between px-6 mb-2">
+        <div className="flex gap-4 text-sm text-gray-600">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-green-100 rounded border border-gray-300"></div>
+            <span>Available</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-yellow-100 rounded border border-gray-300"></div>
+            <span>Reserved</span>
+          </div>
+        </div>
+        {isAdminView && (
+          <Button onClick={() => setIsAddModalOpen(true)} variant="outline">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Table
+          </Button>
+        )}
+      </div>
 
-                  {/* Tables area: fills grid so tables can use --cell-size */}
-                  <div className="absolute inset-0 overflow-hidden">
-                    {localTables.map((table) => (
-                      <Draggable
-                        key={table.id}
-                        position={getDisplayPosition(
-                          tablePositions[table.id] || { x: 0, y: 0 },
-                        )}
-                        id={`table-${table.id}`}
-                        disabled={!isAdminView}
-                      >
-                        <div
-                          onClick={() => handleTableClick(table.id)}
-                          className={`
-                    relative text-center box-border rounded-md shadow-md
+      {/* Floormap grid */}
+      <div className="flex-1 min-h-0">
+        <DndContext onDragEnd={handleDragEnd}>
+          <Droppable id="floor-map">
+            <div className="h-full flex items-center justify-center lg:justify-end rounded-l mb-6 overflow-hidden">
+              {/* 16:10 aspect ratio on all screens; on lg fixed 640px width, right-aligned */}
+              <div
+                className="relative w-full xl:w-[50%] xl:mr-10 "
+                style={{ aspectRatio: "16/10" }}
+              >
+                <div
+                  ref={gridRef}
+                  className="absolute inset-0 rounded-lg overflow-hidden bg-white"
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(16, minmax(0, 1fr))",
+                    gridTemplateRows: "repeat(10, minmax(0, 1fr))",
+                    ["--cell-size" as string]: "calc(100% / 16)",
+                  }}
+                >
+                  {/* Content spans the full 16x10 grid */}
+                  <div className="col-span-full row-span-full relative">
+                    {/* Tables area: fills grid so tables can use --cell-size */}
+                    <div className="absolute inset-0 overflow-hidden">
+                      {localTables.map((table) => (
+                        <Draggable
+                          key={table.id}
+                          position={getDisplayPosition(
+                            tablePositions[table.id] || { x: 0, y: 0 },
+                          )}
+                          id={`table-${table.id}`}
+                          disabled={!isAdminView}
+                        >
+                          <div
+                            onClick={() => handleTableClick(table.id)}
+                            className={`
+                    relative text-center box-border rounded-md flex flex-col items-center justify-center border border-[rgba(36,49,52,255)]
                     ${
                       table.isLocked
                         ? "cursor-not-allowed opacity-50"
@@ -420,69 +428,60 @@ const Floormap = ({
                     ${selectedTable === table.id ? "ring-2 ring-blue-500" : ""}
                     hover:shadow-lg transition-all
                   `}
-                          style={{
-                            width:
-                              cellSizePx != null ? `${cellSizePx}px` : "2.5rem",
-                            height:
-                              cellSizePx != null ? `${cellSizePx}px` : "2.5rem",
-                          }}
-                        >
-                          <h3 className="font-bold text-sm md:text-lg">
-                            <span className="hidden">Table</span> {table.number}
-                          </h3>
-                          <p className="hidden text-xs md:text-sm text-gray-600">
-                            Capacity: {table.capacity}
-                          </p>
-                          <p className="hidden text-xs md:text-sm mt-1">
-                            {table.isReserved ? "Reserved" : "Available"}
-                          </p>
-                          {table.isLocked && (
-                            <Lock className="absolute top-1 right-1 h-2 w-2 md:h-4 md:w-4 text-red-500" />
-                          )}
-                          {isAdminView && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="absolute h-1 w-1 -top-2 -right-4 text-red-600 hover:text-red-800 bg-white rounded-full"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteTable(table.id);
-                              }}
-                            >
-                              <Trash className="h-4 w-4" />
-                            </Button>
-                          )}
-                          {onToggleLock && (
-                            <TableLocker
-                              tableId={table.id}
-                              isLocked={table.isLocked}
-                              onToggleLock={onToggleLock}
-                            />
-                          )}
-                        </div>
-                      </Draggable>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Legend absolutely positioned in the bottom left of the white div */}
-                <div className="absolute bottom-4 left-4 flex items-center gap-4">
-                  <div className="flex gap-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-green-100 rounded"></div>
-                      <span>Available</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-yellow-100 rounded"></div>
-                      <span>Reserved</span>
+                            style={{
+                              width:
+                                cellSizePx != null
+                                  ? `${cellSizePx - TABLE_GAP}px`
+                                  : "2.5rem",
+                              height:
+                                cellSizePx != null
+                                  ? `${cellSizePx - TABLE_GAP}px`
+                                  : "2.5rem",
+                            }}
+                          >
+                            <h3 className="font-bold text-sm md:text-lg">
+                              {table.number}
+                            </h3>
+                            <p className="hidden text-xs md:text-sm text-gray-600">
+                              Capacity: {table.capacity}
+                            </p>
+                            <p className="hidden text-xs md:text-sm mt-1">
+                              {table.isReserved ? "Reserved" : "Available"}
+                            </p>
+                            {table.isLocked && (
+                              <Lock className="absolute top-1 right-1 h-2 w-2 md:h-4 md:w-4 text-red-500" />
+                            )}
+                            {isAdminView && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="absolute h-1 w-1 -top-2 -right-4 text-red-600 hover:text-red-800 bg-white rounded-full"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteTable(table.id);
+                                }}
+                              >
+                                <Trash className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {onToggleLock && (
+                              <TableLocker
+                                tableId={table.id}
+                                isLocked={table.isLocked}
+                                onToggleLock={onToggleLock}
+                              />
+                            )}
+                          </div>
+                        </Draggable>
+                      ))}
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </Droppable>
-      </DndContext>
+          </Droppable>
+        </DndContext>
+      </div>
 
       {/* Add Table Modal */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
