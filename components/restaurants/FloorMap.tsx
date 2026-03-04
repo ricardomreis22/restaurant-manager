@@ -35,129 +35,14 @@ import { DndContext, DragEndEvent } from "@dnd-kit/core";
 import { Droppable } from "../dnd/Droppable";
 import { Draggable } from "../dnd/Draggable";
 
-// Reference size for legacy positions stored as pixels (before ratio migration)
-const REFERENCE_MAP_WIDTH = 800;
-const REFERENCE_MAP_HEIGHT = 600;
-// Table size as fraction of map – square on all screens, shrinks when map shrinks
-const TABLE_SIZE_RATIO = 0.12;
-const TABLE_MIN_SIZE_PX = 28;
-const TABLE_MAX_SIZE_PX = 128;
-
-const TABLE_GAP_PX = 6;
-
-function getTableSize(mapW: number, mapH: number) {
-  const side = Math.max(
-    TABLE_MIN_SIZE_PX,
-    Math.min(
-      TABLE_MAX_SIZE_PX,
-      Math.min(mapW * TABLE_SIZE_RATIO, mapH * TABLE_SIZE_RATIO),
-    ),
-  );
-  return { width: side, height: side };
-}
-
-function resolveOverlap(
-  tableId: number,
-  newRx: number,
-  newRy: number,
-  positions: Record<number, { x: number; y: number }>,
-  w: number,
-  h: number,
-  maxRx: number,
-  maxRy: number,
-): { rx: number; ry: number } {
-  const { width: tw, height: th } = getTableSize(w, h);
-  let rx = newRx;
-  let ry = newRy;
-  const ids = Object.keys(positions)
-    .map(Number)
-    .filter((id) => id !== tableId);
-  for (let iter = 0; iter < 15; iter++) {
-    let changed = false;
-    for (const otherId of ids) {
-      const brx = positions[otherId]?.x ?? 0;
-      const bry = positions[otherId]?.y ?? 0;
-      const aLeft = rx * w;
-      const aTop = ry * h;
-      const aRight = aLeft + tw;
-      const aBottom = aTop + th;
-      const bLeft = brx * w;
-      const bTop = bry * h;
-      const bRight = bLeft + tw;
-      const bBottom = bTop + th;
-      const noOverlap =
-        aRight + TABLE_GAP_PX <= bLeft ||
-        bRight + TABLE_GAP_PX <= aLeft ||
-        aBottom + TABLE_GAP_PX <= bTop ||
-        bBottom + TABLE_GAP_PX <= aTop;
-      if (noOverlap) continue;
-      const dLeft = aRight + TABLE_GAP_PX - bLeft;
-      const dRight = bRight + TABLE_GAP_PX - aLeft;
-      const dUp = aBottom + TABLE_GAP_PX - bTop;
-      const dDown = bBottom + TABLE_GAP_PX - aTop;
-      const moves = [
-        { dx: -dLeft / w, dy: 0, d: dLeft },
-        { dx: dRight / w, dy: 0, d: dRight },
-        { dx: 0, dy: -dUp / h, d: dUp },
-        { dx: 0, dy: dDown / h, d: dDown },
-      ].filter((m) => m.d > 0);
-      const best = moves.reduce((a, b) => (a.d < b.d ? a : b));
-      rx = Math.max(0, Math.min(maxRx, rx + best.dx));
-      ry = Math.max(0, Math.min(maxRy, ry + best.dy));
-      changed = true;
-    }
-    if (!changed) break;
-  }
-  return { rx, ry };
-}
-
-function resolveAllOverlaps(
-  positions: Record<number, { x: number; y: number }>,
-  w: number,
-  h: number,
-): Record<number, { x: number; y: number }> {
-  const { width: tw, height: th } = getTableSize(w, h);
-  const maxRx = w > tw ? 1 - tw / w : 0;
-  const maxRy = h > th ? 1 - th / h : 0;
-  const ids = Object.keys(positions).map(Number);
-  if (ids.length <= 1) return positions;
-  let current = { ...positions };
-  for (let pass = 0; pass < 10; pass++) {
-    let changed = false;
-    const next = { ...current };
-    for (const tableId of ids) {
-      const { rx, ry } = resolveOverlap(
-        tableId,
-        next[tableId].x,
-        next[tableId].y,
-        next,
-        w,
-        h,
-        maxRx,
-        maxRy,
-      );
-      if (
-        Math.abs(rx - next[tableId].x) > 1e-6 ||
-        Math.abs(ry - next[tableId].y) > 1e-6
-      ) {
-        next[tableId] = { x: rx, y: ry };
-        changed = true;
-      }
-    }
-    current = next;
-    if (!changed) break;
-  }
-  return current;
-}
-
 interface Table {
   id: number;
   number: number;
   capacity: number;
   isReserved: boolean;
   isLocked: boolean;
-  x?: number; // ratio 0-1: distance from left / map width
-  y?: number; // ratio 0-1: distance from top / map height
+  x?: number; // Add this
+  y?: number; // Add this
 }
 
 interface FloorMapProps {
@@ -303,16 +188,8 @@ const Floormap = ({
       }
       initialPositions[table.id] = { x, y };
     });
+    setTablePositions(initialPositions);
   }, [localTables]);
-
-  // Display positions: no-overlap layout for current map size. Stored positions stay unchanged so they restore when screen grows.
-  const w = mapSize.width > 0 ? mapSize.width : REFERENCE_MAP_WIDTH;
-  const h = mapSize.height > 0 ? mapSize.height : REFERENCE_MAP_HEIGHT;
-  const displayPositions = useMemo(
-    () => resolveAllOverlaps(tablePositions, w, h),
-    [tablePositions, w, h],
-  );
-  displayPositionsRef.current = displayPositions;
 
   const handleTableClick = async (tableId: number) => {
     const table = localTables.find((t) => t.id === tableId);
@@ -478,7 +355,7 @@ const Floormap = ({
   /////////////////////////////////////////////////////////////////////////////
 
   return (
-    <div className="h-full w-full min-h-0 flex items-center justify-center py-6 px-0 sm:px-6">
+    <div className="h-full">
       <DndContext onDragEnd={handleDragEnd}>
         <Droppable id="floor-map">
           <div className="h-full flex items-center justify-center lg:justify-end rounded-l mb-6 overflow-hidden">
