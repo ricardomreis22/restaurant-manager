@@ -6,6 +6,7 @@ import {
   useEffect,
   useCallback,
   useRef,
+  useMemo,
 } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -192,71 +193,45 @@ const Floormap = ({
   const [numberOfPeople, setNumberOfPeople] = useState<number>(2);
   const [tablePositions, setTablePositions] = useState<
     Record<number, { x: number; y: number }>
-  >({});
-  const gridRef = useRef<HTMLDivElement>(null);
-  const [cellSizePx, setCellSizePx] = useState<number | null>(null);
+  >({}); // x,y are ratios 0-1
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const [mapSize, setMapSize] = useState({
+    width: REFERENCE_MAP_WIDTH,
+    height: REFERENCE_MAP_HEIGHT,
+  });
+  const tablePositionsRef = useRef(tablePositions);
+  const mapSizeRef = useRef(mapSize);
+  const displayPositionsRef = useRef<Record<number, { x: number; y: number }>>(
+    {},
+  );
+  tablePositionsRef.current = tablePositions;
+  mapSizeRef.current = mapSize;
 
-  const GRID_COLS = 16;
-  const GRID_ROWS = 10;
-  // Used to convert legacy pixel positions from DB into grid coords
-  const REF_CELL_PX = 40;
-
-  // Measure grid to get cell size in pixels for snapping
-  useEffect(() => {
-    const el = gridRef.current;
+  const updateMapSize = useCallback(() => {
+    const el = mapContainerRef.current;
     if (!el) return;
-    const update = () => {
-      const w = el.offsetWidth;
-      const h = el.offsetHeight;
-      if (w && h) setCellSizePx(Math.min(w / GRID_COLS, h / GRID_ROWS));
-    };
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
+    const rect = el.getBoundingClientRect();
+    const w = rect.width || REFERENCE_MAP_WIDTH;
+    const h = rect.height || REFERENCE_MAP_HEIGHT;
+    setMapSize({ width: w, height: h });
   }, []);
 
-  const pixelToGrid = useCallback(
-    (x: number, y: number) => {
-      if (cellSizePx == null || cellSizePx <= 0) return { col: 0, row: 0 };
-      const col = Math.round(x / cellSizePx);
-      const row = Math.round(y / cellSizePx);
-      return {
-        col: Math.max(0, Math.min(GRID_COLS - 1, col)),
-        row: Math.max(0, Math.min(GRID_ROWS - 1, row)),
-      };
-    },
-    [cellSizePx],
-  );
-
-  const gridToPixel = useCallback(
-    (col: number, row: number) => {
-      if (cellSizePx == null || cellSizePx <= 0) return { x: 0, y: 0 };
-      return {
-        x: col * cellSizePx,
-        y: row * cellSizePx,
-      };
-    },
-    [cellSizePx],
-  );
-
-  const snapToGrid = useCallback(
-    (x: number, y: number) => {
-      const { col, row } = pixelToGrid(x, y);
-      return gridToPixel(col, row);
-    },
-    [pixelToGrid, gridToPixel],
-  );
-
-  // pos.x = col, pos.y = row (grid coords). Returns pixel position for display.
-  const getDisplayPosition = useCallback(
-    (pos: { x: number; y: number }) => {
-      if (cellSizePx == null || cellSizePx <= 0)
-        return { x: pos.x * REF_CELL_PX, y: pos.y * REF_CELL_PX };
-      return gridToPixel(pos.x, pos.y);
-    },
-    [cellSizePx, gridToPixel],
-  );
+  useEffect(() => {
+    const el = mapContainerRef.current;
+    if (!el) return;
+    updateMapSize();
+    requestAnimationFrame(updateMapSize);
+    const ro = new ResizeObserver(updateMapSize);
+    ro.observe(el);
+    const onResize = () => {
+      requestAnimationFrame(() => requestAnimationFrame(updateMapSize));
+    };
+    window.addEventListener("resize", onResize);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", onResize);
+    };
+  }, [updateMapSize]);
 
   const refreshTables = useCallback(async () => {
     try {
@@ -290,18 +265,37 @@ const Floormap = ({
     setLocalTables(tables);
   }, [tables]);
 
-  // Initialize table positions: store as grid (col, row) so cell is fixed across screen sizes
+  // Set positions from server only for tables that don't have one yet (never overwrite after user has dragged).
   useEffect(() => {
-    const initialPositions: Record<number, { x: number; y: number }> = {};
-    localTables.forEach((table) => {
-      let x = table.x ?? 0;
-      let y = table.y ?? 0;
-      // If values look like pixels (legacy), convert to grid coords
-      if (x > GRID_COLS - 1 || y > GRID_ROWS - 1) {
-        x = Math.max(0, Math.min(GRID_COLS - 1, Math.round(x / REF_CELL_PX)));
-        y = Math.max(0, Math.min(GRID_ROWS - 1, Math.round(y / REF_CELL_PX)));
-      }
-      initialPositions[table.id] = { x, y };
+    const w = mapSize.width > 0 ? mapSize.width : REFERENCE_MAP_WIDTH;
+    const h = mapSize.height > 0 ? mapSize.height : REFERENCE_MAP_HEIGHT;
+    const { width: tw, height: th } = getTableSize(w, h);
+    const maxRx = w > tw ? 1 - tw / w : 0;
+    const maxRy = h > th ? 1 - th / h : 0;
+
+    setTablePositions((prev) => {
+      let changed = false;
+      const next: Record<number, { x: number; y: number }> = {};
+      localTables.forEach((table) => {
+        if (prev[table.id] !== undefined) {
+          next[table.id] = prev[table.id];
+          return;
+        }
+        changed = true;
+        let rx = table.x ?? 0;
+        let ry = table.y ?? 0;
+        if (rx > 1 || ry > 1) {
+          rx = Math.max(0, Math.min(maxRx, rx / REFERENCE_MAP_WIDTH));
+          ry = Math.max(0, Math.min(maxRy, ry / REFERENCE_MAP_HEIGHT));
+        } else {
+          rx = Math.max(0, Math.min(maxRx, rx));
+          ry = Math.max(0, Math.min(maxRy, ry));
+        }
+        next[table.id] = { x: rx, y: ry };
+      });
+      if (!changed && Object.keys(prev).length === Object.keys(next).length)
+        return prev;
+      return next;
     });
   }, [localTables]);
 
@@ -436,38 +430,52 @@ const Floormap = ({
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over, delta } = event;
 
-    if (!over) return;
+    if (!over) {
+      return; // Exit early if not dropped on anything
+    }
 
+    // Handle table dragging (only for admin users): update ratio from sides
     if (active && String(active.id).startsWith("table-") && isAdminView) {
       const tableId = parseInt(String(active.id).replace("table-", ""));
-      const current = tablePositions[tableId] || { x: 0, y: 0 };
-      // current is (col, row); get pixel position, add delta, snap to cell
-      const currentPx =
-        cellSizePx != null
-          ? gridToPixel(current.x, current.y)
-          : { x: current.x * REF_CELL_PX, y: current.y * REF_CELL_PX };
-      const newPx = { x: currentPx.x + delta.x, y: currentPx.y + delta.y };
-      const snappedPx =
-        cellSizePx != null ? snapToGrid(newPx.x, newPx.y) : newPx;
-      const { col, row } =
-        cellSizePx != null
-          ? pixelToGrid(snappedPx.x, snappedPx.y)
-          : {
-              col: Math.max(
-                0,
-                Math.min(GRID_COLS - 1, Math.round(newPx.x / REF_CELL_PX)),
-              ),
-              row: Math.max(
-                0,
-                Math.min(GRID_ROWS - 1, Math.round(newPx.y / REF_CELL_PX)),
-              ),
-            };
-      const gridPos = { x: col, y: row };
+      const { width: wRaw, height: hRaw } = mapSizeRef.current;
+      const w = wRaw > 0 ? wRaw : REFERENCE_MAP_WIDTH;
+      const h = hRaw > 0 ? hRaw : REFERENCE_MAP_HEIGHT;
 
-      setTablePositions((prev) => ({ ...prev, [tableId]: gridPos }));
+      const rx =
+        displayPositionsRef.current[tableId]?.x ??
+        tablePositionsRef.current[tableId]?.x ??
+        0;
+      const ry =
+        displayPositionsRef.current[tableId]?.y ??
+        tablePositionsRef.current[tableId]?.y ??
+        0;
+      const newPixelX = rx * w + delta.x;
+      const newPixelY = ry * h + delta.y;
+      const { width: tw, height: th } = getTableSize(w, h);
+      const maxRx = w > tw ? 1 - tw / w : 0;
+      const maxRy = h > th ? 1 - th / h : 0;
+      let newRx = Math.max(0, Math.min(maxRx, newPixelX / w));
+      let newRy = Math.max(0, Math.min(maxRy, newPixelY / h));
+      const resolved = resolveOverlap(
+        tableId,
+        newRx,
+        newRy,
+        { ...tablePositionsRef.current, [tableId]: { x: newRx, y: newRy } },
+        w,
+        h,
+        maxRx,
+        maxRy,
+      );
+      newRx = resolved.rx;
+      newRy = resolved.ry;
+
+      setTablePositions((prev) => ({
+        ...prev,
+        [tableId]: { x: newRx, y: newRy },
+      }));
 
       try {
-        await updateTablePosition(tableId, gridPos.x, gridPos.y);
+        await updateTablePosition(tableId, newRx, newRy);
       } catch (error) {
         console.error("Failed to update table position:", error);
         toast.error("Failed to save table position");
@@ -481,59 +489,55 @@ const Floormap = ({
     <div className="h-full w-full min-h-0 flex items-center justify-center py-6 px-0 sm:px-6">
       <DndContext onDragEnd={handleDragEnd}>
         <Droppable id="floor-map">
-          <div className="h-full flex items-center justify-center lg:justify-end rounded-l mb-6 overflow-hidden">
-            {/* 16:10 aspect ratio on all screens; on lg fixed 640px width, right-aligned */}
-            <div
-              className="relative w-full xl:w-[66%] xl:mr-10 "
-              style={{ aspectRatio: "16/10" }}
-            >
-              <div
-                ref={gridRef}
-                className="absolute inset-0 rounded-lg overflow-hidden border-2 border-gray-300 bg-white"
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(16, minmax(0, 1fr))",
-                  gridTemplateRows: "repeat(10, minmax(0, 1fr))",
-                  backgroundImage: `
-                    linear-gradient(to right, rgba(0,0,0,0.08) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(0,0,0,0.08) 1px, transparent 1px)
-                  `,
-                  backgroundSize: "calc(100% / 16) calc(100% / 10)",
-                  backgroundColor: "white",
-                  // Each cell is square; one cell = 100%/16 = 100%/10
-                  ["--cell-size" as string]: "calc(100% / 16)",
-                }}
-              >
-                {/* Content spans the full 16x10 grid */}
-                <div className="col-span-full row-span-full relative">
-                  {/* Add Table Button - Top Right */}
-                  {isAdminView && (
-                    <div className="absolute top-4 right-4 z-10">
-                      <Button
-                        onClick={() => setIsAddModalOpen(true)}
-                        variant="outline"
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Table
-                      </Button>
-                    </div>
-                  )}
+          <div
+            className="relative bg-gray-50 rounded-lg overflow-hidden w-full max-h-full lg:max-h-[85%] min-w-0"
+            style={{ aspectRatio: "4/3" }}
+          >
+            {/* Add Table Button - Top Right */}
+            {isAdminView && (
+              <div className="absolute top-4 right-4 z-10">
+                <Button
+                  onClick={() => setIsAddModalOpen(true)}
+                  variant="outline"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Table
+                </Button>
+              </div>
+            )}
 
-                  {/* Tables area: fills grid so tables can use --cell-size */}
-                  <div className="absolute inset-0 overflow-hidden">
-                    {localTables.map((table) => (
-                      <Draggable
-                        key={table.id}
-                        position={getDisplayPosition(
-                          tablePositions[table.id] || { x: 0, y: 0 },
-                        )}
-                        id={`table-${table.id}`}
-                        disabled={!isAdminView}
-                      >
-                        <div
-                          onClick={() => handleTableClick(table.id)}
-                          className={`
-                    relative text-center box-border rounded-md shadow-md
+            {/* Tables Grid - fills entire floor-map so tables can go edge to edge */}
+            <div className="absolute inset-0 min-h-[200px]">
+              <div
+                ref={mapContainerRef}
+                className="h-full w-full relative min-h-[200px]"
+              >
+                {localTables.map((table) => {
+                  const pos = displayPositions[table.id] ?? { x: 0, y: 0 };
+                  const pixelX = pos.x * mapSize.width;
+                  const pixelY = pos.y * mapSize.height;
+                  const tableSize = getTableSize(mapSize.width, mapSize.height);
+                  return (
+                    <Draggable
+                      key={table.id}
+                      position={{ x: pixelX, y: pixelY }}
+                      id={`table-${table.id}`}
+                      disabled={!isAdminView}
+                    >
+                      <div
+                        onClick={() => handleTableClick(table.id)}
+                        style={{
+                          width: `${tableSize.width}px`,
+                          height: `${tableSize.height}px`,
+                          minWidth: 0,
+                          minHeight: 0,
+                          boxSizing: "border-box",
+                          overflow: "hidden",
+                          padding: `${Math.max(2, Math.min(12, Math.round(tableSize.width * 0.08)))}px`,
+                          borderRadius: `${Math.max(4, Math.round(tableSize.width * 0.06))}px`,
+                        }}
+                        className={`
+                    relative shadow-md flex items-center justify-center md:block text-center
                     ${
                       table.isLocked
                         ? "cursor-not-allowed opacity-50"
@@ -543,63 +547,98 @@ const Floormap = ({
                     ${selectedTable === table.id ? "ring-2 ring-blue-500" : ""}
                     hover:shadow-lg transition-all
                   `}
+                      >
+                        {/* Small screens: only table number */}
+                        <span
+                          className="font-bold md:hidden"
                           style={{
-                            width:
-                              cellSizePx != null ? `${cellSizePx}px` : "2.5rem",
-                            height:
-                              cellSizePx != null ? `${cellSizePx}px` : "2.5rem",
+                            fontSize: `${Math.max(10, Math.min(18, Math.round(tableSize.width * 0.22)))}px`,
                           }}
                         >
-                          <h3 className="font-bold text-sm md:text-lg">
-                            <span className="hidden">Table</span> {table.number}
-                          </h3>
-                          <p className="hidden text-xs md:text-sm text-gray-600">
-                            Capacity: {table.capacity}
-                          </p>
-                          <p className="hidden text-xs md:text-sm mt-1">
-                            {table.isReserved ? "Reserved" : "Available"}
-                          </p>
-                          {table.isLocked && (
-                            <Lock className="absolute top-1 right-1 h-2 w-2 md:h-4 md:w-4 text-red-500" />
-                          )}
-                          {isAdminView && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="absolute h-1 w-1 -top-2 -right-4 text-red-600 hover:text-red-800 bg-white rounded-full"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteTable(table.id);
+                          {table.number}
+                        </span>
+                        {/* Medium screens and up: full table info */}
+                        <h3
+                          className="hidden md:block font-bold"
+                          style={{
+                            fontSize: `${Math.max(11, Math.min(20, Math.round(tableSize.width * 0.16)))}px`,
+                          }}
+                        >
+                          Table {table.number}
+                        </h3>
+                        <p
+                          className="hidden md:block text-gray-600 mt-0.5"
+                          style={{
+                            fontSize: `${Math.max(10, Math.min(14, Math.round(tableSize.width * 0.12)))}px`,
+                          }}
+                        >
+                          Capacity: {table.capacity}
+                        </p>
+                        <p
+                          className="hidden md:block mt-0.5"
+                          style={{
+                            fontSize: `${Math.max(10, Math.min(14, Math.round(tableSize.width * 0.12)))}px`,
+                          }}
+                        >
+                          {table.isReserved ? "Reserved" : "Available"}
+                        </p>
+                        {table.isLocked && (
+                          <Lock
+                            className="absolute top-[0.125rem] right-[0.125rem] md:top-2 md:right-2 text-red-500 shrink-0"
+                            style={{
+                              width: `${Math.max(10, Math.min(16, Math.round(tableSize.width * 0.12)))}px`,
+                              height: `${Math.max(10, Math.min(16, Math.round(tableSize.width * 0.12)))}px`,
+                            }}
+                          />
+                        )}
+                        {isAdminView && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="absolute -top-1 -right-1 md:-top-2 md:-right-2 text-red-600 hover:text-red-800 bg-white rounded-full min-w-0 h-auto"
+                            style={{
+                              padding: `${Math.max(2, Math.round(tableSize.width * 0.04))}px`,
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteTable(table.id);
+                            }}
+                          >
+                            <Trash
+                              className="shrink-0"
+                              style={{
+                                width: `${Math.max(10, Math.min(16, Math.round(tableSize.width * 0.12)))}px`,
+                                height: `${Math.max(10, Math.min(16, Math.round(tableSize.width * 0.12)))}px`,
                               }}
-                            >
-                              <Trash className="h-4 w-4" />
-                            </Button>
-                          )}
-                          {onToggleLock && (
+                            />
+                          </Button>
+                        )}
+                        {onToggleLock && (
+                          <div className="hidden md:block">
                             <TableLocker
                               tableId={table.id}
                               isLocked={table.isLocked}
                               onToggleLock={onToggleLock}
                             />
-                          )}
-                        </div>
-                      </Draggable>
-                    ))}
-                  </div>
-                </div>
+                          </div>
+                        )}
+                      </div>
+                    </Draggable>
+                  );
+                })}
+              </div>
+            </div>
 
-                {/* Legend absolutely positioned in the bottom left of the white div */}
-                <div className="absolute bottom-4 left-4 flex items-center gap-4">
-                  <div className="flex gap-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-green-100 rounded"></div>
-                      <span>Available</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-yellow-100 rounded"></div>
-                      <span>Reserved</span>
-                    </div>
-                  </div>
+            {/* Legend absolutely positioned in the bottom left of the white div */}
+            <div className="absolute bottom-4 left-4 flex items-center gap-4">
+              <div className="flex gap-4 text-sm text-gray-600">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-green-100 rounded"></div>
+                  <span>Available</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-yellow-100 rounded"></div>
+                  <span>Reserved</span>
                 </div>
               </div>
             </div>
