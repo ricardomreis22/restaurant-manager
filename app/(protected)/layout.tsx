@@ -38,7 +38,6 @@ export default function ProtectedLayout({
       setCurrentPage("restaurant");
     } else {
       setCurrentPage("general");
-      
     }
     setIsLoading(false);
   }, [pathname]);

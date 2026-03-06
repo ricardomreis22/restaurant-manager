@@ -358,7 +358,7 @@ const Floormap = ({
     <div className="h-full">
       <DndContext onDragEnd={handleDragEnd}>
         <Droppable id="floor-map">
-          <div className="h-full flex items-center justify-center lg:justify-end rounded-l mb-6 overflow-hidden">
+          <div className="h-full flex items-start justify-center lg:justify-end rounded-l mb-6 overflow-hidden">
             {/* 16:10 aspect ratio on all screens; on lg fixed 640px width, right-aligned */}
             <div
               className="relative w-full xl:w-[66%] xl:mr-10 "
