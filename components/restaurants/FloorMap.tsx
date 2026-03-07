@@ -363,7 +363,6 @@ const Floormap = ({
   /////////////////////////////////////////////////////////////////////////////
 
   return (
-<<<<<<< Updated upstream
     <div className="h-full">
       <DndContext onDragEnd={handleDragEnd}>
         <Droppable id="floor-map">
@@ -416,52 +415,6 @@ const Floormap = ({
                         }}
                         className={`
                     relative shadow-md flex items-center justify-center md:block text-center
-=======
-    <div className="h-full flex flex-col">
-      <div className="flex-1 min-h-0 flex items-start justify-center lg:justify-end rounded-l overflow-hidden">
-        <DndContext onDragEnd={handleDragEnd}>
-          <Droppable id="floor-map">
-          <div className="h-full flex items-start justify-center lg:justify-end overflow-hidden">
-            {/* 16:10 aspect ratio on all screens; on lg fixed 640px width, right-aligned */}
-            <div
-              className="relative w-full xl:w-[66%] xl:mr-10 "
-              style={{ aspectRatio: "16/10" }}
-            >
-              <div
-                ref={gridRef}
-                className="absolute inset-0 rounded-lg overflow-hidden border-2 border-gray-300 bg-white"
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(16, minmax(0, 1fr))",
-                  gridTemplateRows: "repeat(10, minmax(0, 1fr))",
-                  backgroundImage: `
-                    linear-gradient(to right, rgba(0,0,0,0.08) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(0,0,0,0.08) 1px, transparent 1px)
-                  `,
-                  backgroundSize: "calc(100% / 16) calc(100% / 10)",
-                  backgroundColor: "white",
-                  // Each cell is square; one cell = 100%/16 = 100%/10
-                  ["--cell-size" as string]: "calc(100% / 16)",
-                }}
-              >
-                {/* Content spans the full 16x10 grid */}
-                <div className="col-span-full row-span-full relative">
-                  {/* Tables area: fills grid so tables can use --cell-size */}
-                  <div className="absolute inset-0 overflow-hidden">
-                    {localTables.map((table) => (
-                      <Draggable
-                        key={table.id}
-                        position={getDisplayPosition(
-                          tablePositions[table.id] || { x: 0, y: 0 },
-                        )}
-                        id={`table-${table.id}`}
-                        disabled={!isAdminView}
-                      >
-                        <div
-                          onClick={() => handleTableClick(table.id)}
-                          className={`
-                    relative text-center box-border rounded-md shadow-md
->>>>>>> Stashed changes
                     ${
                       table.isLocked
                         ? "cursor-not-allowed opacity-50"
@@ -569,16 +522,7 @@ const Floormap = ({
           </div>
         </Droppable>
       </DndContext>
-      </div>
-      {/* Add Table Button - below the droppable area */}
-      {isAdminView && (
-        <div className="flex justify-end items-center gap-2 pt-4 pb-2 flex-shrink-0">
-          <Button onClick={() => setIsAddModalOpen(true)} variant="outline">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Table
-          </Button>
-        </div>
-      )}
+
       {/* Add Table Modal */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
         <DialogContent>
