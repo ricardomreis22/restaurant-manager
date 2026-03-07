@@ -1,10 +1,20 @@
 "use client";
 
 import { LogoutButton } from "@/components/auth/logout-button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 import { useState, useEffect } from "react";
+import { signOut } from "next-auth/react";
 import { getRestaurant } from "@/actions/restaurants";
 import Image from "next/image";
+import { Menu } from "lucide-react";
 
 export default function ProtectedLayout({
   children,
@@ -38,7 +48,6 @@ export default function ProtectedLayout({
       setCurrentPage("restaurant");
     } else {
       setCurrentPage("general");
-      
     }
     setIsLoading(false);
   }, [pathname]);
@@ -117,13 +126,58 @@ export default function ProtectedLayout({
   };
 
   const match = pathname.match(/\/restaurants\/(\d+)\/tables\/(\d+)/);
+  const adminRestaurantMatch = pathname.match(/\/admin\/restaurants\/(\d+)/);
+  const adminRestaurantId = adminRestaurantMatch ? adminRestaurantMatch[1] : null;
+
+  const adminTabs = [
+    { id: "floormap", label: "Floor Map" },
+    { id: "employees", label: "Staff" },
+    { id: "activity", label: "Activity Log" },
+    { id: "menu-management", label: "Menu Management" },
+  ];
 
   return (
     <div className="h-screen flex flex-col">
       {!match && (
         <nav className="flex p-4 justify-between items-center bg-[rgba(36,49,52,255)] text-white">
           {renderNavContent()}
-          <LogoutButton />
+          <div className="flex items-center">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="md:hidden text-white hover:bg-white/10"
+                  aria-label="Open menu"
+                >
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-[180px]">
+                {adminRestaurantId && currentPage === "admin" && adminTabs.map((tab) => (
+                  <DropdownMenuItem key={tab.id} asChild>
+                    <Link
+                      href={`/admin/restaurants/${adminRestaurantId}?tab=${tab.id}`}
+                      className="block w-full"
+                    >
+                      {tab.label}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+                {(adminRestaurantId && currentPage === "admin") && (
+                  <div className="my-1 border-t border-border" />
+                )}
+                <DropdownMenuItem
+                  onSelect={() => signOut({ callbackUrl: "/auth/login" })}
+                >
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <div className="hidden md:block">
+              <LogoutButton />
+            </div>
+          </div>
         </nav>
       )}
       <div className="flex-1 overflow-hidden">{children}</div>

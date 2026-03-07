@@ -22,6 +22,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   createTable,
   deleteTable,
   getTables,
@@ -68,6 +75,8 @@ const Floormap = ({
   const router = useRouter();
   const [selectedTable, setSelectedTable] = useState<number | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [tableToDeleteId, setTableToDeleteId] = useState<number | null>(null);
   const [isSeatModalOpen, setIsSeatModalOpen] = useState(false);
   const [tableNumber, setTableNumber] = useState("");
   const [isPending, setIsPending] = useState(false);
@@ -284,24 +293,29 @@ const Floormap = ({
     });
   };
 
-  const handleDeleteTable = (tableId: number) => {
-    if (window.confirm("Are you sure you want to delete this table?")) {
-      setIsPending(true);
-      startTransition(() => {
-        deleteTable(tableId)
-          .then((response) => {
-            if (response.success) {
-              refreshTables();
-            }
-          })
-          .catch((error) => {
-            console.error("Failed to delete table:", error);
-          })
-          .finally(() => {
-            setIsPending(false);
-          });
-      });
-    }
+  const handleConfirmDeleteTable = () => {
+    if (tableToDeleteId == null) return;
+    setIsPending(true);
+    startTransition(() => {
+      deleteTable(tableToDeleteId, restaurantId)
+        .then((response) => {
+          if (response.success) {
+            setIsDeleteModalOpen(false);
+            setTableToDeleteId(null);
+            refreshTables();
+            toast.success("Table deleted");
+          } else {
+            toast.error(response.error ?? "Failed to delete table");
+          }
+        })
+        .catch((error) => {
+          console.error("Failed to delete table:", error);
+          toast.error("Failed to delete table");
+        })
+        .finally(() => {
+          setIsPending(false);
+        });
+    });
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -360,61 +374,49 @@ const Floormap = ({
     }
   };
 
-  /////////////////////////////////////////////////////////////////////////////
-
   return (
     <div className="h-full">
       <DndContext onDragEnd={handleDragEnd}>
         <Droppable id="floor-map">
-          <div
-            className="relative bg-gray-50 rounded-lg overflow-hidden w-full max-h-full lg:max-h-[85%] min-w-0"
-            style={{ aspectRatio: "4/3" }}
-          >
-            {/* Add Table Button - Top Right */}
-            {isAdminView && (
-              <div className="absolute top-4 right-4 z-10">
-                <Button
-                  onClick={() => setIsAddModalOpen(true)}
-                  variant="outline"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Table
-                </Button>
-              </div>
-            )}
-
-            {/* Tables Grid - fills entire floor-map so tables can go edge to edge */}
-            <div className="absolute inset-0 min-h-[200px]">
+          <div className="h-full flex flex-col items-center justify-start lg:items-end rounded-l mb-6 overflow-hidden">
+            {/* 16:10 aspect ratio */}
+            <div
+              className="relative w-full xl:w-[66%] xl:mr-10"
+              style={{ aspectRatio: "16/10" }}
+            >
               <div
-                ref={mapContainerRef}
-                className="h-full w-full relative min-h-[200px]"
+                ref={gridRef}
+                className="absolute inset-0 rounded-lg overflow-hidden border-2 border-gray-300 bg-white"
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(16, minmax(0, 1fr))",
+                  gridTemplateRows: "repeat(10, minmax(0, 1fr))",
+                  backgroundImage: `
+                    linear-gradient(to right, rgba(0,0,0,0.08) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(0,0,0,0.08) 1px, transparent 1px)
+                  `,
+                  backgroundSize: "calc(100% / 16) calc(100% / 10)",
+                  backgroundColor: "white",
+                  ["--cell-size" as string]: "calc(100% / 16)",
+                }}
               >
-                {localTables.map((table) => {
-                  const pos = displayPositions[table.id] ?? { x: 0, y: 0 };
-                  const pixelX = pos.x * mapSize.width;
-                  const pixelY = pos.y * mapSize.height;
-                  const tableSize = getTableSize(mapSize.width, mapSize.height);
-                  return (
-                    <Draggable
-                      key={table.id}
-                      position={{ x: pixelX, y: pixelY }}
-                      id={`table-${table.id}`}
-                      disabled={!isAdminView}
-                    >
-                      <div
-                        onClick={() => handleTableClick(table.id)}
-                        style={{
-                          width: `${tableSize.width}px`,
-                          height: `${tableSize.height}px`,
-                          minWidth: 0,
-                          minHeight: 0,
-                          boxSizing: "border-box",
-                          overflow: "hidden",
-                          padding: `${Math.max(2, Math.min(12, Math.round(tableSize.width * 0.08)))}px`,
-                          borderRadius: `${Math.max(4, Math.round(tableSize.width * 0.06))}px`,
-                        }}
-                        className={`
-                    relative shadow-md flex items-center justify-center md:block text-center
+                {/* Content spans the full 16x10 grid */}
+                <div className="col-span-full row-span-full relative">
+                  {/* Tables area: fills grid so tables can use --cell-size */}
+                  <div className="absolute inset-0 overflow-hidden">
+                    {localTables.map((table) => (
+                      <Draggable
+                        key={table.id}
+                        position={getDisplayPosition(
+                          tablePositions[table.id] || { x: 0, y: 0 },
+                        )}
+                        id={`table-${table.id}`}
+                        disabled={!isAdminView}
+                      >
+                        <div
+                          onClick={() => handleTableClick(table.id)}
+                          className={`
+                    relative flex flex-col items-center justify-center text-center box-border rounded-md shadow-md
                     ${
                       table.isLocked
                         ? "cursor-not-allowed opacity-50"
@@ -449,76 +451,64 @@ const Floormap = ({
                             fontSize: `${Math.max(10, Math.min(14, Math.round(tableSize.width * 0.12)))}px`,
                           }}
                         >
-                          Capacity: {table.capacity}
-                        </p>
-                        <p
-                          className="hidden md:block mt-0.5"
-                          style={{
-                            fontSize: `${Math.max(10, Math.min(14, Math.round(tableSize.width * 0.12)))}px`,
-                          }}
-                        >
-                          {table.isReserved ? "Reserved" : "Available"}
-                        </p>
-                        {table.isLocked && (
-                          <Lock
-                            className="absolute top-[0.125rem] right-[0.125rem] md:top-2 md:right-2 text-red-500 shrink-0"
-                            style={{
-                              width: `${Math.max(10, Math.min(16, Math.round(tableSize.width * 0.12)))}px`,
-                              height: `${Math.max(10, Math.min(16, Math.round(tableSize.width * 0.12)))}px`,
-                            }}
-                          />
-                        )}
-                        {isAdminView && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="absolute -top-1 -right-1 md:-top-2 md:-right-2 text-red-600 hover:text-red-800 bg-white rounded-full min-w-0 h-auto"
-                            style={{
-                              padding: `${Math.max(2, Math.round(tableSize.width * 0.04))}px`,
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteTable(table.id);
-                            }}
-                          >
-                            <Trash
-                              className="shrink-0"
-                              style={{
-                                width: `${Math.max(10, Math.min(16, Math.round(tableSize.width * 0.12)))}px`,
-                                height: `${Math.max(10, Math.min(16, Math.round(tableSize.width * 0.12)))}px`,
-                              }}
-                            />
-                          </Button>
-                        )}
-                        {onToggleLock && (
-                          <div className="hidden md:block">
+                          <h3 className="font-bold text-sm md:text-lg text-black">
+                            <span className="hidden">Table</span> {table.number}
+                          </h3>
+                          <p className="hidden text-xs md:text-sm text-gray-600">
+                            Capacity: {table.capacity}
+                          </p>
+                          <p className="hidden text-xs md:text-sm mt-1">
+                            {table.isReserved ? "Reserved" : "Available"}
+                          </p>
+                          {table.isLocked && (
+                            <Lock className="absolute top-1 right-1 h-2 w-2 md:h-4 md:w-4 text-red-500" />
+                          )}
+                          {onToggleLock && (
                             <TableLocker
                               tableId={table.id}
                               isLocked={table.isLocked}
                               onToggleLock={onToggleLock}
                             />
-                          </div>
-                        )}
-                      </div>
-                    </Draggable>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Legend absolutely positioned in the bottom left of the white div */}
-            <div className="absolute bottom-4 left-4 flex items-center gap-4">
-              <div className="flex gap-4 text-sm text-gray-600">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-green-100 rounded"></div>
-                  <span>Available</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-yellow-100 rounded"></div>
-                  <span>Reserved</span>
+                          )}
+                        </div>
+                      </Draggable>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
+            {/* Legend underneath the grid - left side, white text */}
+            <div className="flex justify-start gap-4 text-sm text-white my-2 w-full self-start xl:w-[66%] xl:mr-10">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-green-100 rounded" />
+                <span>Available</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-yellow-100 rounded" />
+                <span>Reserved</span>
+              </div>
+            </div>
+            {/* Add Table and Delete Table buttons - bigger gap from legend */}
+            {isAdminView && (
+              <div className="mt-6 mb-2 w-full self-start xl:w-[66%] xl:mr-10 flex flex-col gap-2">
+                <Button
+                  onClick={() => setIsAddModalOpen(true)}
+                  variant="outline"
+                  className="w-full text-black border-white bg-white hover:bg-white/90"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Table
+                </Button>
+                <Button
+                  onClick={() => setIsDeleteModalOpen(true)}
+                  variant="outline"
+                  className="w-full text-black border-white bg-white hover:bg-white/90"
+                >
+                  <Trash className="h-4 w-4 mr-2 text-red-600" />
+                  Delete Table
+                </Button>
+              </div>
+            )}
           </div>
         </Droppable>
       </DndContext>
@@ -551,6 +541,65 @@ const Floormap = ({
             </Button>
             <Button onClick={handleAddTable} disabled={isPending}>
               {isPending ? "Adding..." : "Add Table"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Table Modal */}
+      <Dialog
+        open={isDeleteModalOpen}
+        onOpenChange={(open) => {
+          setIsDeleteModalOpen(open);
+          if (!open) setTableToDeleteId(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Table</DialogTitle>
+            <DialogDescription>
+              Choose which table to delete. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Table to delete</Label>
+              <Select
+                value={tableToDeleteId != null ? String(tableToDeleteId) : ""}
+                onValueChange={(v) => setTableToDeleteId(v ? parseInt(v, 10) : null)}
+              >
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder="Select a table" />
+                </SelectTrigger>
+                <SelectContent>
+                  {localTables.map((table) => (
+                    <SelectItem key={table.id} value={String(table.id)}>
+                      Table {table.number}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {localTables.length === 0 && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  No tables to delete.
+                </p>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteModalOpen(false)}
+              disabled={isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmDeleteTable}
+              disabled={isPending || tableToDeleteId == null}
+            >
+              {isPending ? "Deleting..." : "Delete Table"}
             </Button>
           </DialogFooter>
         </DialogContent>

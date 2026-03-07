@@ -20,10 +20,6 @@ export default function AdminLayout({
     }
   }, [session, status, router]);
 
-  if (status === "loading") {
-    return <div>Loading...</div>;
-  }
-
   if (!session || session.user?.userRole !== "ADMIN") {
     return null;
   }
