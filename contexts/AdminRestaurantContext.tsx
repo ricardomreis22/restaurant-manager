@@ -1,6 +1,13 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export type AdminTab =
   | "floormap"
@@ -8,6 +15,13 @@ export type AdminTab =
   | "menu-management"
   | "employees"
   | "activity";
+
+const VALID_TABS: AdminTab[] = [
+  "floormap",
+  "employees",
+  "activity",
+  "menu-management",
+];
 
 interface AdminRestaurantContextType {
   currentTab: AdminTab;
@@ -18,8 +32,28 @@ const AdminRestaurantContext = createContext<
   AdminRestaurantContextType | undefined
 >(undefined);
 
+function parseTabFromUrl(tab: string | null): AdminTab {
+  if (tab && VALID_TABS.includes(tab as AdminTab)) return tab as AdminTab;
+  return "floormap";
+}
+
 export function AdminRestaurantProvider({ children }: { children: ReactNode }) {
-  const [currentTab, setCurrentTab] = useState<AdminTab>("floormap");
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const tabFromUrl = parseTabFromUrl(searchParams.get("tab"));
+  const [currentTab, setCurrentTabState] = useState<AdminTab>(tabFromUrl);
+
+  useEffect(() => {
+    setCurrentTabState(tabFromUrl);
+  }, [tabFromUrl]);
+
+  const setCurrentTab = (tab: AdminTab) => {
+    setCurrentTabState(tab);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", tab);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
 
   return (
     <AdminRestaurantContext.Provider value={{ currentTab, setCurrentTab }}>
