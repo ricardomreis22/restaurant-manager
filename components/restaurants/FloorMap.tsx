@@ -366,8 +366,6 @@ const Floormap = ({
     }
   };
 
-  /////////////////////////////////////////////////////////////////////////////
-
   return (
     <div className="h-full">
       <DndContext onDragEnd={handleDragEnd}>
