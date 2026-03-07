@@ -44,27 +44,44 @@ export async function createTable(data: {
   }
 }
 
-export async function deleteTable(tableId: number) {
+export async function deleteTable(tableId: number, restaurantId: number) {
   try {
     const session = await auth();
     if (!session?.user) {
-      throw new Error("Unauthorized");
+      return { success: false, error: "Unauthorized" };
     }
 
     if (session.user.userRole !== "ADMIN") {
-      throw new Error("Unauthorized");
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const table = await prisma.table.findUnique({
+      where: { id: tableId },
+    });
+
+    if (!table) {
+      return { success: false, error: "Table not found" };
+    }
+
+    if (table.restaurantId !== restaurantId) {
+      return { success: false, error: "Table does not belong to this restaurant" };
+    }
+
+    if (table.isReserved) {
+      return { success: false, error: "Can't delete reserved tables" };
     }
 
     await prisma.table.delete({
-      where: {
-        id: tableId,
-      },
+      where: { id: tableId },
     });
 
     return { success: true };
   } catch (error) {
     console.error("[DELETE_TABLE_ERROR]", error);
-    throw error;
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to delete table",
+    };
   }
 }
 

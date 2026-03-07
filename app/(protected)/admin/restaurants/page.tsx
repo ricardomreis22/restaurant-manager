@@ -42,11 +42,11 @@ export default function AdminRestaurantsPage() {
 
   const handleDeleteRestaurant = async (
     restaurantId: number,
-    restaurantName: string
+    restaurantName: string,
   ) => {
     if (
       !window.confirm(
-        `Are you sure you want to delete "${restaurantName}"? This action cannot be undone.`
+        `Are you sure you want to delete "${restaurantName}"? This action cannot be undone.`,
       )
     ) {
       return;
