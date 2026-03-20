@@ -307,6 +307,7 @@ const Floormap = ({
       }
       initialPositions[table.id] = { x, y };
     });
+    setTablePositions(initialPositions);
   }, [localTables]);
 
   // Display positions: no-overlap layout for current map size. Stored positions stay unchanged so they restore when screen grows.

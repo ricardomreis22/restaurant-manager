@@ -1,6 +1,7 @@
 "use client";
 
 import { LogoutButton } from "@/components/auth/logout-button";
+import { AdminRestaurantProvider } from "@/contexts/AdminRestaurantContext";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { getRestaurant } from "@/actions/restaurants";
@@ -119,14 +120,16 @@ export default function ProtectedLayout({
   const match = pathname.match(/\/restaurants\/(\d+)\/tables\/(\d+)/);
 
   return (
-    <div className="h-screen flex flex-col">
-      {!match && (
-        <nav className="flex p-4 justify-between items-center bg-[rgba(36,49,52,255)] text-white">
-          {renderNavContent()}
-          <LogoutButton />
-        </nav>
-      )}
-      <div className="flex-1 overflow-hidden">{children}</div>
-    </div>
+    <AdminRestaurantProvider>
+      <div className="h-screen flex flex-col">
+        {!match && (
+          <nav className="flex p-4 justify-between items-center bg-[rgba(36,49,52,255)] text-white">
+            {renderNavContent()}
+            <LogoutButton />
+          </nav>
+        )}
+        <div className="flex-1 overflow-hidden">{children}</div>
+      </div>
+    </AdminRestaurantProvider>
   );
 }
