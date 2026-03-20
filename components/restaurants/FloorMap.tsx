@@ -6,6 +6,7 @@ import {
   useEffect,
   useCallback,
   useRef,
+  useMemo,
 } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -194,6 +195,9 @@ const Floormap = ({
     Record<number, { x: number; y: number }>
   >({});
   const gridRef = useRef<HTMLDivElement>(null);
+  const displayPositionsRef = useRef<Record<number, { x: number; y: number }>>(
+    {},
+  );
   const [cellSizePx, setCellSizePx] = useState<number | null>(null);
 
   const GRID_COLS = 16;
@@ -306,8 +310,8 @@ const Floormap = ({
   }, [localTables]);
 
   // Display positions: no-overlap layout for current map size. Stored positions stay unchanged so they restore when screen grows.
-  const w = mapSize.width > 0 ? mapSize.width : REFERENCE_MAP_WIDTH;
-  const h = mapSize.height > 0 ? mapSize.height : REFERENCE_MAP_HEIGHT;
+  const w = gridRef.current?.offsetWidth ?? REFERENCE_MAP_WIDTH;
+  const h = gridRef.current?.offsetHeight ?? REFERENCE_MAP_HEIGHT;
   const displayPositions = useMemo(
     () => resolveAllOverlaps(tablePositions, w, h),
     [tablePositions, w, h],
