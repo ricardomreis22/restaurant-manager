@@ -28,11 +28,11 @@ export default function Home() {
   const displayIndex = currentSlide;
 
   return (
-    <div className="flex h-full flex-col lg:flex-row bg-[rgb(36,49,52)] text-white">
+    <div className="flex h-full flex-col bg-primary text-primary-foreground lg:flex-row">
       {/* Image slideshow - left side, large screens only */}
       <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-4">
         <div className="w-full max-w-2xl overflow-visible rounded-lg p-6">
-          <h2 className=" font-semibold text-2xl text-white text-center ">
+          <h2 className="text-center text-2xl font-semibold text-primary-foreground">
             {SLIDES[displayIndex].title}
           </h2>
           <div className="relative flex items-center justify-center min-h-[360px]pb-4">

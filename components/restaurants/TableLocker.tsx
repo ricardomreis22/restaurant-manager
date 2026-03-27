@@ -32,8 +32,8 @@ export const TableLocker = ({
       size="icon"
       onClick={handleToggle}
       disabled={loading}
-      className={`absolute top-2 right-2 ${
-        isLocked ? "text-red-500" : "text-green-500"
+      className={`absolute right-2 top-2 text-red-600 hover:bg-red-50 hover:text-red-700 ${
+        isLocked ? "" : "opacity-90"
       }`}
     >
       {isLocked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}

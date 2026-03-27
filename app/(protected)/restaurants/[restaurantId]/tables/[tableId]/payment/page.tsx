@@ -150,7 +150,7 @@ export default function PaymentPage() {
   return (
     <div className="flex h-full flex-col">
       {/* Table Header */}
-      <div className="flex justify-between items-center p-4 border-b-2 border-white bg-[rgba(36,49,52,1)]">
+      <div className="flex items-center justify-between border-b-2 border-white bg-primary p-4">
         <Button
           variant="ghost"
           size="sm"
@@ -322,7 +322,7 @@ export default function PaymentPage() {
             className="object-cover"
           />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 mx-12 max-w-2xl">
-            <p className="text-center text-4xl font-bold px-12 py-10 bg-white/95 rounded-lg shadow-xl text-[rgb(36,49,52)] border-2 border-[rgb(36,49,52)] leading-relaxed">
+            <p className="rounded-lg border-2 border-primary bg-white/95 px-12 py-10 text-center text-4xl font-bold leading-relaxed text-primary shadow-xl">
               &ldquo;Great food and great company are the two life simplest and
               yet most rewarding pleasures.&rdquo;
             </p>

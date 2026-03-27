@@ -20,7 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.className} min-h-screen bg-[rgba(36,49,52,255)] text-white`}
+        className={`${inter.className} min-h-screen bg-primary text-primary-foreground`}
       >
         <SessionProvider>{children}</SessionProvider>
       </body>

@@ -123,7 +123,7 @@ export default function ProtectedLayout({
     <AdminRestaurantProvider>
       <div className="h-screen flex flex-col">
         {!match && (
-          <nav className="flex p-4 justify-between items-center bg-[rgba(36,49,52,255)] text-white">
+          <nav className="flex items-center justify-between bg-primary p-4 text-primary-foreground">
             {renderNavContent()}
             <LogoutButton />
           </nav>
