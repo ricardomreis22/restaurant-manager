@@ -279,7 +279,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
         <div
           className={`${
             isMenuOpen ? "block" : "hidden"
-          } md:block w-full md:w-1/2 lg:w-2/3 xl:w-3/4 py-12 px-8 overflow-y-auto bg-[rgba(36,49,52,255)] bg-opacity-80  md:bg-white md:bg-opacity-100 md:bg-transparent
+          } md:block w-full md:w-1/2 lg:w-2/3 xl:w-3/4 bg-primary/80 px-8 py-12 overflow-y-auto md:bg-white md:bg-opacity-100 md:bg-transparent
           absolute md:relative top-0 left-0 right-0 bottom-0 z-10 md:z-auto h-screen md:h-full`}
         >
           {/* Category Tabs - Hidden on small screens */}
@@ -442,7 +442,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
         {/* Orders (Right Side) - Full width on small screens */}
         <div className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 md:border-l overflow-hidden flex flex-col text-white">
           {/* Hamburger Menu Button - Only visible on small screens */}
-          <div className="flex justify-between items-center p-4 md:hidden z-50 border-b-2 border-white bg-[rgba(36,49,52,1)]">
+          <div className="z-50 flex items-center justify-between border-b-2 border-white bg-primary p-4 md:hidden">
             <Button
               variant="ghost"
               size="sm"

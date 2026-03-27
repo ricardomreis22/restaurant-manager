@@ -20,7 +20,7 @@ export const CardWrapper = ({
     <Card className="w-full min-w-[280px] flex flex-col justify-center h-full max-w-sm sm:max-w-md lg:max-w-lg">
       <CardHeader className=" lg:pb-12">
         <div className="w-full flex flex-col items-center justify-center mb-5 lg:mb-8">
-          <p className="font-franklin-gothic-medium font-bold text-3xl lg:text-4xl text-[rgba(36,49,52,255)]">
+          <p className="font-franklin-gothic-medium font-bold text-3xl lg:text-4xl text-primary">
             {headerLabel}
           </p>
         </div>
