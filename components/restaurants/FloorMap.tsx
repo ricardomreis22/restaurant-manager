@@ -458,12 +458,6 @@ const Floormap = ({
     });
   };
 
-  const handleDeleteTable = (tableId: number) => {
-    if (window.confirm("Are you sure you want to delete this table?")) {
-      executeDeleteTable(tableId);
-    }
-  };
-
   const handleDeleteTableFromModal = () => {
     const id = parseInt(deleteTableIdInput, 10);
     if (Number.isNaN(id) || id < 1) {
