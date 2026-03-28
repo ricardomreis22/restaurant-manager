@@ -60,7 +60,7 @@ export const RegisterForm = () => {
               name="email"
               render={({ field }) => (
                 <FormItem className="lg:space-y-3">
-                  <FormLabel className="text-[rgba(36,49,52,255)] font-franklin-gothic-medium lg:text-base">
+                  <FormLabel className="text-primary font-franklin-gothic-medium lg:text-base">
                     Email
                   </FormLabel>
                   <FormControl>
@@ -69,7 +69,7 @@ export const RegisterForm = () => {
                       placeholder="example@example.com"
                       type="email"
                       disabled={isPending}
-                      className="text-xs lg:text-base bg-[rgba(36,49,52,255)] text-white"
+                      className="bg-primary text-xs text-primary-foreground lg:text-base"
                     />
                   </FormControl>
                   <FormMessage />
@@ -81,7 +81,7 @@ export const RegisterForm = () => {
               name="password"
               render={({ field }) => (
                 <FormItem className="lg:space-y-3">
-                  <FormLabel className="text-[rgba(36,49,52,255)] font-franklin-gothic-medium lg:text-base">
+                  <FormLabel className="text-primary font-franklin-gothic-medium lg:text-base">
                     Password
                   </FormLabel>
                   <FormControl>
@@ -90,7 +90,7 @@ export const RegisterForm = () => {
                       placeholder="**********"
                       type="password"
                       disabled={isPending}
-                      className="text-xs lg:text-base bg-[rgba(36,49,52,255)] text-white"
+                      className="bg-primary text-xs text-primary-foreground lg:text-base"
                     />
                   </FormControl>
                   <FormMessage />
@@ -102,7 +102,7 @@ export const RegisterForm = () => {
               name="name"
               render={({ field }) => (
                 <FormItem className="lg:space-y-3">
-                  <FormLabel className="text-[rgba(36,49,52,255)] font-franklin-gothic-medium lg:text-base">
+                  <FormLabel className="text-primary font-franklin-gothic-medium lg:text-base">
                     Name
                   </FormLabel>
                   <FormControl>
@@ -111,7 +111,7 @@ export const RegisterForm = () => {
                       placeholder="Ricardo Reis"
                       type="text"
                       disabled={isPending}
-                      className="text-xs lg:text-base bg-[rgba(36,49,52,255)] text-white"
+                      className="bg-primary text-xs text-primary-foreground lg:text-base"
                     />
                   </FormControl>
                   <FormMessage />

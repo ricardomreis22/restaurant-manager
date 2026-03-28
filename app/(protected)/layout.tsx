@@ -119,14 +119,16 @@ export default function ProtectedLayout({
   const match = pathname.match(/\/restaurants\/(\d+)\/tables\/(\d+)/);
 
   return (
-    <div className="h-screen flex flex-col">
-      {!match && (
-        <nav className="flex items-center justify-between bg-primary p-4 text-primary-foreground">
-          {renderNavContent()}
-          <LogoutButton />
-        </nav>
-      )}
-      <div className="flex-1 overflow-hidden">{children}</div>
-    </div>
+    <AdminRestaurantProvider>
+      <div className="h-screen flex flex-col">
+        {!match && (
+          <nav className="flex items-center justify-between bg-primary p-4 text-primary-foreground">
+            {renderNavContent()}
+            <LogoutButton />
+          </nav>
+        )}
+        <div className="flex-1 overflow-hidden">{children}</div>
+      </div>
+    </AdminRestaurantProvider>
   );
 }

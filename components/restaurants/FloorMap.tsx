@@ -397,6 +397,7 @@ const Floormap = ({
         <DndContext onDragEnd={handleDragEnd}>
           <Droppable id="floor-map">
             <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-l lg:justify-end">
+              {/* 16:10 aspect ratio on all screens; on lg fixed 640px width, right-aligned */}
               <div className="relative w-full xl:w-[66%] xl:mr-10">
                 <div className="relative w-full aspect-[16/10] min-h-0">
                   <div
@@ -412,10 +413,13 @@ const Floormap = ({
                   `,
                       backgroundSize: "calc(100% / 16) calc(100% / 10)",
                       backgroundColor: "white",
+                      // Each cell is square; one cell = 100%/16 = 100%/10
                       ["--cell-size" as string]: "calc(100% / 16)",
                     }}
                   >
+                    {/* Content spans the full 16x10 grid */}
                     <div className="col-span-full row-span-full relative">
+                      {/* Tables area: fills grid so tables can use --cell-size */}
                       <div className="absolute inset-0 overflow-hidden">
                         {localTables.map((table) => (
                           <Draggable
@@ -476,6 +480,7 @@ const Floormap = ({
           </Droppable>
         </DndContext>
       </div>
+      {/* Add / Delete table (admin) */}
       {isAdminView && (
         <div className="mx-auto flex w-full max-w-4xl flex-col gap-2 px-4 sm:px-0">
           <Button
