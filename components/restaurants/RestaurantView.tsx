@@ -149,12 +149,14 @@ export default function RestaurantView({
   };
 
   if (!restaurant) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex h-full items-center justify-center">Loading...</div>
+    );
   }
   return (
-    <div className="h-screen flex flex-col">
-      {/* Main Content */}
-      <div className="flex-1 overflow-hidden">
+    <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden">
+      {/* flex-1 + h-full: fill space below nav only (never 100vh) */}
+      <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden">
         {selectedTable ? (
           <TableView
             table={selectedTable}
