@@ -114,7 +114,7 @@ export async function checkTableLock(tableId: number) {
 export async function updateTablePosition(
   tableId: number,
   x: number,
-  y: number
+  y: number,
 ) {
   try {
     const session = await auth();
