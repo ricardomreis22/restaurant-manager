@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { getRestaurant } from "@/actions/restaurants";
 import Image from "next/image";
+import { AdminRestaurantProvider } from "@/contexts/AdminRestaurantContext";
 
 export default function ProtectedLayout({
   children,
