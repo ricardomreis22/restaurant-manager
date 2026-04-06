@@ -1,5 +1,6 @@
 "use client";
 
+import { AdminRestaurantDesktopTabsGate } from "@/components/auth/admin-restaurant-nav";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -38,7 +39,6 @@ export default function ProtectedLayout({
       setCurrentPage("restaurant");
     } else {
       setCurrentPage("general");
-      
     }
     setIsLoading(false);
   }, [pathname]);
@@ -122,9 +122,14 @@ export default function ProtectedLayout({
     <AdminRestaurantProvider>
       <div className="h-screen flex flex-col">
         {!match && (
-          <nav className="flex items-center justify-between bg-primary p-4 text-primary-foreground">
-            {renderNavContent()}
-            <LogoutButton />
+          <nav className="flex items-center gap-4 bg-primary p-4 text-primary-foreground">
+            <div className="min-w-0 shrink-0">{renderNavContent()}</div>
+            <div className="flex min-w-0 flex-1 justify-center">
+              <AdminRestaurantDesktopTabsGate />
+            </div>
+            <div className="shrink-0">
+              <LogoutButton />
+            </div>
           </nav>
         )}
         <div className="flex-1 overflow-hidden">{children}</div>
