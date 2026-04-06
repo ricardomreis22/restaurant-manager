@@ -1,7 +1,7 @@
 "use client";
 
 import { AdminRestaurantDesktopTabsGate } from "@/components/auth/admin-restaurant-nav";
-import { LogoutButton } from "@/components/auth/logout-button";
+import { ProtectedNavRightActions } from "@/components/auth/protected-nav-right-actions";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { getRestaurant } from "@/actions/restaurants";
@@ -76,7 +76,7 @@ export default function ProtectedLayout({
     switch (currentPage) {
       case "admin":
         return (
-          <div className="flex items-center gap-4">
+          <div className="flex items-center">
             <Image
               src="/favicon.ico"
               alt="logo"
@@ -84,7 +84,6 @@ export default function ProtectedLayout({
               height={48}
               className="w-15 h-12"
             />
-            <span className="text-lg font-semibold">Admin Panel</span>
           </div>
         );
       case "restaurant":
@@ -129,11 +128,13 @@ export default function ProtectedLayout({
               <AdminRestaurantDesktopTabsGate />
             </div>
             <div className="shrink-0">
-              <LogoutButton />
+              <ProtectedNavRightActions />
             </div>
           </nav>
         )}
-        <div className="flex-1 overflow-hidden">{children}</div>
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          {children}
+        </div>
       </div>
     </AdminRestaurantProvider>
   );

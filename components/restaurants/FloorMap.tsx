@@ -88,6 +88,10 @@ const Floormap = ({
     Record<number, { x: number; y: number }>
   >({});
   const gridRef = useRef<HTMLDivElement>(null);
+  const mapFitRef = useRef<HTMLDivElement>(null);
+  const [mapBoxPx, setMapBoxPx] = useState<{ w: number; h: number } | null>(
+    null,
+  );
   const [cellMetrics, setCellMetrics] = useState<{
     width: number;
     height: number;
@@ -97,6 +101,26 @@ const Floormap = ({
   const GRID_ROWS = 10;
   // Used to convert legacy pixel positions from DB into grid coords
   const REF_CELL_PX = 40;
+
+  // Size the 16×10 map so each cell is square: cell = min(aw/16, ah/10).
+  useEffect(() => {
+    const el = mapFitRef.current;
+    if (!el) return;
+    const update = () => {
+      const aw = el.clientWidth;
+      const ah = el.clientHeight;
+      if (aw <= 0 || ah <= 0) {
+        setMapBoxPx(null);
+        return;
+      }
+      const cell = Math.min(aw / GRID_COLS, ah / GRID_ROWS);
+      setMapBoxPx({ w: cell * GRID_COLS, h: cell * GRID_ROWS });
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   // Measure grid to get cell size in pixels for snapping
   useEffect(() => {
@@ -118,7 +142,11 @@ const Floormap = ({
 
   const gridToPixel = useCallback(
     (col: number, row: number) => {
-      if (cellMetrics == null || cellMetrics.width <= 0 || cellMetrics.height <= 0)
+      if (
+        cellMetrics == null ||
+        cellMetrics.width <= 0 ||
+        cellMetrics.height <= 0
+      )
         return { x: 0, y: 0 };
       return {
         x: col * cellMetrics.width,
@@ -399,123 +427,165 @@ const Floormap = ({
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col items-stretch overflow-hidden">
       {/* flex-1 + min-h-0: shrink to viewport; droppable fills remaining height */}
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-0 pb-2 pt-4 md:px-6 md:pb-3 md:pt-6">
-        <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden">
-          <DndContext onDragEnd={handleDragEnd}>
-            <Droppable id="floor-map">
-              <div className="flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-l">
+      <div className="flex min-h-0 h-full min-w-0 flex-1 flex-col overflow-hidden px-0 pb-2 pt-4 md:px-6 md:pb-3 md:pt-6">
+        <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden 2xl:flex-row 2xl:items-end 2xl:gap-4 2xl:min-h-0">
+          <div className="flex min-h-0 h-fullw-full min-w-0 flex-1 flex-col overflow-hidden rounded-lg 2xl:h-auto 2xl:min-h-0 2xl:min-w-0 2xl:flex-1 2xl:self-start">
+            <DndContext onDragEnd={handleDragEnd}>
+              <Droppable id="floor-map">
                 <div
-                  className={`flex min-h-0 w-full flex-1 flex-col overflow-y-auto overflow-x-hidden ${
-                    isAdminView
-                      ? "items-center justify-start"
-                      : "items-center justify-center"
+                  className={`flex min-h-0 h-full w-full flex-col overflow-hidden rounded-l ${
+                    isAdminView ? "2xl:h-auto" : ""
                   }`}
                 >
-                  <div className="flex w-full flex-col items-center gap-3 px-4 pb-2 pt-10 md:px-0 md:pt-12">
-                    {/* 16:10 map: full width below md (phones + small tablets); md+ ~2/3 viewport, centered */}
-                    <div className="relative mx-auto aspect-[16/10] h-auto max-h-full w-full min-w-0 md:w-[min(100%,66.666vw)]">
-                      <div
-                        ref={gridRef}
-                        className="absolute inset-0 z-0 rounded-lg overflow-hidden border-2 border-gray-300 bg-white"
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: "repeat(16, minmax(0, 1fr))",
-                          gridTemplateRows: "repeat(10, minmax(0, 1fr))",
-                          backgroundImage: `
+                  <div
+                    className={`flex min-h-0 w-full flex-1 flex-col overflow-x-hidden ${
+                      isAdminView
+                        ? "items-center justify-start overflow-y-auto 2xl:h-auto 2xl:flex-none"
+                        : "items-center justify-center overflow-y-auto"
+                    }`}
+                  >
+                    <div
+                      className={`flex w-full flex-col items-center gap-3 px-4 pb-2 pt-10 md:px-0 md:pt-12 ${
+                        isAdminView
+                          ? "min-h-0 flex-1 md:px-0 lg:px-2 lg:pb-2 lg:pt-4 2xl:flex-none"
+                          : ""
+                      }`}
+                    >
+                      <div className="mx-auto flex min-h-0 w-full max-w-full flex-1 flex-col items-center md:max-w-[min(100%,66.666vw)] 2xl:flex-none">
+                        <div
+                          ref={mapFitRef}
+                          className={`flex min-h-0 w-full flex-1 flex-col ${
+                            isAdminView
+                              ? "items-center justify-start 2xl:flex-none"
+                              : "items-center justify-center"
+                          }`}
+                        >
+                          <div
+                            className={`relative mx-auto shrink-0 ${
+                              mapBoxPx == null
+                                ? "aspect-[16/10] min-h-0 w-full max-h-full"
+                                : ""
+                            }`}
+                            style={
+                              mapBoxPx != null
+                                ? {
+                                    width: mapBoxPx.w,
+                                    height: mapBoxPx.h,
+                                  }
+                                : undefined
+                            }
+                          >
+                            <div
+                              ref={gridRef}
+                              className="absolute inset-0 z-0 rounded-lg overflow-hidden border-2 border-gray-300 bg-white"
+                              style={{
+                                display: "grid",
+                                gridTemplateColumns:
+                                  "repeat(16, minmax(0, 1fr))",
+                                gridTemplateRows: "repeat(10, minmax(0, 1fr))",
+                                backgroundImage: `
                     linear-gradient(to right, rgba(0,0,0,0.08) 1px, transparent 1px),
                     linear-gradient(to bottom, rgba(0,0,0,0.08) 1px, transparent 1px)
                   `,
-                          backgroundSize: "calc(100% / 16) calc(100% / 10)",
-                          backgroundColor: "white",
-                          // Each cell is square; one cell = 100%/16 = 100%/10
-                          ["--cell-size" as string]: "calc(100% / 16)",
-                        }}
-                      >
-                        {/* Content spans the full 16x10 grid */}
-                        <div className="col-span-full row-span-full relative">
-                          {/* Tables area: fills grid so tables can use --cell-size */}
-                          <div className="absolute inset-0 overflow-hidden">
-                            {localTables.map((table) => (
-                              <Draggable
-                                key={table.id}
-                                position={getDisplayPosition(
-                                  tablePositions[table.id] || { x: 0, y: 0 },
-                                )}
-                                id={`table-${table.id}`}
-                                disabled={!isAdminView}
-                              >
-                                <div
-                                  onClick={() => handleTableClick(table.id)}
-                                  className={`
+                                backgroundSize:
+                                  "calc(100% / 16) calc(100% / 10)",
+                                backgroundColor: "white",
+                                ["--cell-size" as string]: "calc(100% / 16)",
+                              }}
+                            >
+                              {/* Content spans the full 16x10 grid */}
+                              <div className="col-span-full row-span-full relative">
+                                {/* Tables area: fills grid so tables can use --cell-size */}
+                                <div className="absolute inset-0 overflow-hidden">
+                                  {localTables.map((table) => (
+                                    <Draggable
+                                      key={table.id}
+                                      position={getDisplayPosition(
+                                        tablePositions[table.id] || {
+                                          x: 0,
+                                          y: 0,
+                                        },
+                                      )}
+                                      id={`table-${table.id}`}
+                                      disabled={!isAdminView}
+                                    >
+                                      <div
+                                        onClick={() =>
+                                          handleTableClick(table.id)
+                                        }
+                                        className={`
                     relative flex items-center justify-center box-border border-2 border-gray-300 rounded-md
                     ${table.isLocked ? "cursor-not-allowed" : "cursor-pointer"}
                     ${table.isReserved ? "bg-yellow-100" : "bg-green-100"}
                     ${selectedTable === table.id ? "ring-2 ring-blue-500" : ""}
                     hover:shadow-lg transition-all
                   `}
-                                  style={{
-                                    width:
-                                      tableSizePx != null
-                                        ? `${tableSizePx}px`
-                                        : "2.5rem",
-                                    height:
-                                      tableSizePx != null
-                                        ? `${tableSizePx}px`
-                                        : "2.5rem",
-                                  }}
-                                >
-                                  <h3 className="text-center text-sm font-bold leading-none text-primary md:text-lg">
-                                    {table.number}
-                                  </h3>
+                                        style={{
+                                          width:
+                                            tableSizePx != null
+                                              ? `${tableSizePx}px`
+                                              : "2.5rem",
+                                          height:
+                                            tableSizePx != null
+                                              ? `${tableSizePx}px`
+                                              : "2.5rem",
+                                        }}
+                                      >
+                                        <h3 className="text-center text-sm font-bold leading-none text-primary md:text-lg">
+                                          {table.number}
+                                        </h3>
 
-                                  <p className="hidden text-xs md:text-sm mt-1">
-                                    {table.isReserved
-                                      ? "Reserved"
-                                      : "Available"}
-                                  </p>
-                                  {table.isLocked && (
-                                    <Lock className="absolute right-0 top-0 h-3 w-3 text-red-600 md:h-4 md:w-4" />
-                                  )}
+                                        <p className="hidden text-xs md:text-sm mt-1">
+                                          {table.isReserved
+                                            ? "Reserved"
+                                            : "Available"}
+                                        </p>
+                                        {table.isLocked && (
+                                          <Lock className="absolute right-0 top-0 h-3 w-3 text-red-600 md:h-4 md:w-4" />
+                                        )}
 
-                                  {onToggleLock && (
-                                    <TableLocker
-                                      tableId={table.id}
-                                      isLocked={table.isLocked}
-                                      onToggleLock={onToggleLock}
-                                    />
-                                  )}
+                                        {onToggleLock && (
+                                          <TableLocker
+                                            tableId={table.id}
+                                            isLocked={table.isLocked}
+                                            onToggleLock={onToggleLock}
+                                          />
+                                        )}
+                                      </div>
+                                    </Draggable>
+                                  ))}
                                 </div>
-                              </Draggable>
-                            ))}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                    {isAdminView && (
-                      <div className="flex w-full min-w-0 shrink-0 flex-col gap-2 border-t border-border/50 pt-10 md:w-[min(100%,66.666vw)]">
-                        <Button
-                          onClick={() => setIsAddModalOpen(true)}
-                          variant="outline"
-                          className="w-full"
-                        >
-                          <Plus className="mr-2 h-4 w-4" />
-                          Add Table
-                        </Button>
-                        <Button
-                          onClick={() => setIsDeleteModalOpen(true)}
-                          variant="outline"
-                          className="w-full border-destructive/50 text-destructive hover:bg-destructive/10"
-                        >
-                          <Trash className="mr-2 h-4 w-4" />
-                          Delete Table
-                        </Button>
-                      </div>
-                    )}
                   </div>
                 </div>
-              </div>
-            </Droppable>
-          </DndContext>
+              </Droppable>
+            </DndContext>
+          </div>
+          {isAdminView && (
+            <div className="flex w-full min-w-0 shrink-0 flex-col gap-2 border-t border-border/50 px-4 pt-10 md:mx-auto md:w-[min(100%,66.666vw)] md:px-0 md:pb-6 2xl:mx-0 2xl:w-auto 2xl:min-w-[11rem] 2xl:shrink-0 2xl:border-t-0 2xl:px-3 2xl:pt-0 2xl:pb-2">
+              <Button
+                onClick={() => setIsAddModalOpen(true)}
+                variant="outline"
+                className="w-full whitespace-nowrap"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add Table
+              </Button>
+              <Button
+                onClick={() => setIsDeleteModalOpen(true)}
+                variant="outline"
+                className="w-full whitespace-nowrap border-destructive/50 text-destructive hover:bg-destructive/10"
+              >
+                <Trash className="mr-2 h-4 w-4" />
+                Delete Table
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
