@@ -88,7 +88,10 @@ const Floormap = ({
     Record<number, { x: number; y: number }>
   >({});
   const gridRef = useRef<HTMLDivElement>(null);
-  const [cellSizePx, setCellSizePx] = useState<number | null>(null);
+  const [cellMetrics, setCellMetrics] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
 
   const GRID_COLS = 16;
   const GRID_ROWS = 10;
@@ -100,9 +103,12 @@ const Floormap = ({
     const el = gridRef.current;
     if (!el) return;
     const update = () => {
-      const w = el.offsetWidth;
-      const h = el.offsetHeight;
-      if (w && h) setCellSizePx(Math.min(w / GRID_COLS, h / GRID_ROWS));
+      // Use clientWidth/Height (content box inside border), not offset*, so cell
+      // math matches absolutely positioned tables and the grid background lines.
+      const w = el.clientWidth;
+      const h = el.clientHeight;
+      if (w && h)
+        setCellMetrics({ width: w / GRID_COLS, height: h / GRID_ROWS });
     };
     update();
     const ro = new ResizeObserver(update);
@@ -110,52 +116,38 @@ const Floormap = ({
     return () => ro.disconnect();
   }, []);
 
-  const pixelToGrid = useCallback(
-    (x: number, y: number) => {
-      if (cellSizePx == null || cellSizePx <= 0) return { col: 0, row: 0 };
-      const col = Math.round(x / cellSizePx);
-      const row = Math.round(y / cellSizePx);
-      return {
-        col: Math.max(0, Math.min(GRID_COLS - 1, col)),
-        row: Math.max(0, Math.min(GRID_ROWS - 1, row)),
-      };
-    },
-    [cellSizePx],
-  );
-
   const gridToPixel = useCallback(
     (col: number, row: number) => {
-      if (cellSizePx == null || cellSizePx <= 0) return { x: 0, y: 0 };
+      if (cellMetrics == null || cellMetrics.width <= 0 || cellMetrics.height <= 0)
+        return { x: 0, y: 0 };
       return {
-        x: col * cellSizePx,
-        y: row * cellSizePx,
+        x: col * cellMetrics.width,
+        y: row * cellMetrics.height,
       };
     },
-    [cellSizePx],
+    [cellMetrics],
   );
 
-  const snapToGrid = useCallback(
-    (x: number, y: number) => {
-      const { col, row } = pixelToGrid(x, y);
-      return gridToPixel(col, row);
-    },
-    [pixelToGrid, gridToPixel],
-  );
-
-  const TABLE_GAP = 2;
-
-  // pos.x = col, pos.y = row (grid coords). Returns pixel position offset by half the gap so the table is centered in the cell.
+  // pos.x = col, pos.y = row. Square table is centered in the cell (matches CSS grid + background lines).
   const getDisplayPosition = useCallback(
     (pos: { x: number; y: number }) => {
-      if (cellSizePx == null || cellSizePx <= 0)
-        return {
-          x: pos.x * REF_CELL_PX + TABLE_GAP / 2,
-          y: pos.y * REF_CELL_PX + TABLE_GAP / 2,
-        };
+      if (
+        cellMetrics == null ||
+        cellMetrics.width <= 0 ||
+        cellMetrics.height <= 0
+      ) {
+        const s = REF_CELL_PX;
+        return { x: pos.x * s, y: pos.y * s };
+      }
+      const { width: cw, height: ch } = cellMetrics;
+      const tableSize = Math.min(cw, ch);
       const px = gridToPixel(pos.x, pos.y);
-      return { x: px.x + TABLE_GAP / 2, y: px.y + TABLE_GAP / 2 };
+      return {
+        x: px.x + (cw - tableSize) / 2,
+        y: px.y + (ch - tableSize) / 2,
+      };
     },
-    [cellSizePx, gridToPixel],
+    [cellMetrics, gridToPixel],
   );
 
   const refreshTables = useCallback(async () => {
@@ -355,28 +347,36 @@ const Floormap = ({
     if (active && String(active.id).startsWith("table-") && isAdminView) {
       const tableId = parseInt(String(active.id).replace("table-", ""));
       const current = tablePositions[tableId] || { x: 0, y: 0 };
-      // current is (col, row); get pixel position, add delta, snap to cell
-      const currentPx =
-        cellSizePx != null
-          ? gridToPixel(current.x, current.y)
-          : { x: current.x * REF_CELL_PX, y: current.y * REF_CELL_PX };
-      const newPx = { x: currentPx.x + delta.x, y: currentPx.y + delta.y };
-      const snappedPx =
-        cellSizePx != null ? snapToGrid(newPx.x, newPx.y) : newPx;
-      const { col, row } =
-        cellSizePx != null
-          ? pixelToGrid(snappedPx.x, snappedPx.y)
-          : {
-              col: Math.max(
-                0,
-                Math.min(GRID_COLS - 1, Math.round(newPx.x / REF_CELL_PX)),
-              ),
-              row: Math.max(
-                0,
-                Math.min(GRID_ROWS - 1, Math.round(newPx.y / REF_CELL_PX)),
-              ),
-            };
-      const gridPos = { x: col, y: row };
+
+      let gridPos: { x: number; y: number };
+
+      if (cellMetrics != null) {
+        const { width: cw, height: ch } = cellMetrics;
+        const ts = Math.min(cw, ch);
+        const start = getDisplayPosition(current);
+        const newTopLeft = { x: start.x + delta.x, y: start.y + delta.y };
+        const cx = newTopLeft.x + ts / 2;
+        const cy = newTopLeft.y + ts / 2;
+        const col = Math.max(0, Math.min(GRID_COLS - 1, Math.floor(cx / cw)));
+        const row = Math.max(0, Math.min(GRID_ROWS - 1, Math.floor(cy / ch)));
+        gridPos = { x: col, y: row };
+      } else {
+        const currentPx = {
+          x: current.x * REF_CELL_PX,
+          y: current.y * REF_CELL_PX,
+        };
+        const newPx = { x: currentPx.x + delta.x, y: currentPx.y + delta.y };
+        gridPos = {
+          x: Math.max(
+            0,
+            Math.min(GRID_COLS - 1, Math.round(newPx.x / REF_CELL_PX)),
+          ),
+          y: Math.max(
+            0,
+            Math.min(GRID_ROWS - 1, Math.round(newPx.y / REF_CELL_PX)),
+          ),
+        };
+      }
 
       setTablePositions((prev) => ({ ...prev, [tableId]: gridPos }));
 
@@ -390,6 +390,11 @@ const Floormap = ({
   };
 
   /////////////////////////////////////////////////////////////////////////////
+
+  const tableSizePx =
+    cellMetrics != null
+      ? Math.min(cellMetrics.width, cellMetrics.height)
+      : null;
 
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col items-stretch overflow-hidden">
@@ -442,7 +447,7 @@ const Floormap = ({
                                 <div
                                   onClick={() => handleTableClick(table.id)}
                                   className={`
-                    relative flex items-center justify-center box-border rounded-md shadow-md
+                    relative flex items-center justify-center box-border border-2 border-gray-300 rounded-md
                     ${table.isLocked ? "cursor-not-allowed" : "cursor-pointer"}
                     ${table.isReserved ? "bg-yellow-100" : "bg-green-100"}
                     ${selectedTable === table.id ? "ring-2 ring-blue-500" : ""}
@@ -450,12 +455,12 @@ const Floormap = ({
                   `}
                                   style={{
                                     width:
-                                      cellSizePx != null
-                                        ? `${cellSizePx}px`
+                                      tableSizePx != null
+                                        ? `${tableSizePx}px`
                                         : "2.5rem",
                                     height:
-                                      cellSizePx != null
-                                        ? `${cellSizePx}px`
+                                      tableSizePx != null
+                                        ? `${tableSizePx}px`
                                         : "2.5rem",
                                   }}
                                 >
