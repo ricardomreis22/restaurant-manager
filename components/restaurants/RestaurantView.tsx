@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { getRestaurant, getRestaurantTables } from "@/actions/restaurants";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Settings } from "lucide-react";
+import { Settings } from "lucide-react";
 import Floormap from "@/components/restaurants/FloorMap";
 import StaffPage from "@/components/restaurants/StaffPage";
 import MenuPage from "@/components/restaurants/MenuPage";
@@ -200,21 +200,6 @@ export default function RestaurantView({
             <Settings className="h-4 w-4" />
             <span className="hidden group-hover:inline ml-2 sm:inline">
               Admin View
-            </span>
-          </Button>
-        </div>
-      )}
-      {userRole === "ADMIN" && isAdminView && (
-        <div className="fixed bottom-6 right-6 z-50">
-          <Button
-            onClick={() => router.push(`/restaurants/${restaurantId}`)}
-            variant="outline"
-            size="sm"
-            className="transform transition-transform duration-200 hover:scale-110 group shadow-lg text-red-600 hover:text-red-800 gap-2 px-3 py-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span className="hidden group-hover:inline ml-2 sm:inline">
-              Leave Admin
             </span>
           </Button>
         </div>

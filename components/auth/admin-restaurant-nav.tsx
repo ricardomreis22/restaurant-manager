@@ -17,7 +17,7 @@ export function isAdminRestaurantPath(pathname: string) {
   return /^\/admin\/restaurants\/\d+$/.test(pathname);
 }
 
-/** Horizontal tabs for admin restaurant — use from `lg` and up. */
+/** Horizontal tabs for admin restaurant — shown in the top nav at all breakpoints. */
 export function AdminRestaurantDesktopTabs() {
   const { currentTab, setCurrentTab } = useAdminRestaurant();
 
@@ -42,12 +42,12 @@ export function AdminRestaurantDesktopTabs() {
   );
 }
 
-/** Renders centered desktop tabs only on admin restaurant routes (`lg`+). */
+/** Centered admin tabs in the top nav on `/admin/restaurants/[id]` (all screen sizes). */
 export function AdminRestaurantDesktopTabsGate() {
   const pathname = usePathname();
   if (!isAdminRestaurantPath(pathname)) return null;
   return (
-    <div className="hidden w-full min-w-0 justify-center overflow-x-auto px-2 lg:flex">
+    <div className="flex w-full min-w-0 justify-center overflow-x-auto px-1 sm:px-2">
       <AdminRestaurantDesktopTabs />
     </div>
   );
