@@ -17,7 +17,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const ACTIVITIES_PER_PAGE = 10;
+/** `md` and up (≥768px): 10 per page; below `md`: 8 per page. */
+const ACTIVITIES_PER_PAGE_MD_UP = 10;
+const ACTIVITIES_PER_PAGE_BELOW_MD = 8;
 
 type SortColumn = "table" | "date" | "user" | "price" | "event";
 
@@ -186,8 +188,19 @@ export default function ActivityLogPage({
     null,
   );
   const [activityPage, setActivityPage] = useState(1);
+  const [activitiesPerPage, setActivitiesPerPage] = useState(
+    ACTIVITIES_PER_PAGE_MD_UP,
+  );
   const [listSort, setListSort] = useState<SortState>(defaultSort);
   const [detailSort, setDetailSort] = useState<SortState>(defaultSort);
+
+  useEffect(() => {
+    setActivitiesPerPage(
+      window.matchMedia("(min-width: 768px)").matches
+        ? ACTIVITIES_PER_PAGE_MD_UP
+        : ACTIVITIES_PER_PAGE_BELOW_MD,
+    );
+  }, []);
 
   useEffect(() => {
     const loadActivityLog = async () => {
@@ -247,10 +260,10 @@ export default function ActivityLogPage({
   useEffect(() => {
     const maxPage = Math.max(
       1,
-      Math.ceil(sortedActivities.length / ACTIVITIES_PER_PAGE) || 1,
+      Math.ceil(sortedActivities.length / activitiesPerPage) || 1,
     );
     setActivityPage((p) => Math.min(p, maxPage));
-  }, [sortedActivities.length]);
+  }, [sortedActivities.length, activitiesPerPage]);
 
   useEffect(() => {
     setActivityPage(1);
@@ -258,21 +271,26 @@ export default function ActivityLogPage({
 
   const totalActivityPages = Math.max(
     1,
-    Math.ceil(sortedActivities.length / ACTIVITIES_PER_PAGE) || 1,
+    Math.ceil(sortedActivities.length / activitiesPerPage) || 1,
   );
 
   const pagedActivities = useMemo(() => {
     const safePage = Math.min(Math.max(1, activityPage), totalActivityPages);
-    const start = (safePage - 1) * ACTIVITIES_PER_PAGE;
-    return sortedActivities.slice(start, start + ACTIVITIES_PER_PAGE);
-  }, [sortedActivities, activityPage, totalActivityPages]);
+    const start = (safePage - 1) * activitiesPerPage;
+    return sortedActivities.slice(start, start + activitiesPerPage);
+  }, [
+    sortedActivities,
+    activityPage,
+    totalActivityPages,
+    activitiesPerPage,
+  ]);
 
   const goToActivityPage = (next: number) => {
     const clamped = Math.min(
       Math.max(1, next),
       Math.max(
         1,
-        Math.ceil(sortedActivities.length / ACTIVITIES_PER_PAGE) || 1,
+        Math.ceil(sortedActivities.length / activitiesPerPage) || 1,
       ),
     );
     setActivityPage(clamped);
@@ -591,7 +609,7 @@ export default function ActivityLogPage({
                     </table>
                   </div>
                 </Card>
-                {sortedActivities.length > ACTIVITIES_PER_PAGE && (
+                {sortedActivities.length > activitiesPerPage && (
                   <div className="mt-24 mb-6 flex flex-wrap items-center justify-center gap-2 text-sm lg:text-base">
                     <Button
                       type="button"
