@@ -209,7 +209,7 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
   };
 
   if (loading) {
-    return <div>Loading menu...</div>;
+    return <div className="text-black">Loading menu...</div>;
   }
 
   // Group items by category
@@ -223,10 +223,10 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
   }, {} as Record<number, MenuItemWithCategory[]>);
 
   return (
-    <div className="p-4">
+    <div className="p-4 text-black">
       <div className="flex justify-between mb-6">
         <div className="flex items-center gap-4">
-          <h2 className="text-2xl font-bold">Menu</h2>
+          <h2 className="text-2xl font-bold text-black">Menu</h2>
         </div>
         <div className="flex gap-2">
           <Button
@@ -241,20 +241,24 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {categories.map((category) => (
-          <Card key={category.id}>
-            <CardHeader className="flex flex-row items-center justify-between">
+          <Card
+            key={category.id}
+            className="overflow-hidden rounded-lg border border-border bg-white shadow-sm"
+          >
+            <CardHeader className="flex flex-row items-center justify-between border-b border-border/60 bg-white text-black">
               <div>
-                <h3 className="text-xl font-semibold">{category.name}</h3>
+                <h3 className="text-xl font-semibold text-black">
+                  {category.name}
+                </h3>
                 {category.description && (
-                  <p className="text-sm text-gray-600">
-                    {category.description}
-                  </p>
+                  <p className="text-sm text-black">{category.description}</p>
                 )}
               </div>
               <div className="flex gap-2">
                 <Button
                   variant="ghost"
                   size="sm"
+                  className="text-black hover:text-black"
                   onClick={() => {
                     setSelectedCategory(category);
                     setIsUpdateCategoryModalOpen(true);
@@ -266,6 +270,7 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
                 <Button
                   variant="ghost"
                   size="sm"
+                  className="text-black hover:text-black"
                   onClick={() => handleDeleteCategory(category.id)}
                   disabled={isPending}
                 >
@@ -274,6 +279,7 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
                 <Button
                   variant="ghost"
                   size="sm"
+                  className="text-black hover:text-black"
                   onClick={() => {
                     setNewMenuItem((prev) => ({
                       ...prev,
@@ -286,28 +292,27 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
                 </Button>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="bg-white text-black">
               <div className="space-y-4">
                 {itemsByCategory[category.id]?.map((item) => (
                   <div
                     key={item.id}
-                    className="flex justify-between items-center p-2 hover:bg-gray-50 rounded-lg"
+                    className="flex justify-between items-center rounded-lg p-2 hover:bg-gray-50"
                   >
                     <div>
-                      <h4 className="font-medium">{item.name}</h4>
+                      <h4 className="font-medium text-black">{item.name}</h4>
                       {item.description && (
-                        <p className="text-sm text-gray-600">
-                          {item.description}
-                        </p>
+                        <p className="text-sm text-black">{item.description}</p>
                       )}
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="font-medium">
+                      <div className="font-medium text-black tabular-nums">
                         ${item.price.toFixed(2)}
                       </div>
                       <Button
                         variant="ghost"
                         size="sm"
+                        className="text-black hover:text-black"
                         onClick={() => {
                           setSelectedItem(item);
                           setIsUpdateModalOpen(true);
@@ -319,6 +324,7 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
                       <Button
                         variant="ghost"
                         size="sm"
+                        className="text-black hover:text-black"
                         onClick={() => handleDeleteItem(item.id)}
                         disabled={isPending}
                       >
