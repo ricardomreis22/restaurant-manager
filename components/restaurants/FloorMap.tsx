@@ -575,9 +575,9 @@ const Floormap = ({
                     }`}
                   >
                     <div
-                      className={`flex w-full flex-col items-center gap-3 px-4 pb-2 pt-10 sm:px-0 sm:pt-12 ${
+                      className={`flex w-full flex-col items-center gap-3 px-0 pb-2 pt-10 sm:pt-12 ${
                         isAdminView
-                          ? "min-h-0 flex-1 sm:px-0 lg:px-2 lg:pb-2 lg:pt-4 2xl:flex-none"
+                          ? "min-h-0 flex-1 lg:px-2 lg:pb-2 lg:pt-4 2xl:flex-none"
                           : ""
                       }`}
                     >
