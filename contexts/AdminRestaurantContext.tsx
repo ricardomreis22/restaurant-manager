@@ -12,6 +12,12 @@ export type AdminTab =
 interface AdminRestaurantContextType {
   currentTab: AdminTab;
   setCurrentTab: (tab: AdminTab) => void;
+  sidePanelOpen: boolean;
+  setSidePanelOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  sidePanelOnAddCategory: (() => void) | null;
+  setSidePanelOnAddCategory: React.Dispatch<
+    React.SetStateAction<(() => void) | null>
+  >;
 }
 
 const AdminRestaurantContext = createContext<
@@ -20,9 +26,22 @@ const AdminRestaurantContext = createContext<
 
 export function AdminRestaurantProvider({ children }: { children: ReactNode }) {
   const [currentTab, setCurrentTab] = useState<AdminTab>("floormap");
+  const [sidePanelOpen, setSidePanelOpen] = useState(false);
+  const [sidePanelOnAddCategory, setSidePanelOnAddCategory] = useState<
+    (() => void) | null
+  >(null);
 
   return (
-    <AdminRestaurantContext.Provider value={{ currentTab, setCurrentTab }}>
+    <AdminRestaurantContext.Provider
+      value={{
+        currentTab,
+        setCurrentTab,
+        sidePanelOpen,
+        setSidePanelOpen,
+        sidePanelOnAddCategory,
+        setSidePanelOnAddCategory,
+      }}
+    >
       {children}
     </AdminRestaurantContext.Provider>
   );
