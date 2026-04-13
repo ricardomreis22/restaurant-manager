@@ -438,9 +438,9 @@ const Floormap = ({
       : null;
 
   return (
-    <div className="flex min-h-0 w-full flex-1 flex-col items-stretch overflow-hidden">
+    <div className="flex min-h-0 w-full flex-1 flex-col items-stretch max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden">
       {/* flex-1 + min-h-0: shrink to viewport; droppable fills remaining height */}
-      <div className="flex min-h-0 h-full min-w-0 flex-1 flex-col overflow-hidden px-0 pb-2 pt-4 md:px-6 md:pb-3 md:pt-6">
+      <div className="flex min-h-0 h-full min-w-0 flex-1 flex-col max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden px-0 pb-2 pt-4 md:px-6 md:pb-3 md:pt-6">
         {isAdminView && (
           <>
             <Button
@@ -493,30 +493,7 @@ const Floormap = ({
                     />
                   </div>
                 </div>
-                <div className="flex flex-1 flex-col justify-center gap-2">
-                  <Button
-                    onClick={() => {
-                      setIsAddModalOpen(true);
-                      setIsAdminPanelOpen(false);
-                    }}
-                    variant="outline"
-                    className="h-12 w-full whitespace-nowrap justify-start text-base"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Table
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      setIsDeleteModalOpen(true);
-                      setIsAdminPanelOpen(false);
-                    }}
-                    variant="outline"
-                    className="h-12 w-full whitespace-nowrap justify-start border-destructive/50 text-base text-destructive hover:bg-destructive/10"
-                  >
-                    <Trash className="mr-2 h-4 w-4" />
-                    Delete Table
-                  </Button>
-                </div>
+                <div className="flex-1" />
                 <div className="my-2 h-px w-full bg-border" />
                 <Button
                   type="button"
@@ -558,29 +535,30 @@ const Floormap = ({
             </div>
           </>
         )}
-        <div className="relative flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden 2xl:flex-row 2xl:items-end 2xl:gap-4 2xl:min-h-0">
-          <div className="flex min-h-0 h-full w-full min-w-0 flex-1 flex-col overflow-hidden rounded-lg 2xl:h-auto 2xl:min-h-0 2xl:min-w-0 2xl:flex-1 2xl:self-start">
-            <DndContext onDragEnd={handleDragEnd}>
-              <Droppable id="floor-map">
-                <div
-                  className={`flex min-h-0 h-full w-full flex-col overflow-hidden rounded-l ${
-                    isAdminView ? "2xl:h-auto" : ""
-                  }`}
-                >
+        <div className="relative flex min-h-0 w-full min-w-0 flex-1 flex-col max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden 2xl:flex-row 2xl:items-end 2xl:gap-4 2xl:min-h-0">
+          <div className="flex min-h-0 h-full w-full min-w-0 flex-1 flex-col rounded-lg max-sm:overflow-x-auto max-sm:overflow-y-hidden sm:overflow-hidden 2xl:h-auto 2xl:min-h-0 2xl:min-w-0 2xl:flex-1 2xl:self-start">
+            <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col max-sm:min-w-[640px]">
+              <DndContext onDragEnd={handleDragEnd}>
+                <Droppable id="floor-map">
                   <div
-                    className={`flex min-h-0 w-full flex-1 flex-col overflow-hidden ${
-                      isAdminView
-                        ? "items-center justify-center 2xl:h-auto 2xl:flex-none"
-                        : "items-center justify-center"
+                    className={`flex min-h-0 h-full w-full min-w-0 flex-col rounded-l max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden ${
+                      isAdminView ? "2xl:h-auto" : ""
                     }`}
                   >
                     <div
-                      className={`flex w-full flex-col items-center gap-3 px-0 pb-2 pt-10 sm:pt-12 ${
+                      className={`flex min-h-0 w-full min-w-0 flex-1 flex-col max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden ${
                         isAdminView
-                          ? "min-h-0 flex-1 lg:px-2 lg:pb-2 lg:pt-4 2xl:flex-none"
-                          : ""
+                          ? "items-center justify-center 2xl:h-auto 2xl:flex-none"
+                          : "items-center justify-center"
                       }`}
                     >
+                      <div
+                        className={`flex w-full flex-col items-center gap-3 px-0 pb-2 pt-10 sm:pt-12 ${
+                          isAdminView
+                            ? "min-h-0 flex-1 lg:px-2 lg:pb-2 lg:pt-4 2xl:flex-none"
+                            : ""
+                        }`}
+                      >
                       <div className="mx-auto flex min-h-0 w-full max-w-full flex-1 flex-col items-center md:max-w-[min(100%,66.666vw)] 2xl:flex-none">
                         <div
                           ref={mapFitRef}
@@ -692,9 +670,30 @@ const Floormap = ({
                       </div>
                     </div>
                   </div>
+                  </div>
+                </Droppable>
+              </DndContext>
+              {isAdminView && (
+                <div className="mt-3 flex w-full shrink-0 items-center justify-center gap-2 px-2 pb-2">
+                  <Button
+                    onClick={() => setIsAddModalOpen(true)}
+                    variant="outline"
+                    className="h-11 whitespace-nowrap text-base"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Table
+                  </Button>
+                  <Button
+                    onClick={() => setIsDeleteModalOpen(true)}
+                    variant="outline"
+                    className="h-11 whitespace-nowrap border-destructive/50 text-base text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash className="mr-2 h-4 w-4" />
+                    Delete Table
+                  </Button>
                 </div>
-              </Droppable>
-            </DndContext>
+              )}
+            </div>
           </div>
         </div>
       </div>
