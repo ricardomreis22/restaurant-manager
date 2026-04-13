@@ -1,6 +1,6 @@
 "use client";
 
-/** Tabs live in the global protected nav (`AdminRestaurantDesktopTabsGate`) on all breakpoints. */
+/** Admin section tabs live in the burger menu in the global protected nav. */
 function AdminRestaurantLayoutContent({
   children,
 }: {

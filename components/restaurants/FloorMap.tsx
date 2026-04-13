@@ -8,19 +8,12 @@ import {
   useRef,
 } from "react";
 import { useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   Plus,
   Trash,
   Users,
   Lock,
-  Menu,
-  X,
-  ArrowLeft,
-  List,
-  LogOut,
 } from "lucide-react";
 import {
   Dialog,
@@ -96,7 +89,6 @@ const Floormap = ({
     null,
   );
   const [numberOfPeople, setNumberOfPeople] = useState<number>(2);
-  const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
   const [tablePositions, setTablePositions] = useState<
     Record<number, { x: number; y: number }>
   >({});
@@ -441,100 +433,6 @@ const Floormap = ({
     <div className="flex min-h-0 w-full flex-1 flex-col items-stretch max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden">
       {/* flex-1 + min-h-0: shrink to viewport; droppable fills remaining height */}
       <div className="flex min-h-0 h-full min-w-0 flex-1 flex-col max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden px-0 pb-2 pt-4 md:px-6 md:pb-3 md:pt-6">
-        {isAdminView && (
-          <>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={() => setIsAdminPanelOpen((prev) => !prev)}
-              className="absolute right-4 top-4 z-30"
-            >
-              {isAdminPanelOpen ? (
-                <X className="h-4 w-4" />
-              ) : (
-                <Menu className="h-4 w-4" />
-              )}
-            </Button>
-
-            <div
-              className={`absolute inset-0 z-20 bg-black/20 transition-opacity ${
-                isAdminPanelOpen
-                  ? "pointer-events-auto opacity-100"
-                  : "pointer-events-none opacity-0"
-              }`}
-              onClick={() => setIsAdminPanelOpen(false)}
-            />
-
-            <div
-              className={`absolute right-0 top-0 z-30 h-full overflow-hidden transition-[width] duration-300 ${
-                isAdminPanelOpen ? "w-72" : "w-0"
-              }`}
-            >
-              <div className="relative flex h-full w-72 flex-col gap-2 border-l bg-background p-4 shadow-xl">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setIsAdminPanelOpen(false)}
-                  className="absolute -left-10 top-6 h-9 w-9 rounded-md border bg-red-600 shadow-sm hover:bg-white"
-                  aria-label="Close sidebar"
-                >
-                  <X className="h-4 w-4 text-primary" />
-                </Button>
-                <div className="relative flex w-full items-start justify-center pt-6">
-                  <div className="flex flex-col items-center">
-                    <Image
-                      src="/restmanager.png"
-                      alt="logo"
-                      width={208}
-                      height={208}
-                      className="h-40 w-40 object-contain"
-                    />
-                  </div>
-                </div>
-                <div className="flex-1" />
-                <div className="my-2 h-px w-full bg-border" />
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-12 w-full justify-start text-base"
-                  onClick={() => {
-                    router.push(`/restaurants/${restaurantId}`);
-                    setIsAdminPanelOpen(false);
-                  }}
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Leave Admin
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-12 w-full justify-start text-base"
-                  onClick={() => {
-                    router.push("/restaurants");
-                    setIsAdminPanelOpen(false);
-                  }}
-                >
-                  <List className="mr-2 h-4 w-4" />
-                  Back to Restaurants
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-12 w-full justify-start text-base"
-                  onClick={() => {
-                    setIsAdminPanelOpen(false);
-                    signOut({ callbackUrl: "/auth/login" });
-                  }}
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Logout
-                </Button>
-              </div>
-            </div>
-          </>
-        )}
         <div className="relative flex min-h-0 w-full min-w-0 flex-1 flex-col max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden 2xl:flex-row 2xl:items-end 2xl:gap-4 2xl:min-h-0">
           <div className="flex min-h-0 h-full w-full min-w-0 flex-1 flex-col rounded-lg max-sm:overflow-x-auto max-sm:overflow-y-hidden sm:overflow-hidden 2xl:h-auto 2xl:min-h-0 2xl:min-w-0 2xl:flex-1 2xl:self-start">
             <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col max-sm:min-w-[640px]">

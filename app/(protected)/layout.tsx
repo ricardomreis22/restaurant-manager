@@ -1,6 +1,5 @@
 "use client";
 
-import { AdminRestaurantDesktopTabsGate } from "@/components/auth/admin-restaurant-nav";
 import { ProtectedNavRightActions } from "@/components/auth/protected-nav-right-actions";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -122,11 +121,8 @@ export default function ProtectedLayout({
     <AdminRestaurantProvider>
       <div className="h-screen flex flex-col">
         {!match && (
-          <nav className="flex items-center gap-4 bg-primary p-4 text-primary-foreground">
+          <nav className="relative z-[110] flex items-center justify-between gap-4 bg-primary p-4 text-primary-foreground">
             <div className="min-w-0 shrink-0">{renderNavContent()}</div>
-            <div className="flex min-w-0 flex-1 justify-center">
-              <AdminRestaurantDesktopTabsGate />
-            </div>
             <div className="shrink-0">
               <ProtectedNavRightActions />
             </div>
