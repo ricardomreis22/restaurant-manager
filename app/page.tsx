@@ -78,11 +78,11 @@ export default function Home() {
       <div className="flex flex-1 flex-col items-center justify-center py-12 lg:py-0">
         <div className="flex flex-col items-center justify-center gap-4 mb-24">
           <Image
-            src="/favicon.ico"
+            src="/restmanager.png"
             alt="logo"
             width={240}
             height={192}
-            className="w-56 h-auto sm:w-64"
+            className="h-auto w-56 object-contain sm:w-64"
           />
         </div>
         <div className="flex flex-col gap-4 justify-center w-[90%] max-w-md mx-auto">
