@@ -9,12 +9,7 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import {
-  Plus,
-  Trash,
-  Users,
-  Lock,
-} from "lucide-react";
+import { Plus, Trash, Users, Lock } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -457,109 +452,111 @@ const Floormap = ({
                             : ""
                         }`}
                       >
-                      <div className="mx-auto flex min-h-0 w-full max-w-full flex-1 flex-col items-center md:max-w-[min(100%,66.666vw)] 2xl:flex-none">
-                        <div
-                          ref={mapFitRef}
-                          className={`flex min-h-0 w-full flex-1 flex-col ${
-                            isAdminView
-                              ? "items-center justify-center 2xl:h-[80vh] 2xl:flex-none"
-                              : "items-center justify-center 2xl:h-[80vh]"
-                          }`}
-                        >
+                        <div className="mx-auto flex min-h-0 w-full max-w-full flex-1 flex-col items-center lg:max-w-[min(100%,66.666vw)] 2xl:flex-none">
                           <div
-                            className={`relative mx-auto shrink-0 ${
-                              mapBoxPx == null
-                                ? "aspect-[16/10] min-h-0 w-full max-h-full"
-                                : ""
+                            ref={mapFitRef}
+                            className={`flex min-h-0 w-full flex-1 flex-col ${
+                              isAdminView
+                                ? "items-center justify-center 2xl:h-[80vh] 2xl:flex-none"
+                                : "items-center justify-center 2xl:h-[80vh]"
                             }`}
-                            style={
-                              mapBoxPx != null
-                                ? {
-                                    width: mapBoxPx.w,
-                                    height: mapBoxPx.h,
-                                  }
-                                : undefined
-                            }
                           >
                             <div
-                              ref={gridRef}
-                              className="absolute inset-0 z-0 rounded-lg overflow-hidden border-2 border-gray-300 bg-white"
-                              style={{
-                                display: "grid",
-                                gridTemplateColumns:
-                                  "repeat(16, minmax(0, 1fr))",
-                                gridTemplateRows: "repeat(10, minmax(0, 1fr))",
-                                backgroundImage: `
+                              className={`relative mx-auto shrink-0 ${
+                                mapBoxPx == null
+                                  ? "aspect-[16/10] min-h-0 w-full max-h-full"
+                                  : ""
+                              }`}
+                              style={
+                                mapBoxPx != null
+                                  ? {
+                                      width: mapBoxPx.w,
+                                      height: mapBoxPx.h,
+                                    }
+                                  : undefined
+                              }
+                            >
+                              <div
+                                ref={gridRef}
+                                className="absolute inset-0 z-0 rounded-lg overflow-hidden border-2 border-gray-300 bg-white"
+                                style={{
+                                  display: "grid",
+                                  gridTemplateColumns:
+                                    "repeat(16, minmax(0, 1fr))",
+                                  gridTemplateRows:
+                                    "repeat(10, minmax(0, 1fr))",
+                                  backgroundImage: `
                     linear-gradient(to right, rgba(0,0,0,0.08) 1px, transparent 1px),
                     linear-gradient(to bottom, rgba(0,0,0,0.08) 1px, transparent 1px)
                   `,
-                                backgroundSize:
-                                  "calc(100% / 16) calc(100% / 10)",
-                                backgroundColor: "white",
-                                ["--cell-size" as string]: "calc(100% / 16)",
-                              }}
-                            >
-                              {/* Content spans the full 16x10 grid */}
-                              <div className="col-span-full row-span-full relative">
-                                {/* Tables area: fills grid so tables can use --cell-size */}
-                                <div className="absolute inset-0 overflow-hidden">
-                                  {localTables.map((table) => (
-                                    <Draggable
-                                      key={table.id}
-                                      position={getDisplayPosition(
-                                        tablePositions[table.id] || {
-                                          x: 0,
-                                          y: 0,
-                                        },
-                                      )}
-                                      id={`table-${table.id}`}
-                                      disabled={!isAdminView}
-                                    >
-                                      <div
-                                        onClick={() =>
-                                          handleTableClick(table.id)
-                                        }
-                                        className={`
+                                  backgroundSize:
+                                    "calc(100% / 16) calc(100% / 10)",
+                                  backgroundColor: "white",
+                                  ["--cell-size" as string]: "calc(100% / 16)",
+                                }}
+                              >
+                                {/* Content spans the full 16x10 grid */}
+                                <div className="col-span-full row-span-full relative">
+                                  {/* Tables area: fills grid so tables can use --cell-size */}
+                                  <div className="absolute inset-0 overflow-hidden">
+                                    {localTables.map((table) => (
+                                      <Draggable
+                                        key={table.id}
+                                        position={getDisplayPosition(
+                                          tablePositions[table.id] || {
+                                            x: 0,
+                                            y: 0,
+                                          },
+                                        )}
+                                        id={`table-${table.id}`}
+                                        disabled={!isAdminView}
+                                      >
+                                        <div
+                                          onClick={() =>
+                                            handleTableClick(table.id)
+                                          }
+                                          className={`
                     relative flex items-center justify-center box-border border-2 border-gray-300 rounded-md
                     ${table.isLocked ? "cursor-not-allowed" : "cursor-pointer"}
                     ${table.isReserved ? "bg-yellow-100" : "bg-green-100"}
                     ${selectedTable === table.id ? "ring-2 ring-blue-500" : ""}
                     hover:shadow-lg transition-all
                   `}
-                                        style={{
-                                          width:
-                                            tableSizePx != null
-                                              ? `${tableSizePx}px`
-                                              : "2.5rem",
-                                          height:
-                                            tableSizePx != null
-                                              ? `${tableSizePx}px`
-                                              : "2.5rem",
-                                        }}
-                                      >
-                                        <h3 className="text-center text-sm font-bold leading-none text-primary md:text-lg">
-                                          {table.number}
-                                        </h3>
+                                          style={{
+                                            width:
+                                              tableSizePx != null
+                                                ? `${tableSizePx}px`
+                                                : "2.5rem",
+                                            height:
+                                              tableSizePx != null
+                                                ? `${tableSizePx}px`
+                                                : "2.5rem",
+                                          }}
+                                        >
+                                          <h3 className="text-center text-sm font-bold leading-none text-primary md:text-lg">
+                                            {table.number}
+                                          </h3>
 
-                                        <p className="hidden text-xs md:text-sm mt-1">
-                                          {table.isReserved
-                                            ? "Reserved"
-                                            : "Available"}
-                                        </p>
-                                        {table.isLocked && (
-                                          <Lock className="absolute right-0 top-0 h-3 w-3 text-red-600 md:h-4 md:w-4" />
-                                        )}
+                                          <p className="hidden text-xs md:text-sm mt-1">
+                                            {table.isReserved
+                                              ? "Reserved"
+                                              : "Available"}
+                                          </p>
+                                          {table.isLocked && (
+                                            <Lock className="absolute right-0 top-0 h-3 w-3 text-red-600 md:h-4 md:w-4" />
+                                          )}
 
-                                        {onToggleLock && (
-                                          <TableLocker
-                                            tableId={table.id}
-                                            isLocked={table.isLocked}
-                                            onToggleLock={onToggleLock}
-                                          />
-                                        )}
-                                      </div>
-                                    </Draggable>
-                                  ))}
+                                          {onToggleLock && (
+                                            <TableLocker
+                                              tableId={table.id}
+                                              isLocked={table.isLocked}
+                                              onToggleLock={onToggleLock}
+                                            />
+                                          )}
+                                        </div>
+                                      </Draggable>
+                                    ))}
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -568,15 +565,14 @@ const Floormap = ({
                       </div>
                     </div>
                   </div>
-                  </div>
                 </Droppable>
               </DndContext>
               {isAdminView && (
-                <div className="mt-3 flex w-full shrink-0 items-center justify-center gap-2 px-2 pb-2">
+                <div className="flex w-full shrink-0 flex-col items-stretch justify-start gap-2 px-2 pb-2 md:flex-row md:items-center md:justify-center">
                   <Button
                     onClick={() => setIsAddModalOpen(true)}
                     variant="outline"
-                    className="h-11 whitespace-nowrap text-base"
+                    className="h-11 w-full whitespace-nowrap text-base md:w-40"
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     Add Table
@@ -584,7 +580,7 @@ const Floormap = ({
                   <Button
                     onClick={() => setIsDeleteModalOpen(true)}
                     variant="outline"
-                    className="h-11 whitespace-nowrap border-destructive/50 text-base text-destructive hover:bg-destructive/10"
+                    className="h-11 w-full whitespace-nowrap border-destructive/50 text-base text-destructive hover:bg-destructive/10 md:w-40"
                   >
                     <Trash className="mr-2 h-4 w-4" />
                     Delete Table
