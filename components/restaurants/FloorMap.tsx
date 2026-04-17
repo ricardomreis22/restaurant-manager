@@ -430,9 +430,9 @@ const Floormap = ({
       <div className="flex min-h-0 h-full min-w-0 flex-1 flex-col max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden px-0 pb-2 pt-4 md:px-6 md:pb-3 md:pt-6">
         <div className="relative flex min-h-0 w-full min-w-0 flex-1 flex-col max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden 2xl:flex-row 2xl:items-end 2xl:gap-4 2xl:min-h-0">
           <div className="flex min-h-0 h-full w-full min-w-0 flex-1 flex-col rounded-lg max-sm:overflow-x-auto max-sm:overflow-y-hidden sm:overflow-hidden 2xl:h-auto 2xl:min-h-0 2xl:min-w-0 2xl:flex-1 2xl:self-start">
-            <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col max-sm:min-w-[640px]">
+            <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col">
               <DndContext onDragEnd={handleDragEnd}>
-                <Droppable id="floor-map">
+                <Droppable id="floor-map" className="max-sm:min-w-[768px]">
                   <div
                     className={`flex min-h-0 h-full w-full min-w-0 flex-col rounded-l max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden ${
                       isAdminView ? "2xl:h-auto" : ""
@@ -446,7 +446,7 @@ const Floormap = ({
                       }`}
                     >
                       <div
-                        className={`flex w-full flex-col items-center gap-3 px-0 pb-2 pt-10 sm:pt-12 ${
+                        className={`flex w-full flex-col items-center gap-3 px-0 pb-2 pt-4 sm:pt-6 ${
                           isAdminView
                             ? "min-h-0 flex-1 lg:px-2 lg:pb-2 lg:pt-4 2xl:flex-none"
                             : ""

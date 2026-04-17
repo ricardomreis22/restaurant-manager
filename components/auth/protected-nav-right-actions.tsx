@@ -38,10 +38,7 @@ export function ProtectedNavRightActions() {
           type="button"
           variant="default"
           size="icon"
-          className={cn(
-            navActionClass,
-            "relative z-[106]",
-          )}
+          className={cn(navActionClass, "relative z-[106]")}
           aria-label={panelOpen ? "Close menu" : "Open menu"}
           aria-expanded={panelOpen}
           onClick={() => setPanelOpen((o) => !o)}
@@ -51,7 +48,7 @@ export function ProtectedNavRightActions() {
 
         <div
           className={cn(
-            "fixed inset-0 z-[100] bg-black/20 transition-opacity duration-300",
+            "fixed inset-0 z-[100] bg-black/20 transition-opacity duration-300 ",
             panelOpen
               ? "pointer-events-auto opacity-100"
               : "pointer-events-none opacity-0",
@@ -68,23 +65,20 @@ export function ProtectedNavRightActions() {
         >
           <div
             className={cn(
-              "relative flex h-full w-full flex-col gap-2 border-l border-white/15 bg-black/80 p-4 text-white shadow-xl sm:w-72",
+              "relative flex h-full w-full flex-col gap-2 border-l justify-between border-white/15 bg-black/90 p-4 text-white shadow-xl sm:w-72",
               "max-sm:border-l-0",
             )}
           >
-            <div className="relative flex w-full items-start justify-center pt-4">
-              <div className="flex flex-col items-center">
-                <Image
-                  src="/restmanager.png"
-                  alt="logo"
-                  width={208}
-                  height={208}
-                  className="h-40 w-40 object-contain"
-                />
-              </div>
+            <div className="flex flex-col items-center">
+              <Image
+                src="/restmanager.png"
+                alt="logo"
+                width={300}
+                height={300}
+                className="h-48 w-48 object-contain"
+              />
             </div>
-
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 text-xs">
               {ADMIN_RESTAURANT_TABS.map(({ id, label }) => (
                 <Button
                   key={id}
@@ -104,46 +98,45 @@ export function ProtectedNavRightActions() {
               ))}
             </div>
 
-            <div className="flex-1 min-h-0" />
-
-            <div className="my-2 h-px w-full bg-white/20" />
-
-            <Button
-              type="button"
-              variant="default"
-              className={panelButtonClass}
-              onClick={() => {
-                router.push(`/restaurants/${restaurantId}`);
-                setPanelOpen(false);
-              }}
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Leave Admin
-            </Button>
-            <Button
-              type="button"
-              variant="default"
-              className={panelButtonClass}
-              onClick={() => {
-                router.push("/restaurants");
-                setPanelOpen(false);
-              }}
-            >
-              <List className="mr-2 h-4 w-4" />
-              Back to Restaurants
-            </Button>
-            <Button
-              type="button"
-              variant="default"
-              className={panelButtonClass}
-              onClick={() => {
-                setPanelOpen(false);
-                signOut({ callbackUrl: "/auth/login" });
-              }}
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </Button>
+            <div className="w-full gap-2 flex flex-col ">
+              <div className="bg-white/20 h-px w-full my-10"></div>
+              <Button
+                type="button"
+                variant="default"
+                className={panelButtonClass}
+                onClick={() => {
+                  router.push(`/restaurants/${restaurantId}`);
+                  setPanelOpen(false);
+                }}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Leave Admin
+              </Button>
+              <Button
+                type="button"
+                variant="default"
+                className={panelButtonClass}
+                onClick={() => {
+                  router.push("/restaurants");
+                  setPanelOpen(false);
+                }}
+              >
+                <List className="mr-2 h-4 w-4" />
+                Backs to Restaurants
+              </Button>
+              <Button
+                type="button"
+                variant="default"
+                className={panelButtonClass}
+                onClick={() => {
+                  setPanelOpen(false);
+                  signOut({ callbackUrl: "/auth/login" });
+                }}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
       </>
