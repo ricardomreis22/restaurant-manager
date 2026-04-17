@@ -427,39 +427,23 @@ const Floormap = ({
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col items-stretch max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden">
       {/* flex-1 + min-h-0: shrink to viewport; droppable fills remaining height */}
-      <div className="flex min-h-0 h-full min-w-0 flex-1 flex-col max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden px-0 pb-2 pt-4 md:px-6 md:pb-3 md:pt-6">
+      <div className="flex min-h-0 h-full min-w-0 flex-1 flex-col max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden px-0 pb-2 pt-2 md:px-6 md:pb-3 md:pt-4">
         <div className="relative flex min-h-0 w-full min-w-0 flex-1 flex-col max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden 2xl:flex-row 2xl:items-end 2xl:gap-4 2xl:min-h-0">
           <div className="flex min-h-0 h-full w-full min-w-0 flex-1 flex-col rounded-lg max-sm:overflow-x-auto max-sm:overflow-y-hidden sm:overflow-hidden 2xl:h-auto 2xl:min-h-0 2xl:min-w-0 2xl:flex-1 2xl:self-start">
             <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col">
               <DndContext onDragEnd={handleDragEnd}>
                 <Droppable id="floor-map" className="max-sm:min-w-[768px]">
-                  <div
-                    className={`flex min-h-0 h-full w-full min-w-0 flex-col rounded-l max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden ${
-                      isAdminView ? "2xl:h-auto" : ""
-                    }`}
-                  >
+                  <div className="flex min-h-0 h-full w-full min-w-0 flex-col rounded-l max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden 2xl:h-auto">
                     <div
-                      className={`flex min-h-0 w-full min-w-0 flex-1 flex-col max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden ${
-                        isAdminView
-                          ? "items-center justify-center 2xl:h-auto 2xl:flex-none"
-                          : "items-center justify-center"
-                      }`}
+                      className="flex min-h-0 w-full min-w-0 flex-1 flex-col max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden items-center justify-center 2xl:h-auto 2xl:flex-none"
                     >
                       <div
-                        className={`flex w-full flex-col items-center gap-3 px-0 pb-2 pt-4 sm:pt-6 ${
-                          isAdminView
-                            ? "min-h-0 flex-1 lg:px-2 lg:pb-2 lg:pt-4 2xl:flex-none"
-                            : ""
-                        }`}
+                        className="flex w-full min-h-0 flex-1 flex-col items-center gap-3 px-0 pb-2 pt-2 sm:pt-4 lg:px-2 lg:pb-2 lg:pt-3 2xl:flex-none"
                       >
                         <div className="mx-auto flex min-h-0 w-full max-w-full flex-1 flex-col items-center lg:max-w-[min(100%,66.666vw)] 2xl:flex-none">
                           <div
                             ref={mapFitRef}
-                            className={`flex min-h-0 w-full flex-1 flex-col ${
-                              isAdminView
-                                ? "items-center justify-center 2xl:h-[80vh] 2xl:flex-none"
-                                : "items-center justify-center 2xl:h-[80vh]"
-                            }`}
+                            className="flex min-h-0 w-full flex-1 flex-col items-center justify-center 2xl:h-[80vh] 2xl:flex-none"
                           >
                             <div
                               className={`relative mx-auto shrink-0 ${
