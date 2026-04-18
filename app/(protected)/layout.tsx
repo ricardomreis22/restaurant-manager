@@ -2,8 +2,6 @@
 
 import { ProtectedNavRightActions } from "@/components/auth/protected-nav-right-actions";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
-import { getRestaurant } from "@/actions/restaurants";
 import Image from "next/image";
 import { AdminRestaurantProvider } from "@/contexts/AdminRestaurantContext";
 
@@ -13,108 +11,6 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const [restaurantName, setRestaurantName] = useState<string>("");
-  const [currentPage, setCurrentPage] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    setIsLoading(true);
-    // Determine current page context
-    if (pathname.includes("/admin/")) {
-      setCurrentPage("admin");
-    } else if (pathname.includes("/tables/")) {
-      setCurrentPage("table");
-      // Extract restaurant ID from path for table pages
-      const match = pathname.match(/\/restaurants\/(\d+)\/tables\/(\d+)/);
-      if (match) {
-        const restaurantId = parseInt(match[1]);
-        loadRestaurant(restaurantId);
-      } else {
-        setIsLoading(false);
-      }
-    } else if (
-      pathname.includes("/restaurants/") &&
-      !pathname.includes("/tables/")
-    ) {
-      setCurrentPage("restaurant");
-    } else {
-      setCurrentPage("general");
-    }
-    setIsLoading(false);
-  }, [pathname]);
-
-  const loadRestaurant = async (restaurantId: number) => {
-    try {
-      const restaurantData = await getRestaurant(restaurantId);
-      if (restaurantData) {
-        setRestaurantName(restaurantData.name);
-      }
-    } catch (error) {
-      console.error("Failed to load restaurant:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const renderNavContent = () => {
-    if (isLoading) {
-      return (
-        <div className="flex items-center gap-4">
-          <Image
-            src="/favicon.ico"
-            alt="logo"
-            width={60}
-            height={48}
-            className="w-15 h-12"
-          />
-          <span className="text-lg font-semibold">Loading...</span>
-        </div>
-      );
-    }
-
-    switch (currentPage) {
-      case "admin":
-        return (
-          <div className="flex items-center">
-            <Image
-              src="/favicon.ico"
-              alt="logo"
-              width={60}
-              height={48}
-              className="w-15 h-12"
-            />
-          </div>
-        );
-      case "restaurant":
-        return (
-          <div className="flex items-center gap-4">
-            <Image
-              src="/favicon.ico"
-              alt="logo"
-              width={60}
-              height={48}
-              className="w-15 h-12"
-            />
-            <span className="text-lg font-semibold">{restaurantName}</span>
-          </div>
-        );
-
-      default:
-        return (
-          <div className="flex items-center gap-4">
-            <Image
-              src="/favicon.ico"
-              alt="logo"
-              width={60}
-              height={48}
-              className="w-15 h-12"
-            />
-            <span className="text-lg font-semibold">Restaurant Manager</span>
-          </div>
-        );
-    }
-  };
-
   const match = pathname.match(/\/restaurants\/(\d+)\/tables\/(\d+)/);
 
   return (
@@ -122,7 +18,17 @@ export default function ProtectedLayout({
       <div className="h-screen flex flex-col">
         {!match && (
           <nav className="relative z-[110] flex items-center justify-between gap-4 bg-primary p-4 text-primary-foreground">
-            <div className="min-w-0 shrink-0">{renderNavContent()}</div>
+            <div className="min-w-0 shrink-0">
+              <div className="flex items-center">
+                <Image
+                  src="/favicon.ico"
+                  alt="logo"
+                  width={60}
+                  height={48}
+                  className="w-15 h-12"
+                />
+              </div>
+            </div>
             <div className="shrink-0">
               <ProtectedNavRightActions />
             </div>
