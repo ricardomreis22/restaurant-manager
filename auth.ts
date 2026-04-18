@@ -4,7 +4,7 @@ import { UserRole } from "@prisma/client";
 
 import authConfig from "@/auth.config";
 
-// Auth.js requires AUTH_URL; fallback so /home and callbacks don't throw ERR_INVALID_URL
+// Auth.js requires AUTH_URL; fallback so redirects and callbacks don't throw ERR_INVALID_URL
 if (!process.env.AUTH_URL) {
   process.env.AUTH_URL = process.env.VERCEL_URL
     ? `https://${process.env.VERCEL_URL}`

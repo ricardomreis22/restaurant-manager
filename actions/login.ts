@@ -30,7 +30,7 @@ export const login = async (values: z.infer<typeof LoginSchema>) => {
         ? "/restaurants"
         : user.userRole === "STAFF" && user.restaurants[0]
         ? `/restaurants/${user.restaurants[0].id}`
-        : "/home";
+        : "/restaurants";
 
     await signIn("credentials", {
       email,

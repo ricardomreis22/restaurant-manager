@@ -12,7 +12,7 @@ export async function checkAdmin() {
   }
 
   if (session.user.userRole !== UserRole.ADMIN) {
-    redirect("/home");
+    redirect("/restaurants");
   }
 
   return true;
