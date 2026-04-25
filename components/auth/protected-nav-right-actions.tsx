@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { ArrowLeft, List, LogOut, Menu, X } from "lucide-react";
+import { ArrowLeft, List, LogOut, Menu, Plus, Settings, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { ADMIN_RESTAURANT_TABS } from "@/components/auth/admin-restaurant-nav";
@@ -28,6 +28,8 @@ export function ProtectedNavRightActions() {
   const { currentTab, setCurrentTab } = useAdminRestaurant();
   const match = pathname.match(ADMIN_RESTAURANT_PATH);
   const [panelOpen, setPanelOpen] = useState(false);
+  const isRestaurantsList = pathname === "/restaurants";
+  const isAdminRestaurantsList = pathname === "/admin/restaurants";
 
   useEffect(() => {
     setPanelOpen(false);
@@ -195,6 +197,62 @@ export function ProtectedNavRightActions() {
               />
             </div>
             <div className="mt-auto flex w-full flex-col gap-2">
+              {isRestaurantsList && (
+                <div className="flex w-full flex-col gap-2">
+                  <Button
+                    type="button"
+                    variant="default"
+                    className={panelButtonClass}
+                    onClick={() => {
+                      router.push("/admin/restaurants");
+                      setPanelOpen(false);
+                    }}
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    Admin dashboard
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="default"
+                    className={panelButtonClass}
+                    onClick={() => {
+                      router.push("/restaurants/newrestaurant");
+                      setPanelOpen(false);
+                    }}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add restaurant
+                  </Button>
+                </div>
+              )}
+              {isAdminRestaurantsList && (
+                <div className="flex w-full flex-col gap-2">
+                  <Button
+                    type="button"
+                    variant="default"
+                    className={panelButtonClass}
+                    onClick={() => {
+                      router.push("/restaurants");
+                      setPanelOpen(false);
+                    }}
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to restaurants
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="default"
+                    className={panelButtonClass}
+                    onClick={() => {
+                      router.push("/restaurants/newrestaurant");
+                      setPanelOpen(false);
+                    }}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add restaurant
+                  </Button>
+                </div>
+              )}
               <div className="mb-4 h-px w-full bg-white/20" />
               <Button
                 type="button"

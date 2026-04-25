@@ -96,26 +96,24 @@ export default function RestaurantsPage() {
           ))}
         </div>
       )}
-      <div className="fixed bottom-4 right-4 flex flex-col gap-2 z-50">
-        <>
-          <Button
-            onClick={() => router.push("/admin/restaurants")}
-            variant="outline"
-            className="transform transition-transform duration-200 hover:scale-110 sm:gap-2 group shadow-lg text-black"
-            size="sm"
-          >
-            <Settings className="h-4 w-4" />
-            <span className="hidden sm:inline">Admin Dashboard</span>
-          </Button>
-          <Button
-            onClick={() => router.push("/restaurants/newrestaurant")}
-            className="transform transition-transform duration-200 hover:scale-110 sm:gap-2 group shadow-lg"
-            size="sm"
-          >
-            <Plus className="h-4 w-4" />
-            <span className="hidden ml-2 sm:inline">Add Restaurant</span>
-          </Button>
-        </>
+      <div className="hidden sm:flex fixed bottom-4 right-4 flex-col gap-2 z-50">
+        <Button
+          onClick={() => router.push("/admin/restaurants")}
+          variant="outline"
+          className="transform transition-transform duration-200 hover:scale-110 sm:gap-2 group shadow-lg text-black"
+          size="sm"
+        >
+          <Settings className="h-4 w-4" />
+          <span className="sm:inline">Admin dashboard</span>
+        </Button>
+        <Button
+          onClick={() => router.push("/restaurants/newrestaurant")}
+          className="transform transition-transform duration-200 hover:scale-110 sm:gap-2 group shadow-lg"
+          size="sm"
+        >
+          <Plus className="h-4 w-4" />
+          <span className="ml-2 sm:inline">Add restaurant</span>
+        </Button>
       </div>
     </div>
   );

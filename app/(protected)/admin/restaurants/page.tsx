@@ -135,17 +135,15 @@ export default function AdminRestaurantsPage() {
         ))}
       </div>
 
-      <div className="fixed bottom-4 right-4 flex flex-col gap-2 z-50 ">
+      <div className="hidden sm:flex fixed bottom-4 right-4 flex-col gap-2 z-50">
         <Button
           variant="ghost"
           onClick={() => router.push("/restaurants")}
-          className=" border border-white border-1 transform transition-transform duration-200 hover:scale-110 shadow-lg "
+          className="border border-white border-1 transform transition-transform duration-200 hover:scale-110 shadow-lg"
           size="sm"
         >
-          <ArrowLeft className="h-4 w-4 " />
-          <span className="hidden group-hover:inline sm:inline">
-            Back to Restaurant
-          </span>
+          <ArrowLeft className="h-4 w-4" />
+          <span className="group-hover:inline sm:inline">Back to restaurants</span>
         </Button>
         <Button
           onClick={() => router.push("/restaurants/newrestaurant")}
@@ -153,9 +151,7 @@ export default function AdminRestaurantsPage() {
           size="sm"
         >
           <Plus className="h-4 w-4" />
-          <span className="hidden group-hover:inline ml-2 sm:inline">
-            Add Restaurant
-          </span>
+          <span className="group-hover:inline ml-2 sm:inline">Add restaurant</span>
         </Button>
       </div>
     </div>
