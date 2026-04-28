@@ -46,10 +46,10 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
   const [isUpdateCategoryModalOpen, setIsUpdateCategoryModalOpen] =
     useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuItemWithCategory | null>(
-    null
+    null,
   );
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
-    null
+    null,
   );
   const [newMenuItem, setNewMenuItem] = useState<NewMenuItem>({
     name: "",
@@ -105,7 +105,7 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
       description?: string;
       price: number;
       categoryId: number;
-    }
+    },
   ) => {
     setIsPending(true);
     startTransition(() => {
@@ -166,7 +166,7 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
       name: string;
       description?: string;
       restaurantId: number;
-    }
+    },
   ) => {
     setIsPending(true);
     startTransition(() => {
@@ -190,7 +190,7 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
   const handleDeleteCategory = (id: number) => {
     if (
       window.confirm(
-        "Are you sure you want to delete this category? All items in this category will be moved to uncategorized."
+        "Are you sure you want to delete this category? All items in this category will be moved to uncategorized.",
       )
     ) {
       setIsPending(true);
@@ -213,20 +213,23 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
   }
 
   // Group items by category
-  const itemsByCategory = menuItems.reduce((acc, item) => {
-    const categoryId = item.categoryId;
-    if (!acc[categoryId]) {
-      acc[categoryId] = [];
-    }
-    acc[categoryId].push(item);
-    return acc;
-  }, {} as Record<number, MenuItemWithCategory[]>);
+  const itemsByCategory = menuItems.reduce(
+    (acc, item) => {
+      const categoryId = item.categoryId;
+      if (!acc[categoryId]) {
+        acc[categoryId] = [];
+      }
+      acc[categoryId].push(item);
+      return acc;
+    },
+    {} as Record<number, MenuItemWithCategory[]>,
+  );
 
   return (
-    <div className="p-4 text-black">
-      <div className="flex justify-between mb-6">
+    <div className="flex h-full min-h-0 flex-col overflow-y-auto p-4 text-black">
+      <div className="mb-6 flex shrink-0 justify-between">
         <div className="flex items-center gap-4">
-          <h2 className="text-2xl font-bold text-black">Menu</h2>
+          <h2 className="text-2xl font-bold text-white">Menu</h2>
         </div>
         <div className="flex gap-2">
           <Button
@@ -239,104 +242,106 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {categories.map((category) => (
-          <Card
-            key={category.id}
-            className="overflow-hidden rounded-lg border border-border bg-white shadow-sm"
-          >
-            <CardHeader className="flex flex-row items-center justify-between border-b border-border/60 bg-white text-black">
-              <div>
-                <h3 className="text-xl font-semibold text-black">
-                  {category.name}
-                </h3>
-                {category.description && (
-                  <p className="text-sm text-black">{category.description}</p>
-                )}
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-black hover:text-black"
-                  onClick={() => {
-                    setSelectedCategory(category);
-                    setIsUpdateCategoryModalOpen(true);
-                  }}
-                  disabled={isPending}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-black hover:text-black"
-                  onClick={() => handleDeleteCategory(category.id)}
-                  disabled={isPending}
-                >
-                  <Trash className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-black hover:text-black"
-                  onClick={() => {
-                    setNewMenuItem((prev) => ({
-                      ...prev,
-                      categoryId: category.id,
-                    }));
-                    setIsAddModalOpen(true);
-                  }}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="bg-white text-black">
-              <div className="space-y-4">
-                {itemsByCategory[category.id]?.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex justify-between items-center rounded-lg p-2 hover:bg-gray-50"
+      <div className="min-h-0 flex-1 pr-1">
+        <div className="grid grid-cols-1 gap-6 pb-4 md:grid-cols-2">
+          {categories.map((category) => (
+            <Card
+              key={category.id}
+              className="overflow-hidden rounded-lg border border-border bg-white shadow-sm"
+            >
+              <CardHeader className="flex flex-row items-center justify-between border-b border-border/60 bg-white text-black">
+                <div>
+                  <h3 className="text-xl font-semibold text-black">
+                    {category.name}
+                  </h3>
+                  {category.description && (
+                    <p className="text-sm text-black">{category.description}</p>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-black hover:text-black"
+                    onClick={() => {
+                      setSelectedCategory(category);
+                      setIsUpdateCategoryModalOpen(true);
+                    }}
+                    disabled={isPending}
                   >
-                    <div>
-                      <h4 className="font-medium text-black">{item.name}</h4>
-                      {item.description && (
-                        <p className="text-sm text-black">{item.description}</p>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="font-medium text-black tabular-nums">
-                        ${item.price.toFixed(2)}
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-black hover:text-black"
+                    onClick={() => handleDeleteCategory(category.id)}
+                    disabled={isPending}
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-black hover:text-black"
+                    onClick={() => {
+                      setNewMenuItem((prev) => ({
+                        ...prev,
+                        categoryId: category.id,
+                      }));
+                      setIsAddModalOpen(true);
+                    }}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="bg-white text-black">
+                <div className="space-y-4">
+                  {itemsByCategory[category.id]?.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between rounded-lg p-2 hover:bg-gray-50"
+                    >
+                      <div>
+                        <h4 className="font-medium text-black">{item.name}</h4>
+                        {item.description && (
+                          <p className="text-sm text-black">{item.description}</p>
+                        )}
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-black hover:text-black"
-                        onClick={() => {
-                          setSelectedItem(item);
-                          setIsUpdateModalOpen(true);
-                        }}
-                        disabled={isPending}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-black hover:text-black"
-                        onClick={() => handleDeleteItem(item.id)}
-                        disabled={isPending}
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center gap-4">
+                        <div className="font-medium text-black tabular-nums">
+                          ${item.price.toFixed(2)}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-black hover:text-black"
+                          onClick={() => {
+                            setSelectedItem(item);
+                            setIsUpdateModalOpen(true);
+                          }}
+                          disabled={isPending}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-black hover:text-black"
+                          onClick={() => handleDeleteItem(item.id)}
+                          disabled={isPending}
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
 
       {/* Add Menu Item Modal */}

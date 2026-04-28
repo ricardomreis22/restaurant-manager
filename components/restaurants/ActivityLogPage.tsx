@@ -14,6 +14,8 @@ import {
   ArrowUpDown,
   ArrowRight,
   ArrowLeft,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -191,6 +193,9 @@ export default function ActivityLogPage({
   const [activitiesPerPage, setActivitiesPerPage] = useState(
     ACTIVITIES_PER_PAGE_MD_UP,
   );
+  const [expandedActivityKey, setExpandedActivityKey] = useState<string | null>(
+    null,
+  );
   const [listSort, setListSort] = useState<SortState>(defaultSort);
   const [detailSort, setDetailSort] = useState<SortState>(defaultSort);
 
@@ -268,6 +273,10 @@ export default function ActivityLogPage({
   useEffect(() => {
     setActivityPage(1);
   }, [listSort.column, listSort.dir]);
+
+  useEffect(() => {
+    setExpandedActivityKey(null);
+  }, [activityPage, listSort.column, listSort.dir, restaurantId]);
 
   const totalActivityPages = Math.max(
     1,
@@ -513,7 +522,83 @@ export default function ActivityLogPage({
             ) : (
               <div className="flex flex-col justify-between h-full">
                 <Card className="overflow-hidden border border-border bg-white p-0 text-black shadow-sm">
-                  <div className="overflow-x-auto">
+                  <div className="divide-y border-border md:hidden">
+                    {pagedActivities.map((activity) => {
+                      const activityKey = `${activity.sessionId}-${activity.id}`;
+                      const isExpanded = expandedActivityKey === activityKey;
+
+                      return (
+                        <div key={activityKey} className="px-4 py-3">
+                          <button
+                            type="button"
+                            className="flex w-full items-center justify-between gap-3 text-left"
+                            onClick={() =>
+                              setExpandedActivityKey((prev) =>
+                                prev === activityKey ? null : activityKey,
+                              )
+                            }
+                          >
+                            <div className="min-w-0">
+                              <p className="font-medium text-black">
+                                Table {activity.tableNumber}
+                              </p>
+                              <p className="text-sm text-black/80">
+                                {formatDate(activity.timestamp)}
+                              </p>
+                            </div>
+                            {isExpanded ? (
+                              <ChevronUp className="h-4 w-4 shrink-0 text-black" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4 shrink-0 text-black" />
+                            )}
+                          </button>
+
+                          {isExpanded && (
+                            <div className="mt-3 space-y-2 rounded-md bg-muted/20 p-3 text-sm">
+                              <p className="text-black">
+                                <span className="font-medium">User:</span>{" "}
+                                {activity.user.name}
+                              </p>
+                              <p className="text-black">
+                                <span className="font-medium">Price:</span>{" "}
+                                {formatActivityPrice(activity.metadata)}
+                              </p>
+                              <div className="text-black">
+                                <span
+                                  className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getActivityTypeColor(
+                                    activity.activityType,
+                                  )}`}
+                                >
+                                  {activity.activityType.replace(/_/g, " ")}
+                                </span>
+                                <p className="mt-2">{activity.description}</p>
+                              </div>
+                              <div className="pt-1">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-black"
+                                  aria-label="Open session for this activity"
+                                  onClick={() => {
+                                    const session = sessions.find(
+                                      (s) => s.id === activity.sessionId,
+                                    );
+                                    if (session) setSelectedSession(session);
+                                  }}
+                                >
+                                  Open Session
+                                  <ArrowRight className="ml-1 h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="hidden overflow-x-auto md:block">
                     <table className="w-full min-w-[780px] border-collapse text-sm lg:text-base">
                       <thead>
                         <tr className="border-b border-border bg-muted/40">
@@ -610,7 +695,7 @@ export default function ActivityLogPage({
                   </div>
                 </Card>
                 {sortedActivities.length > activitiesPerPage && (
-                  <div className="mt-24 mb-6 flex flex-wrap items-center justify-center gap-2 text-sm lg:text-base">
+                  <div className="mt-24 mb-6 flex flex-col items-center justify-center gap-2 text-sm md:flex-row md:flex-wrap lg:text-base">
                     <Button
                       type="button"
                       variant="outline"

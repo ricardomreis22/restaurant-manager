@@ -434,12 +434,8 @@ const Floormap = ({
               <DndContext onDragEnd={handleDragEnd}>
                 <Droppable id="floor-map" className="max-sm:min-w-[768px]">
                   <div className="flex min-h-0 h-full w-full min-w-0 flex-col rounded-l max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden 2xl:h-auto">
-                    <div
-                      className="flex min-h-0 w-full min-w-0 flex-1 flex-col max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden items-center justify-center 2xl:h-auto 2xl:flex-none"
-                    >
-                      <div
-                        className="flex w-full min-h-0 flex-1 flex-col items-center gap-3 px-0 pb-2 pt-2 sm:pt-4 lg:px-2 lg:pb-2 lg:pt-3 2xl:flex-none"
-                      >
+                    <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden items-center justify-center 2xl:h-auto 2xl:flex-none">
+                      <div className="flex w-full min-h-0 flex-1 flex-col items-center gap-3 px-0 pb-2 pt-2 sm:pt-4 lg:px-2 lg:pb-2 lg:pt-3 2xl:flex-none">
                         <div className="mx-auto flex min-h-0 w-full max-w-full flex-1 flex-col items-center lg:max-w-[min(100%,66.666vw)] 2xl:flex-none">
                           <div
                             ref={mapFitRef}
@@ -552,22 +548,24 @@ const Floormap = ({
                 </Droppable>
               </DndContext>
               {isAdminView && (
-                <div className="flex w-full shrink-0 flex-col items-stretch justify-start gap-2 px-2 pb-2 md:flex-row md:items-center md:justify-center">
+                <div className="flex w-full shrink-0 flex-col items-start justify-start mb-10 gap-2 px-2 pb-2 lg:mb-48 lg:items-center">
                   <Button
                     onClick={() => setIsAddModalOpen(true)}
                     variant="outline"
-                    className="h-11 w-full whitespace-nowrap text-base md:w-40"
+                    size="sm"
+                    className="h-8 w-32 shrink-0 transform gap-2 px-2 py-1 text-black shadow-lg transition-transform duration-200 hover:scale-110 sm:h-9 sm:px-3 sm:py-2 lg:w-1/3 xl:w-1/4"
                   >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Table
+                    <Plus className="h-4 w-4" />
+                    <span className="ml-1">Add Table</span>
                   </Button>
                   <Button
                     onClick={() => setIsDeleteModalOpen(true)}
                     variant="outline"
-                    className="h-11 w-full whitespace-nowrap border-destructive/50 text-base text-destructive hover:bg-destructive/10 md:w-40"
+                    size="sm"
+                    className="h-8 w-32 shrink-0 transform gap-2 border-destructive/50 px-2 py-1 text-destructive shadow-lg transition-transform duration-200 hover:scale-110 hover:bg-destructive/10 sm:h-9 sm:px-3 sm:py-2 lg:w-1/3 xl:w-1/4"
                   >
-                    <Trash className="mr-2 h-4 w-4" />
-                    Delete Table
+                    <Trash className="h-4 w-4" />
+                    <span className="ml-1">Delete Table</span>
                   </Button>
                 </div>
               )}
