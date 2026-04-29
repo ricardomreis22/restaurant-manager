@@ -227,18 +227,9 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-y-auto p-4 text-black">
-      <div className="mb-6 flex shrink-0 justify-between">
+      <div className="mb-6 flex shrink-0">
         <div className="flex items-center gap-4">
           <h2 className="text-2xl font-bold text-white">Menu</h2>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            onClick={() => setIsAddCategoryModalOpen(true)}
-            disabled={isPending}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Category
-          </Button>
         </div>
       </div>
 
@@ -301,18 +292,29 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
                   {itemsByCategory[category.id]?.map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-center justify-between rounded-lg p-2 hover:bg-gray-50"
+                      className="flex items-center gap-3 rounded-lg p-2 hover:bg-gray-50"
                     >
-                      <div>
-                        <h4 className="font-medium text-black">{item.name}</h4>
-                        {item.description && (
-                          <p className="text-sm text-black">{item.description}</p>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="font-medium text-black tabular-nums">
-                          ${item.price.toFixed(2)}
+                      <div className="flex-1">
+                        <div className="sm:flex sm:items-start sm:justify-between sm:gap-4">
+                          <div>
+                            <h4 className="font-medium text-black">
+                              {item.name}
+                            </h4>
+                            <div className="font-medium text-black tabular-nums sm:hidden">
+                              ${item.price.toFixed(2)}
+                            </div>
+                            {item.description && (
+                              <p className="text-sm text-black">
+                                {item.description}
+                              </p>
+                            )}
+                          </div>
+                          <div className="hidden font-medium text-black tabular-nums sm:block">
+                            ${item.price.toFixed(2)}
+                          </div>
                         </div>
+                      </div>
+                      <div className="flex items-center justify-center gap-2">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -341,6 +343,21 @@ export default function MenuPage({ restaurantId }: MenuPageProps) {
               </CardContent>
             </Card>
           ))}
+        </div>
+      </div>
+
+      <div className="mt-3 flex shrink-0 justify-end">
+        <div className="group relative">
+          <Button
+            size="icon"
+            onClick={() => setIsAddCategoryModalOpen(true)}
+            disabled={isPending}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+          <span className="pointer-events-none absolute right-0 top-[-2rem] hidden whitespace-nowrap rounded bg-black px-2 py-1 text-xs text-white group-hover:block">
+            Add Category
+          </span>
         </div>
       </div>
 
