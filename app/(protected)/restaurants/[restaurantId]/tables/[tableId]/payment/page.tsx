@@ -107,7 +107,7 @@ export default function PaymentPage() {
 
     setIsProcessingPayment(true);
     const pendingOrders = placedOrders.filter(
-      (order) => order.status === "Pending"
+      (order) => order.status === "Pending",
     );
 
     startTransition(async () => {
@@ -142,7 +142,7 @@ export default function PaymentPage() {
   }
 
   const pendingOrders = placedOrders.filter(
-    (order) => order.status === "Pending"
+    (order) => order.status === "Pending",
   );
 
   const totalAmount = calculateTotalAmount(placedOrders);
@@ -167,11 +167,11 @@ export default function PaymentPage() {
         <div className="w-10"></div> {/* Spacer for centering */}
       </div>
 
-      <div className="flex flex-1 overflow-hidden justify-center items-center">
+      <div className="flex flex-1 overflow-hidden justify-center items-center text-primary">
         <div className="w-full xl:w-2/5 flex justify-center items-start overflow-y-auto h-full">
           <div className="p-6 grid gap-6 grid-cols-1 w-full xl:w-[95%] xl:max-w-xl xl:px-6 my-6">
             {/* Orders Summary */}
-            <Card className="p-4 bg-transparent text-white shadow-md">
+            <Card className="p-4 bg-white shadow-md rounded-lg">
               <div className="flex items-center gap-2 mb-4">
                 <Receipt className="h-5 w-5" />
                 <span className="text-base font-semibold">
@@ -181,10 +181,7 @@ export default function PaymentPage() {
 
               <div className="space-y-3">
                 {pendingOrders.map((order) => (
-                  <Card
-                    key={order.id}
-                    className="p-3 bg-transparent text-white"
-                  >
+                  <Card key={order.id} className="p-3">
                     <div className="flex justify-between text-sm mb-2">
                       <span className="font-medium">{order.orderNumber}</span>
                       <span className="font-semibold">
@@ -219,7 +216,7 @@ export default function PaymentPage() {
             </Card>
 
             {/* Payment Options */}
-            <Card className="p-6 bg-transparent text-white shadow-md">
+            <Card className="p-6 bg-white shadow-md rounded-lg">
               <div className="flex items-center gap-2 mb-6">
                 <CreditCard className="h-5 w-5" />
                 <h2 className="text-xl font-semibold">Payment Method</h2>
@@ -303,7 +300,7 @@ export default function PaymentPage() {
                     variant="outline"
                     onClick={() =>
                       router.push(
-                        `/restaurants/${restaurantId}/tables/${tableId}`
+                        `/restaurants/${restaurantId}/tables/${tableId}`,
                       )
                     }
                   >

@@ -38,7 +38,13 @@ import { toast } from "sonner";
 import { TableLocker } from "./TableLocker";
 import io from "socket.io-client";
 import { checkTableLock } from "@/actions/tables";
-import { DndContext, DragEndEvent } from "@dnd-kit/core";
+import {
+  DndContext,
+  DragEndEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 import { Droppable } from "../dnd/Droppable";
 import { Draggable } from "../dnd/Draggable";
 
@@ -101,6 +107,14 @@ const Floormap = ({
   const GRID_ROWS = 10;
   // Used to convert legacy pixel positions from DB into grid coords
   const REF_CELL_PX = 40;
+
+  // Require a small movement before drag starts so plain clicks on a
+  // draggable table still fire the underlying onClick handler.
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    }),
+  );
 
   // Size the 16×10 map so each cell is square: cell = min(aw/16, ah/10).
   useEffect(() => {
@@ -431,7 +445,7 @@ const Floormap = ({
         <div className="relative flex min-h-0 w-full min-w-0 flex-1 flex-col max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden 2xl:flex-row 2xl:items-end 2xl:gap-4 2xl:min-h-0">
           <div className="flex min-h-0 h-full w-full min-w-0 flex-1 flex-col rounded-lg max-sm:overflow-x-auto max-sm:overflow-y-hidden sm:overflow-hidden 2xl:h-auto 2xl:min-h-0 2xl:min-w-0 2xl:flex-1 2xl:self-start">
             <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col">
-              <DndContext onDragEnd={handleDragEnd}>
+              <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
                 <Droppable id="floor-map" className="max-sm:min-w-[768px]">
                   <div className="flex min-h-0 h-full w-full min-w-0 flex-col rounded-l max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden 2xl:h-auto">
                     <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden items-center justify-center 2xl:h-auto 2xl:flex-none">
@@ -547,32 +561,37 @@ const Floormap = ({
                   </div>
                 </Droppable>
               </DndContext>
-              {isAdminView && (
-                <div className="flex w-full shrink-0 flex-col items-start justify-start mb-10 gap-2 px-2 pb-2 lg:mb-48 lg:items-center">
-                  <Button
-                    onClick={() => setIsAddModalOpen(true)}
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-32 shrink-0 transform gap-2 px-2 py-1 text-black shadow-lg transition-transform duration-200 hover:scale-110 sm:h-9 sm:px-3 sm:py-2 lg:w-1/3 xl:w-1/4"
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span className="ml-1">Add Table</span>
-                  </Button>
-                  <Button
-                    onClick={() => setIsDeleteModalOpen(true)}
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-32 shrink-0 transform gap-2 border-destructive/50 px-2 py-1 text-destructive shadow-lg transition-transform duration-200 hover:scale-110 hover:bg-destructive/10 sm:h-9 sm:px-3 sm:py-2 lg:w-1/3 xl:w-1/4"
-                  >
-                    <Trash className="h-4 w-4" />
-                    <span className="ml-1">Delete Table</span>
-                  </Button>
-                </div>
-              )}
             </div>
           </div>
         </div>
       </div>
+
+      {isAdminView && (
+        <div className="group fixed bottom-10 right-4 z-50 flex justify-center flex-col items-end gap-2">
+          <Button
+            onClick={() => setIsAddModalOpen(true)}
+            variant="outline"
+            size="sm"
+            className=" inline-flex h-8 transform gap-0 px-2 text-black shadow-lg transition-all duration-200 hover:scale-110 items-center justify-center leading-none group-hover:gap-2 group-hover:px-3"
+          >
+            <Plus className="size-4 shrink-0 self-center" aria-hidden />
+            <span className="hidden leading-none group-hover:inline min-w-20">
+              Add Table
+            </span>
+          </Button>
+          <Button
+            onClick={() => setIsDeleteModalOpen(true)}
+            variant="outline"
+            size="sm"
+            className="group inline-flex h-8 transform gap-0 border-destructive/50 px-2 text-destructive shadow-lg transition-all duration-200 hover:scale-110 hover:bg-destructive items-center justify-center leading-none group-hover:gap-2 group-hover:px-3"
+          >
+            <Trash className="size-4 shrink-0 self-center" aria-hidden />
+            <span className="hidden leading-none ml-1 group-hover:inline min-w-20">
+              Delete Table
+            </span>
+          </Button>
+        </div>
+      )}
 
       {/* Add Table Modal */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>

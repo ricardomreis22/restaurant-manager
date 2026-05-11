@@ -190,7 +190,7 @@ export default function RestaurantView({
         ) : null}
       </div>
       {userRole === "ADMIN" && !isAdminView && (
-        <div className="fixed bottom-6 right-6 z-50">
+        <div className="fixed bottom-10 right-4 z-50">
           <Button
             onClick={() => router.push(`/admin/restaurants/${restaurantId}`)}
             variant="outline"

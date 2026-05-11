@@ -74,7 +74,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [placedOrders, setPlacedOrders] = useState<PlacedOrder[]>([]);
   const [selectedItem, setSelectedItem] = useState<MenuItemWithCategory | null>(
-    null
+    null,
   );
   const [isFoodModalOpen, setIsFoodModalOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -156,14 +156,14 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
           orderItem.menuItemId === selectedItem.id &&
           orderItem.spicyLevel === data.spicyLevel &&
           orderItem.sides === data.sides &&
-          orderItem.orderNotes === data.notes
+          orderItem.orderNotes === data.notes,
       );
 
       if (existingItem) {
         return currentOrder.map((orderItem) =>
           orderItem.id === existingItem.id
             ? { ...orderItem, quantity: orderItem.quantity + 1 }
-            : orderItem
+            : orderItem,
         );
       }
 
@@ -200,9 +200,9 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
         .map((item) =>
           item.id === orderItemId
             ? { ...item, quantity: item.quantity - 1 }
-            : item
+            : item,
         )
-        .filter((item) => item.quantity > 0)
+        .filter((item) => item.quantity > 0),
     );
   };
 
@@ -279,7 +279,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
         <div
           className={`${
             isMenuOpen ? "block" : "hidden"
-          } md:block w-full md:w-1/2 lg:w-2/3 xl:w-3/4 bg-primary/80 px-8 py-12 overflow-y-auto md:bg-white md:bg-opacity-100 md:bg-transparent
+          } md:block w-full md:w-1/2 lg:w-2/3 xl:w-3/4 bg-primary px-8 py-12 overflow-y-auto md:bg-white md:bg-opacity-100 md:bg-transparent
           absolute md:relative top-0 left-0 right-0 bottom-0 z-10 md:z-auto h-screen md:h-full`}
         >
           {/* Category Tabs - Hidden on small screens */}
@@ -379,7 +379,9 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                 </Button>
               </div>
               <h3 className="text-xl font-semibold text-white mb-4">
-                {categories.find((c) => c.id === selectedMobileCategory)?.name}{" "}
+                {
+                  categories.find((c) => c.id === selectedMobileCategory)?.name
+                }{" "}
               </h3>
               <div className="space-y-2">
                 {menuItems
@@ -513,8 +515,8 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                                       ...orderItem,
                                       quantity: orderItem.quantity + 1,
                                     }
-                                  : orderItem
-                              )
+                                  : orderItem,
+                              ),
                             );
                           }}
                         >
@@ -559,7 +561,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                 <Button
                   onClick={() =>
                     router.push(
-                      `/restaurants/${restaurantId}/tables/${table.id}/payment`
+                      `/restaurants/${restaurantId}/tables/${table.id}/payment`,
                     )
                   }
                   className="gap-2"
@@ -574,20 +576,23 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                 <p className="text-gray-400">No orders placed yet</p>
               ) : (
                 placedOrders.map((placedOrder) => (
-                  <Card key={placedOrder.id} className="p-4">
+                  <Card
+                    key={placedOrder.id}
+                    className="p-4 bg-transparent border border-gray-600 text-white shadow-none"
+                  >
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-white">
                           {placedOrder.orderNumber}
                         </p>
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <div className="flex items-center gap-2 text-sm text-gray-300">
                           <Clock className="h-4 w-4" />
                           {formatDate(placedOrder.createdAt)}
                         </div>
                       </div>
                       <div
                         className={`px-2 py-1 rounded text-sm font-medium ${getStatusColor(
-                          placedOrder.status
+                          placedOrder.status,
                         )}`}
                       >
                         {placedOrder.status}
@@ -597,16 +602,16 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                       {placedOrder.items.map((item, index) => (
                         <div key={index} className="flex flex-col text-sm">
                           <div className="flex justify-between">
-                            <span className="text-gray-900">
+                            <span className="text-white">
                               {item.quantity}x {item.menuItem.name}
                             </span>
-                            <span className="text-gray-600">
+                            <span className="text-gray-300">
                               $
                               {(item.menuItem.price * item.quantity).toFixed(2)}
                             </span>
                           </div>
                           {(item.spicyLevel || item.sides || item.notes) && (
-                            <div className="text-gray-500 text-xs mt-1">
+                            <div className="text-gray-300 text-xs mt-1">
                               {item.spicyLevel && (
                                 <p>Spicy Level: {item.spicyLevel}</p>
                               )}
@@ -616,8 +621,8 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                           )}
                         </div>
                       ))}
-                      <div className="md:border-t pt-2 mt-2">
-                        <div className="flex justify-between font-medium text-gray-900">
+                      <div className="border-t border-gray-600 pt-2 mt-2">
+                        <div className="flex justify-between font-medium text-white">
                           <span>Total</span>
                           <span>${placedOrder.totalAmount.toFixed(2)}</span>
                         </div>
