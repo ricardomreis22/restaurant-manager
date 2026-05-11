@@ -313,7 +313,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                     <Button
                       key={category.id}
                       variant="ghost"
-                      className="w-full justify-start text-white hover:bg-white hover:text-black transition-colors"
+                      className="w-full justify-start text-white  hover:text-black transition-colors"
                       onClick={() => {
                         setSelectedMobileCategory(category.id);
                       }}
@@ -418,7 +418,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
             {filteredItems.map((item) => (
               <Card
                 key={item.id}
-                className="p-4 cursor-pointer hover:shadow-md transition"
+                className="p-4 cursor-pointer bg-primary rounded-lg hover:shadow-md transition"
                 onClick={() => {
                   handleAddToOrder(item);
                   // Close menu on mobile after selecting an item
