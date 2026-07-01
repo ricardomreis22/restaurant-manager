@@ -86,6 +86,26 @@ export async function getTables(restaurantId: number) {
   }
 }
 
+export async function getTable(tableId: number, restaurantId: number) {
+  try {
+    const table = await prisma.table.findFirst({
+      where: {
+        id: tableId,
+        restaurantId,
+      },
+    });
+
+    if (!table) {
+      return { success: false as const, table: null };
+    }
+
+    return { success: true as const, table };
+  } catch (error) {
+    console.error("[GET_TABLE_ERROR]", error);
+    throw error;
+  }
+}
+
 export async function toggleTableLock(tableId: number, locked: boolean) {
   try {
     const session = await auth();

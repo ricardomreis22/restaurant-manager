@@ -8,7 +8,6 @@ import { Settings } from "lucide-react";
 import Floormap from "@/components/restaurants/FloorMap";
 import StaffPage from "@/components/restaurants/StaffPage";
 import MenuPage from "@/components/restaurants/MenuPage";
-import { TableView } from "@/components/restaurants/TableView";
 import ActivityLogPage from "@/components/restaurants/ActivityLogPage";
 import { useCurrentRole } from "@/hooks/use-current-role";
 import { checkAdmin } from "@/actions/admin";
@@ -79,8 +78,6 @@ export default function RestaurantView({
     }
   }, [isAdminView]);
 
-  const [selectedTable, setSelectedTable] = useState<Table | null>(null);
-
   const adminSetDisplay = async (newDisplay: string) => {
     try {
       await checkAdmin();
@@ -128,13 +125,6 @@ export default function RestaurantView({
     prevDisplayRef.current = currentDisplayValue;
   }, [display, isAdminView, adminContext, restaurantId]);
 
-  const handleTableSelect = (tableId: number) => {
-    const table = tables.find((t) => t.id === tableId);
-    if (table) {
-      setSelectedTable(table);
-    }
-  };
-
   // Get the current display value
   const currentDisplay =
     isAdminView && adminContext ? adminContext.currentTab : display;
@@ -157,18 +147,11 @@ export default function RestaurantView({
     <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden">
       {/* flex-1 + h-full: fill space below nav only (never 100vh) */}
       <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden">
-        {selectedTable ? (
-          <TableView
-            table={selectedTable}
-            restaurantId={restaurantId}
-            onClose={() => setSelectedTable(null)}
-          />
-        ) : currentDisplay === "employees" && isAdminView ? (
+        {currentDisplay === "employees" && isAdminView ? (
           <StaffPage />
         ) : currentDisplay === "floormap" ? (
           <Floormap
             tables={tables}
-            onTableSelect={handleTableSelect}
             isAdminView={isAdminView}
             restaurantId={restaurantId}
             restaurantName={restaurant.name}

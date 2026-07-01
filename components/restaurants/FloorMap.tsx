@@ -54,7 +54,6 @@ interface Table {
 
 interface FloorMapProps {
   tables: Table[];
-  onTableSelect: (tableId: number) => void;
   onToggleLock?: (tableId: number, locked: boolean) => void;
   isAdminView?: boolean;
   restaurantId: number;
@@ -66,7 +65,6 @@ interface FloorMapProps {
 
 const Floormap = ({
   tables,
-  onTableSelect,
   onToggleLock,
   isAdminView = false,
   restaurantId,
@@ -257,7 +255,6 @@ const Floormap = ({
         toast.error("Failed to lock table");
       }
       setSelectedTable(table.id);
-      onTableSelect(table.id);
       router.push(`/restaurants/${restaurantId}/tables/${table.id}`);
     } else {
       setSelectedTable(tableId);
@@ -289,7 +286,6 @@ const Floormap = ({
       );
       // Close the modal and navigate to the table
       setIsSeatModalOpen(false);
-      onTableSelect(selectedTable);
       router.push(`/restaurants/${restaurantId}/tables/${selectedTable}`);
     } catch (error) {
       console.error("Failed to confirm seating:", error);

@@ -10,22 +10,40 @@ import { ArrowLeft, Clock, CreditCard, Menu, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FoodModal } from "./FoodModal";
-import { toggleTableLock } from "@/actions/tables";
+import { toggleTableLock, getTable } from "@/actions/tables";
+import { TableLoadingScreen } from "./TableLoadingScreen";
 
-interface TableViewProps {
-  table: {
-    id: number;
-    number: number;
-    capacity: number;
-    isReserved: boolean;
-    isLocked: boolean;
-  };
-  restaurantId: number;
-  onClose: () => void;
+export interface MenuItemWithCategory extends MenuItems {
+  category: Category;
 }
 
-interface MenuItemWithCategory extends MenuItems {
-  category: Category;
+export interface PlacedOrder {
+  id: number;
+  orderNumber: string;
+  status: string;
+  totalAmount: number;
+  createdAt: Date;
+  items: {
+    quantity: number;
+    menuItem: MenuItems;
+    spicyLevel: string | null;
+    sides: string | null;
+    notes: string | null;
+  }[];
+}
+
+interface TableData {
+  id: number;
+  number: number;
+  capacity: number;
+  isReserved: boolean;
+  isLocked: boolean;
+}
+
+interface TableViewProps {
+  tableId: number;
+  restaurantId: number;
+  onClose: () => void;
 }
 
 interface OrderItem {
@@ -48,33 +66,20 @@ interface OrderItem {
   isAvailable: boolean;
 }
 
-interface PlacedOrder {
-  id: number;
-  orderNumber: string;
-  status: string;
-  totalAmount: number;
-  createdAt: Date;
-  items: {
-    quantity: number;
-    menuItem: MenuItems;
-    spicyLevel: string | null;
-    sides: string | null;
-    notes: string | null;
-  }[];
-}
-
-export function TableView({ table, restaurantId, onClose }: TableViewProps) {
+export function TableView({ tableId, restaurantId, onClose }: TableViewProps) {
   const router = useRouter();
   const isFirstRender = useRef(true);
+  const [table, setTable] = useState<TableData | null>(null);
+  const [notFound, setNotFound] = useState(false);
   const [order, setOrder] = useState<OrderItem[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItemWithCategory[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [placedOrders, setPlacedOrders] = useState<PlacedOrder[]>([]);
   const [selectedItem, setSelectedItem] = useState<MenuItemWithCategory | null>(
-    null
+    null,
   );
   const [isFoodModalOpen, setIsFoodModalOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -84,12 +89,23 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
 
   useEffect(() => {
     const loadData = async () => {
+      setLoading(true);
+      setNotFound(false);
       try {
-        const [categoriesData, menuItemsData, ordersData] = await Promise.all([
-          getCategories(restaurantId),
-          getMenuItems(restaurantId),
-          getTableOrders(table.id),
-        ]);
+        const [tableResponse, categoriesData, menuItemsData, ordersData] =
+          await Promise.all([
+            getTable(tableId, restaurantId),
+            getCategories(restaurantId),
+            getMenuItems(restaurantId),
+            getTableOrders(tableId),
+          ]);
+
+        if (!tableResponse.success || !tableResponse.table) {
+          setNotFound(true);
+          return;
+        }
+
+        setTable(tableResponse.table);
         setCategories(categoriesData);
         setMenuItems(menuItemsData as MenuItemWithCategory[]);
         if (categoriesData.length > 0) {
@@ -106,7 +122,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
     };
 
     loadData();
-  }, [restaurantId, table.id, onClose]);
+  }, [restaurantId, tableId]);
 
   // Unlock table when leaving the view
   useEffect(() => {
@@ -117,20 +133,18 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
     }
 
     return () => {
-      // This cleanup function runs when the component unmounts
-      if (table.isLocked) {
-        toggleTableLock(table.id, false).catch((error) => {
+      if (table?.isLocked) {
+        toggleTableLock(tableId, false).catch((error) => {
           console.error("Failed to unlock table:", error);
         });
       }
     };
-  }, [table.id, table.isLocked]);
+  }, [tableId, table?.isLocked]);
 
-  // Also unlock when explicitly closing the view
   const handleClose = async () => {
-    if (table.isLocked) {
+    if (table?.isLocked) {
       try {
-        await toggleTableLock(table.id, false);
+        await toggleTableLock(tableId, false);
       } catch (error) {
         console.error("Failed to unlock table:", error);
       }
@@ -156,14 +170,14 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
           orderItem.menuItemId === selectedItem.id &&
           orderItem.spicyLevel === data.spicyLevel &&
           orderItem.sides === data.sides &&
-          orderItem.orderNotes === data.notes
+          orderItem.orderNotes === data.notes,
       );
 
       if (existingItem) {
         return currentOrder.map((orderItem) =>
           orderItem.id === existingItem.id
             ? { ...orderItem, quantity: orderItem.quantity + 1 }
-            : orderItem
+            : orderItem,
         );
       }
 
@@ -200,9 +214,9 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
         .map((item) =>
           item.id === orderItemId
             ? { ...item, quantity: item.quantity - 1 }
-            : item
+            : item,
         )
-        .filter((item) => item.quantity > 0)
+        .filter((item) => item.quantity > 0),
     );
   };
 
@@ -211,7 +225,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
   };
 
   const handlePlaceOrder = () => {
-    if (order.length === 0) return;
+    if (!table || order.length === 0) return;
 
     setIsPlacingOrder(true);
     startTransition(() => {
@@ -232,7 +246,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
             // Clear the current order
             setOrder([]);
             // Refresh placed orders
-            const ordersData = await getTableOrders(table.id);
+            const ordersData = await getTableOrders(tableId);
             if (ordersData.success) {
               setPlacedOrders(ordersData.orders);
             }
@@ -265,7 +279,15 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
   };
 
   if (loading) {
-    return <div>Loading menu...</div>;
+    return <TableLoadingScreen message="Loading table..." />;
+  }
+
+  if (notFound || !table) {
+    return (
+      <div className="flex h-screen flex-col items-center justify-center gap-4 bg-white">
+        <p className="text-gray-600">Table not found.</p>
+      </div>
+    );
   }
 
   const filteredItems = selectedCategory
@@ -279,11 +301,11 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
         <div
           className={`${
             isMenuOpen ? "block" : "hidden"
-          } md:block w-full md:w-1/2 lg:w-2/3 xl:w-3/4 bg-primary/80 px-8 py-12 overflow-y-auto md:bg-white md:bg-opacity-100 md:bg-transparent
+          } md:block w-full md:w-1/2 lg:w-2/3 xl:w-3/4 bg-white px-8 py-12 overflow-y-auto md:bg-opacity-100
           absolute md:relative top-0 left-0 right-0 bottom-0 z-10 md:z-auto h-screen md:h-full`}
         >
           {/* Category Tabs - Hidden on small screens */}
-          <div className="flex just ify-between items-center mb-16 ">
+          <div className="flex just ify-between items-center mb-16 xl:text-xl">
             <div className="hidden md:flex gap-2 overflow-x-auto pb-2  ">
               {categories.map((category) => (
                 <Button
@@ -292,7 +314,6 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                     selectedCategory === category.id ? "default" : "outline"
                   }
                   onClick={() => setSelectedCategory(category.id)}
-                  className="text-black"
                 >
                   {category.name}
                 </Button>
@@ -303,17 +324,15 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
           {/* Categories List - Only visible on small screens */}
           {selectedMobileCategory === null ? (
             <div className="block md:hidden mb-6 mt-10 ">
-              <h3 className="text-xl font-semibold text-white mb-4">
-                Categories
-              </h3>
-              <div className="space-y-2 border-b-2 border-white pb-6">
+              <h3 className="text-xl font-semibold mb-4">Categories</h3>
+              <div className="space-y-2 border-b-2 border-gray-300 pb-6">
                 {categories
                   .sort((a, b) => a.name.localeCompare(b.name))
                   .map((category) => (
                     <Button
                       key={category.id}
                       variant="ghost"
-                      className="w-full justify-start text-white hover:bg-white hover:text-black transition-colors"
+                      className="w-full justify-start hover:bg-gray-100 transition-colors xl:text-xl"
                       onClick={() => {
                         setSelectedMobileCategory(category.id);
                       }}
@@ -325,35 +344,27 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
 
               {/* All Menu Items - Only visible when no category is selected */}
               <div className="mt-8">
-                <h3 className="text-xl font-semibold text-white mb-4">
-                  All Menu Items
-                </h3>
+                <h3 className="text-xl font-semibold mb-4">All Menu Items</h3>
                 <div className="space-y-2">
                   {menuItems
                     .sort((a, b) => a.name.localeCompare(b.name))
                     .map((item) => (
                       <div
                         key={item.id}
-                        className="flex justify-between items-center p-3 bg-white bg-opacity-10 rounded-lg cursor-pointer hover:bg-white hover:bg-opacity-20 transition-colors"
+                        className="flex justify-between items-center p-3 bg-white border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
                         onClick={() => {
                           handleAddToOrder(item);
                           setIsMenuOpen(false);
                         }}
                       >
                         <div className="flex-1">
-                          <h4 className="font-medium text-white">
-                            {item.name}
-                          </h4>
+                          <h4 className="font-medium">{item.name}</h4>
                           {item.description && (
-                            <p className="text-sm text-gray-300 mt-1">
-                              {item.description}
-                            </p>
+                            <p className="text-sm mt-1">{item.description}</p>
                           )}
-                          <p className="text-xs text-gray-400 mt-1">
-                            {item.category.name}
-                          </p>
+                          <p className="text-xs mt-1">{item.category.name}</p>
                         </div>
-                        <p className="font-medium text-white ml-4">
+                        <p className="font-medium ml-4">
                           ${item.price.toFixed(2)}
                         </p>
                       </div>
@@ -369,7 +380,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-white hover:bg-white hover:text-black transition-colors"
+                  className="hover:bg-gray-100 transition-colors"
                   onClick={() => {
                     setSelectedMobileCategory(null);
                   }}
@@ -378,8 +389,10 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                   Back to Categories
                 </Button>
               </div>
-              <h3 className="text-xl font-semibold text-white mb-4">
-                {categories.find((c) => c.id === selectedMobileCategory)?.name}{" "}
+              <h3 className="text-xl font-semibold mb-4">
+                {
+                  categories.find((c) => c.id === selectedMobileCategory)?.name
+                }{" "}
               </h3>
               <div className="space-y-2">
                 {menuItems
@@ -388,21 +401,19 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                   .map((item) => (
                     <div
                       key={item.id}
-                      className="flex justify-between items-center p-3 bg-white bg-opacity-10 rounded-lg cursor-pointer hover:bg-white hover:bg-opacity-20 transition-colors"
+                      className="flex justify-between items-center p-3 bg-white border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors "
                       onClick={() => {
                         handleAddToOrder(item);
                         setIsMenuOpen(false);
                       }}
                     >
                       <div className="flex-1">
-                        <h4 className="font-medium text-white">{item.name}</h4>
+                        <h4 className="font-medium">{item.name}</h4>
                         {item.description && (
-                          <p className="text-sm text-gray-300 mt-1">
-                            {item.description}
-                          </p>
+                          <p className="text-sm mt-1">{item.description}</p>
                         )}
                       </div>
-                      <p className="font-medium text-white ml-4">
+                      <p className="font-medium ml-4">
                         ${item.price.toFixed(2)}
                       </p>
                     </div>
@@ -416,7 +427,8 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
             {filteredItems.map((item) => (
               <Card
                 key={item.id}
-                className="p-4 cursor-pointer hover:shadow-md transition"
+                className="p-4 border border-gray-300 cursor-pointer hover:shadow-md transition text-black xl:text-xl
+"
                 onClick={() => {
                   handleAddToOrder(item);
                   // Close menu on mobile after selecting an item
@@ -427,9 +439,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                   <div>
                     <h3 className="font-semibold">{item.name}</h3>
                     {item.description && (
-                      <p className="text-sm text-gray-600">
-                        {item.description}
-                      </p>
+                      <p className="text-sm">{item.description}</p>
                     )}
                   </div>
                   <p className="font-medium">${item.price.toFixed(2)}</p>
@@ -440,13 +450,13 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
         </div>
 
         {/* Orders (Right Side) - Full width on small screens */}
-        <div className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 md:border-l overflow-hidden flex flex-col text-white">
+        <div className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 md:border-l overflow-hidden flex flex-col">
           {/* Hamburger Menu Button - Only visible on small screens */}
           <div className="z-50 flex items-center justify-between border-b-2 border-white bg-primary p-4 md:hidden">
             <Button
               variant="ghost"
               size="sm"
-              className=" hover:bg-white hover:text-black transition-colors"
+              className="hover:bg-white transition-colors"
               onClick={handleClose}
             >
               <ArrowLeft className="h-4 w-4" />
@@ -467,23 +477,21 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
           </div>
 
           {/* Current Order */}
-          <div className=" p-10 border-b-2 border-white md:mt-0 md:mb-0 md:border md:border-gray-600">
-            <h3 className="text-xl font-semibold mb-4 text-white">
-              Current Order
-            </h3>
+          <div className=" p-10 border-b-2 border-gray-300 md:mt-0 md:mb-0 md:border md:border-gray-600">
+            <h3 className="text-xl font-semibold mb-4">Current Order</h3>
             {order.length === 0 ? (
-              <p className="text-gray-400">No items in order</p>
+              <p>No items in order</p>
             ) : (
               <div className="space-y-4">
                 {order.map((item) => (
                   <div
                     key={item.id}
-                    className="flex justify-between items-start p-3 rounded-lg shadow-sm md:border md:border-gray-600"
+                    className="flex justify-between items-start p-3 rounded-lg border border-gray-300 bg-white"
                   >
                     <div>
-                      <h4 className="font-medium text-white">{item.name}</h4>
+                      <h4 className="font-medium">{item.name}</h4>
                       {(item.spicyLevel || item.sides || item.orderNotes) && (
-                        <div className="text-sm text-gray-300 mt-1">
+                        <div className="text-sm mt-1">
                           {item.spicyLevel && (
                             <p>Spicy Level: {item.spicyLevel}</p>
                           )}
@@ -499,9 +507,7 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                         >
                           -
                         </Button>
-                        <span className="text-sm text-white">
-                          {item.quantity}
-                        </span>
+                        <span className="text-sm">{item.quantity}</span>
                         <Button
                           variant="outline"
                           size="sm"
@@ -513,8 +519,8 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                                       ...orderItem,
                                       quantity: orderItem.quantity + 1,
                                     }
-                                  : orderItem
-                              )
+                                  : orderItem,
+                              ),
                             );
                           }}
                         >
@@ -523,15 +529,15 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium text-white">
+                      <p className="font-medium">
                         ${(item.price * item.quantity).toFixed(2)}
                       </p>
                     </div>
                   </div>
                 ))}
 
-                <div className="md:border-t md:border-gray-600 pt-4 mt-4">
-                  <div className="flex justify-between font-semibold text-lg text-white">
+                <div className="border-t border-gray-300 pt-4 mt-4">
+                  <div className="flex justify-between font-semibold text-lg">
                     <span>Total</span>
                     <span>${calculateTotal().toFixed(2)}</span>
                   </div>
@@ -552,14 +558,12 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
           {/* Placed Orders */}
           <div className="flex-1 overflow-y-auto p-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold text-white">
-                Placed Orders
-              </h3>
+              <h3 className="text-xl font-semibold">Placed Orders</h3>
               {placedOrders.some((order) => order.status === "Pending") && (
                 <Button
                   onClick={() =>
                     router.push(
-                      `/restaurants/${restaurantId}/tables/${table.id}/payment`
+                      `/restaurants/${restaurantId}/tables/${table.id}/payment`,
                     )
                   }
                   className="gap-2"
@@ -571,23 +575,26 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
             </div>
             <div className="space-y-4">
               {placedOrders.length === 0 ? (
-                <p className="text-gray-400">No orders placed yet</p>
+                <p>No orders placed yet</p>
               ) : (
                 placedOrders.map((placedOrder) => (
-                  <Card key={placedOrder.id} className="p-4">
+                  <Card
+                    key={placedOrder.id}
+                    className="p-4 border border-gray-300 "
+                  >
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium ">
                           {placedOrder.orderNumber}
                         </p>
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <div className="flex items-center gap-2 text-sm ">
                           <Clock className="h-4 w-4" />
                           {formatDate(placedOrder.createdAt)}
                         </div>
                       </div>
                       <div
                         className={`px-2 py-1 rounded text-sm font-medium ${getStatusColor(
-                          placedOrder.status
+                          placedOrder.status,
                         )}`}
                       >
                         {placedOrder.status}
@@ -595,18 +602,21 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                     </div>
                     <div className="space-y-2">
                       {placedOrder.items.map((item, index) => (
-                        <div key={index} className="flex flex-col text-sm">
+                        <div
+                          key={index}
+                          className="flex flex-col text-sm border-b border-gray-200 pb-2 last:border-b-0 last:pb-0"
+                        >
                           <div className="flex justify-between">
-                            <span className="text-gray-900">
+                            <span>
                               {item.quantity}x {item.menuItem.name}
                             </span>
-                            <span className="text-gray-600">
+                            <span>
                               $
                               {(item.menuItem.price * item.quantity).toFixed(2)}
                             </span>
                           </div>
                           {(item.spicyLevel || item.sides || item.notes) && (
-                            <div className="text-gray-500 text-xs mt-1">
+                            <div className="text-xs mt-1">
                               {item.spicyLevel && (
                                 <p>Spicy Level: {item.spicyLevel}</p>
                               )}
@@ -616,8 +626,8 @@ export function TableView({ table, restaurantId, onClose }: TableViewProps) {
                           )}
                         </div>
                       ))}
-                      <div className="md:border-t pt-2 mt-2">
-                        <div className="flex justify-between font-medium text-gray-900">
+                      <div className="border-t border-gray-300 pt-2 mt-2">
+                        <div className="flex justify-between font-medium">
                           <span>Total</span>
                           <span>${placedOrder.totalAmount.toFixed(2)}</span>
                         </div>
