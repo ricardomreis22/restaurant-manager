@@ -305,7 +305,7 @@ export function TableView({ tableId, restaurantId, onClose }: TableViewProps) {
           absolute md:relative top-0 left-0 right-0 bottom-0 z-10 md:z-auto h-screen md:h-full`}
         >
           {/* Category Tabs - Hidden on small screens */}
-          <div className="flex just ify-between items-center mb-16 xl:text-xl">
+          <div className="flex justify-between items-center mb-16 xl:text-xl">
             <div className="hidden md:flex gap-2 overflow-x-auto pb-2  ">
               {categories.map((category) => (
                 <Button
@@ -427,8 +427,7 @@ export function TableView({ tableId, restaurantId, onClose }: TableViewProps) {
             {filteredItems.map((item) => (
               <Card
                 key={item.id}
-                className="p-4 border border-gray-300 cursor-pointer hover:shadow-md transition text-black xl:text-xl
-"
+                className="p-4 border border-gray-300 cursor-pointer hover:shadow-md transition text-black xl:text-xl"
                 onClick={() => {
                   handleAddToOrder(item);
                   // Close menu on mobile after selecting an item
@@ -580,14 +579,14 @@ export function TableView({ tableId, restaurantId, onClose }: TableViewProps) {
                 placedOrders.map((placedOrder) => (
                   <Card
                     key={placedOrder.id}
-                    className="p-4 border border-gray-300 "
+                    className="p-4 border border-gray-300"
                   >
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <p className="font-medium ">
+                        <p className="font-medium">
                           {placedOrder.orderNumber}
                         </p>
-                        <div className="flex items-center gap-2 text-sm ">
+                        <div className="flex items-center gap-2 text-sm">
                           <Clock className="h-4 w-4" />
                           {formatDate(placedOrder.createdAt)}
                         </div>
