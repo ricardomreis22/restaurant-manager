@@ -28,6 +28,13 @@ enum UserRole {
   STAFF
 }
 
+enum FloorArea {
+  MAIN_FLOOR
+  FIRST_FLOOR
+  BAR
+  TAKEAWAY
+}
+
 enum ActivityType {
   ORDER_PLACED
   ORDER_MODIFIED
@@ -79,6 +86,7 @@ model Table {
   isLocked     Boolean      @default(false)
   x            Int          @default(0)
   y            Int          @default(0)
+  area         FloorArea    @default(FIRST_FLOOR)
   reservations Reservation[]
   orders       Order[]
   seats        Seat[]

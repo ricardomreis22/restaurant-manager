@@ -476,67 +476,72 @@ export function TableView({ tableId, restaurantId, onClose }: TableViewProps) {
           </div>
 
           {/* Current Order */}
-          <div className=" p-10 border-b-2 border-gray-300 md:mt-0 md:mb-0 md:border md:border-gray-600">
-            <h3 className="text-xl font-semibold mb-4">Current Order</h3>
+          <div className="p-10 border-b-2 border-gray-300 md:mt-0 md:mb-0 md:border md:border-gray-600 text-black">
+            <h3 className="text-xl text-white font-semibold mb-4">
+              Current Order
+            </h3>
             {order.length === 0 ? (
-              <p>No items in order</p>
+              <p className="text-black text-xl">No items in order</p>
             ) : (
-              <div className="space-y-4">
-                {order.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex justify-between items-start p-3 rounded-lg border border-gray-300 bg-white"
-                  >
-                    <div>
-                      <h4 className="font-medium">{item.name}</h4>
-                      {(item.spicyLevel || item.sides || item.orderNotes) && (
-                        <div className="text-sm mt-1">
-                          {item.spicyLevel && (
-                            <p>Spicy Level: {item.spicyLevel}</p>
-                          )}
-                          {item.sides && <p>Sides: {item.sides}</p>}
-                          {item.orderNotes && <p>Notes: {item.orderNotes}</p>}
+              <div>
+                <div className="space-y-4">
+                  {order.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex justify-between items-start p-3 rounded-lg border border-gray-300 bg-white"
+                    >
+                      <div className="text-2xl">
+                        <h4 className="font-medium">{item.name}</h4>
+                        {(item.spicyLevel || item.sides || item.orderNotes) && (
+                          <div className="text-sm mt-1">
+                            {item.spicyLevel && (
+                              <p>Spicy Level: {item.spicyLevel}</p>
+                            )}
+                            {item.sides && <p>Sides: {item.sides}</p>}
+                            {item.orderNotes && <p>Notes: {item.orderNotes}</p>}
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2 mt-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removeFromOrder(item.id)}
+                          >
+                            -
+                          </Button>
+                          <span className="text-sm">{item.quantity}</span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setOrder((currentOrder) =>
+                                currentOrder.map((orderItem) =>
+                                  orderItem.id === item.id
+                                    ? {
+                                        ...orderItem,
+                                        quantity: orderItem.quantity + 1,
+                                      }
+                                    : orderItem,
+                                ),
+                              );
+                            }}
+                          >
+                            +
+                          </Button>
                         </div>
-                      )}
-                      <div className="flex items-center gap-2 mt-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => removeFromOrder(item.id)}
-                        >
-                          -
-                        </Button>
-                        <span className="text-sm">{item.quantity}</span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setOrder((currentOrder) =>
-                              currentOrder.map((orderItem) =>
-                                orderItem.id === item.id
-                                  ? {
-                                      ...orderItem,
-                                      quantity: orderItem.quantity + 1,
-                                    }
-                                  : orderItem,
-                              ),
-                            );
-                          }}
-                        >
-                          +
-                        </Button>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium text-xl">
+                          ${(item.price * item.quantity).toFixed(2)}
+                        </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium">
-                        ${(item.price * item.quantity).toFixed(2)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
 
-                <div className="border-t border-gray-300 pt-4 mt-4">
-                  <div className="flex justify-between font-semibold text-lg">
+                <div className="mt-10">
+                  <div className="border-t border-gray-300 mb-5" />
+                  <div className="flex justify-between text-white text-2xl font-semibold">
                     <span>Total</span>
                     <span>${calculateTotal().toFixed(2)}</span>
                   </div>
@@ -583,9 +588,7 @@ export function TableView({ tableId, restaurantId, onClose }: TableViewProps) {
                   >
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <p className="font-medium">
-                          {placedOrder.orderNumber}
-                        </p>
+                        <p className="font-medium">{placedOrder.orderNumber}</p>
                         <div className="flex items-center gap-2 text-sm">
                           <Clock className="h-4 w-4" />
                           {formatDate(placedOrder.createdAt)}

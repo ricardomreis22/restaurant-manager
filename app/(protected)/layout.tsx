@@ -1,7 +1,7 @@
 "use client";
 
 import { ProtectedNavRightActions } from "@/components/auth/protected-nav-right-actions";
-import Image from "next/image";
+import { ProtectedNavLogo } from "@/components/auth/protected-nav-logo";
 import { AdminRestaurantProvider } from "@/contexts/AdminRestaurantContext";
 
 export default function ProtectedLayout({
@@ -14,15 +14,7 @@ export default function ProtectedLayout({
       <div className="h-screen flex flex-col">
         <nav className="relative z-[110] flex items-center justify-between gap-4 bg-primary p-4 text-primary-foreground">
           <div className="min-w-0 shrink-0">
-            <div className="flex items-center">
-              <Image
-                src="/favicon.ico"
-                alt="logo"
-                width={60}
-                height={48}
-                className="w-15 h-12"
-              />
-            </div>
+            <ProtectedNavLogo />
           </div>
           <div className="shrink-0">
             <ProtectedNavRightActions />

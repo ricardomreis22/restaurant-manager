@@ -1,0 +1,5 @@
+-- CreateEnum
+CREATE TYPE "FloorArea" AS ENUM ('MAIN_FLOOR', 'FIRST_FLOOR', 'BAR', 'TAKEAWAY');
+
+-- AlterTable
+ALTER TABLE "Table" ADD COLUMN "area" "FloorArea" NOT NULL DEFAULT 'FIRST_FLOOR';

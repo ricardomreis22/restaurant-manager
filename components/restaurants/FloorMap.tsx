@@ -47,6 +47,13 @@ import {
 } from "@dnd-kit/core";
 import { Droppable } from "../dnd/Droppable";
 import { Draggable } from "../dnd/Draggable";
+import {
+  FLOOR_SECTIONS,
+  DEFAULT_FLOOR_SECTION,
+  normalizeFloorSection,
+  type FloorSectionId,
+} from "@/lib/floor-sections";
+import { cn } from "@/lib/utils";
 
 interface Table {
   id: number;
@@ -54,8 +61,9 @@ interface Table {
   capacity: number;
   isReserved: boolean;
   isLocked: boolean;
-  x?: number; // Add this
-  y?: number; // Add this
+  area?: string;
+  x?: number;
+  y?: number;
 }
 
 interface FloorMapProps {
@@ -82,12 +90,19 @@ const Floormap = ({
   const [deleteTableIdInput, setDeleteTableIdInput] = useState("");
   const [isSeatModalOpen, setIsSeatModalOpen] = useState(false);
   const [tableNumber, setTableNumber] = useState("");
+  const [addTableArea, setAddTableArea] = useState<FloorSectionId>(
+    DEFAULT_FLOOR_SECTION,
+  );
+  const [addTableError, setAddTableError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
   const [localTables, setLocalTables] = useState(tables);
   const [selectedTableData, setSelectedTableData] = useState<Table | null>(
     null,
   );
   const [numberOfPeople, setNumberOfPeople] = useState<number>(2);
+  const [activeSection, setActiveSection] = useState<FloorSectionId>(
+    DEFAULT_FLOOR_SECTION,
+  );
   const [tablePositions, setTablePositions] = useState<
     Record<number, { x: number; y: number }>
   >({});
@@ -309,8 +324,19 @@ const Floormap = ({
 
   // ADMIN ONLY ///////////////////////////////////////////////////////////////
   const handleAddTable = () => {
+    const tableId = parseInt(tableNumber, 10);
+    if (Number.isNaN(tableId) || tableId < 1) {
+      setAddTableError("Enter a valid table number");
+      return;
+    }
+
+    if (localTables.some((table) => table.number === tableId)) {
+      setAddTableError("Table number already exists");
+      return;
+    }
+
+    setAddTableError(null);
     setIsPending(true);
-    const tableId = parseInt(tableNumber);
 
     startTransition(() => {
       createTable({
@@ -318,16 +344,24 @@ const Floormap = ({
         number: tableId,
         capacity: 2,
         restaurantId,
+        area: addTableArea,
       })
         .then((response) => {
           if (response.success) {
             setIsAddModalOpen(false);
             setTableNumber("");
+            setAddTableArea(activeSection);
+            setAddTableError(null);
+            setActiveSection(addTableArea);
             refreshTables();
+            toast.success("Table added");
+          } else {
+            setAddTableError(response.error ?? "Failed to add table");
           }
         })
         .catch((error) => {
           console.error("Failed to add table:", error);
+          setAddTableError("Failed to add table");
         })
         .finally(() => {
           setIsPending(false);
@@ -434,138 +468,150 @@ const Floormap = ({
       ? Math.min(cellMetrics.width, cellMetrics.height)
       : null;
 
+  const sectionTables = localTables.filter(
+    (table) => normalizeFloorSection(table.area) === activeSection,
+  );
+
   return (
-    <div className="flex min-h-0 w-full flex-1 flex-col items-stretch max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden">
+    <div className="flex min-h-0 w-full h-full flex-1 flex-col items-stretch max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden">
       {/* flex-1 + min-h-0: shrink to viewport; droppable fills remaining height */}
-      <div className="flex min-h-0 h-full min-w-0 flex-1 flex-col max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden px-0 pb-2 pt-2 md:px-6 md:pb-3 md:pt-4">
-        <div className="relative flex min-h-0 w-full min-w-0 flex-1 flex-col max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden 2xl:flex-row 2xl:items-end 2xl:gap-4 2xl:min-h-0">
-          <div className="flex min-h-0 h-full w-full min-w-0 flex-1 flex-col rounded-lg max-sm:overflow-x-auto max-sm:overflow-y-hidden sm:overflow-hidden 2xl:h-auto 2xl:min-h-0 2xl:min-w-0 2xl:flex-1 2xl:self-start">
-            <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col">
-              <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-                <Droppable id="floor-map" className="max-sm:min-w-[768px]">
-                  <div className="flex min-h-0 h-full w-full min-w-0 flex-col rounded-l max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden 2xl:h-auto">
-                    <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden items-center justify-center 2xl:h-auto 2xl:flex-none">
-                      <div className="flex w-full min-h-0 flex-1 flex-col items-center gap-3 px-0 pb-2 pt-2 sm:pt-4 lg:px-2 lg:pb-2 lg:pt-3 2xl:flex-none">
-                        <div className="mx-auto flex min-h-0 w-full max-w-full flex-1 flex-col items-center lg:max-w-[min(100%,66.666vw)] 2xl:flex-none">
-                          <div
-                            ref={mapFitRef}
-                            className="flex min-h-0 w-full flex-1 flex-col items-center justify-center 2xl:h-[80vh] 2xl:flex-none"
-                          >
-                            <div
-                              className={`relative mx-auto shrink-0 ${
-                                mapBoxPx == null
-                                  ? "aspect-[16/10] min-h-0 w-full max-h-full"
-                                  : ""
-                              }`}
-                              style={
-                                mapBoxPx != null
-                                  ? {
-                                      width: mapBoxPx.w,
-                                      height: mapBoxPx.h,
-                                    }
-                                  : undefined
-                              }
-                            >
-                              <div
-                                ref={gridRef}
-                                className="absolute inset-0 z-0 rounded-lg overflow-hidden border-2 border-gray-300 bg-white"
-                                style={{
-                                  display: "grid",
-                                  gridTemplateColumns:
-                                    "repeat(16, minmax(0, 1fr))",
-                                  gridTemplateRows:
-                                    "repeat(10, minmax(0, 1fr))",
-                                  backgroundImage: `
-                    linear-gradient(to right, rgba(0,0,0,0.08) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(0,0,0,0.08) 1px, transparent 1px)
-                  `,
-                                  backgroundSize:
-                                    "calc(100% / 16) calc(100% / 10)",
-                                  backgroundColor: "white",
-                                  ["--cell-size" as string]: "calc(100% / 16)",
-                                }}
+      <div className="flex flex-row min-h-0 w-full h-full min-w-0 flex-1 max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden px-0 pb-2 pt-2 md:px-6 md:pb-3 md:pt-4">
+        <div className="flex min-h-0 h-full w-4/5 min-w-0 shrink-0 flex-row gap-3 overflow-hidden rounded-lg bg-green-50 p-2 md:gap-4 md:p-3">
+          <div className="flex shrink-0 flex-col gap-2">
+            {FLOOR_SECTIONS.map((section) => (
+              <Button
+                key={section.id}
+                type="button"
+                variant={activeSection === section.id ? "default" : "outline"}
+                size="sm"
+                className={cn(
+                  "w-full min-w-[6.5rem] justify-start",
+                  activeSection !== section.id && "bg-white text-black",
+                )}
+                onClick={() => {
+                  setActiveSection(section.id);
+                  setSelectedTable(null);
+                }}
+              >
+                {section.label}
+              </Button>
+            ))}
+          </div>
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+            <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+              <Droppable
+                id="floor-map"
+                className="min-h-0 h-full max-h-full flex-1 overflow-hidden"
+              >
+                <div className="flex h-full min-h-0 w-full max-h-full flex-col items-start overflow-hidden">
+                  <div
+                    ref={mapFitRef}
+                    className="flex h-full min-h-0 w-full max-h-full flex-col items-start justify-start overflow-hidden"
+                  >
+                    <div
+                      className={`relative shrink-0 ${
+                        mapBoxPx == null ? "h-full min-h-0 w-full max-h-full" : ""
+                      }`}
+                      style={
+                        mapBoxPx != null
+                          ? {
+                              width: mapBoxPx.w,
+                              height: mapBoxPx.h,
+                            }
+                          : undefined
+                      }
+                    >
+                      <div
+                        ref={gridRef}
+                        className="absolute inset-0 z-0 rounded-lg overflow-hidden border-2 border-gray-300 bg-white"
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "repeat(16, minmax(0, 1fr))",
+                          gridTemplateRows: "repeat(10, minmax(0, 1fr))",
+                          backgroundColor: "white",
+                          ["--cell-size" as string]: "calc(100% / 16)",
+                        }}
+                      >
+                        {/* Content spans the full 16x10 grid */}
+                        <div className="col-span-full row-span-full relative">
+                          {/* Tables area: fills grid so tables can use --cell-size */}
+                          <div className="absolute inset-0 overflow-hidden">
+                            {sectionTables.map((table) => (
+                              <Draggable
+                                key={table.id}
+                                position={getDisplayPosition(
+                                  tablePositions[table.id] || {
+                                    x: 0,
+                                    y: 0,
+                                  },
+                                )}
+                                id={`table-${table.id}`}
+                                disabled={!isAdminView}
                               >
-                                {/* Content spans the full 16x10 grid */}
-                                <div className="col-span-full row-span-full relative">
-                                  {/* Tables area: fills grid so tables can use --cell-size */}
-                                  <div className="absolute inset-0 overflow-hidden">
-                                    {localTables.map((table) => (
-                                      <Draggable
-                                        key={table.id}
-                                        position={getDisplayPosition(
-                                          tablePositions[table.id] || {
-                                            x: 0,
-                                            y: 0,
-                                          },
-                                        )}
-                                        id={`table-${table.id}`}
-                                        disabled={!isAdminView}
-                                      >
-                                        <div
-                                          onClick={() =>
-                                            handleTableClick(table.id)
-                                          }
-                                          className={`
-                    relative flex items-center justify-center box-border border-2 border-gray-300 rounded-md
+                                <div
+                                  onClick={() => handleTableClick(table.id)}
+                                  className={`
+                    relative flex items-center justify-center box-border border-2 border-primary rounded-md
                     ${table.isLocked ? "cursor-not-allowed" : "cursor-pointer"}
                     ${table.isReserved ? "bg-yellow-100" : "bg-green-100"}
                     ${selectedTable === table.id ? "ring-2 ring-blue-500" : ""}
                     hover:shadow-lg transition-all
                   `}
-                                          style={{
-                                            width:
-                                              tableSizePx != null
-                                                ? `${tableSizePx}px`
-                                                : "2.5rem",
-                                            height:
-                                              tableSizePx != null
-                                                ? `${tableSizePx}px`
-                                                : "2.5rem",
-                                          }}
-                                        >
-                                          <h3 className="text-center text-sm font-bold leading-none text-primary md:text-lg">
-                                            {table.number}
-                                          </h3>
+                                  style={{
+                                    width:
+                                      tableSizePx != null
+                                        ? `${tableSizePx}px`
+                                        : "2.5rem",
+                                    height:
+                                      tableSizePx != null
+                                        ? `${tableSizePx}px`
+                                        : "2.5rem",
+                                  }}
+                                >
+                                  <h3 className="text-center text-sm font-bold leading-none text-primary md:text-lg">
+                                    {table.number}
+                                  </h3>
 
-                                          <p className="hidden text-xs md:text-sm mt-1">
-                                            {table.isReserved
-                                              ? "Reserved"
-                                              : "Available"}
-                                          </p>
-                                          {table.isLocked && (
-                                            <Lock className="absolute right-0 top-0 h-3 w-3 text-red-600 md:h-4 md:w-4" />
-                                          )}
+                                  <p className="hidden text-xs md:text-sm mt-1">
+                                    {table.isReserved
+                                      ? "Reserved"
+                                      : "Available"}
+                                  </p>
+                                  {table.isLocked && (
+                                    <Lock className="absolute right-0 top-0 h-3 w-3 text-red-600 md:h-4 md:w-4" />
+                                  )}
 
-                                          {onToggleLock && (
-                                            <TableLocker
-                                              tableId={table.id}
-                                              isLocked={table.isLocked}
-                                              onToggleLock={onToggleLock}
-                                            />
-                                          )}
-                                        </div>
-                                      </Draggable>
-                                    ))}
-                                  </div>
+                                  {onToggleLock && (
+                                    <TableLocker
+                                      tableId={table.id}
+                                      isLocked={table.isLocked}
+                                      onToggleLock={onToggleLock}
+                                    />
+                                  )}
                                 </div>
-                              </div>
-                            </div>
+                              </Draggable>
+                            ))}
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </Droppable>
-              </DndContext>
-            </div>
+                </div>
+              </Droppable>
+            </DndContext>
           </div>
         </div>
+        <div className="flex min-h-0 h-full w-1/5 min-w-0 shrink-0 flex-col" />
       </div>
 
       {isAdminView && (
         <div className="group fixed bottom-10 right-4 z-50 flex justify-center flex-col items-end gap-2">
           <Button
-            onClick={() => setIsAddModalOpen(true)}
+            onClick={() => {
+              setAddTableArea(activeSection);
+              setAddTableError(null);
+              setIsAddModalOpen(true);
+            }}
             variant="outline"
             size="sm"
             className=" inline-flex h-8 transform gap-0 px-2 text-black shadow-lg transition-all duration-200 hover:scale-110 items-center justify-center leading-none group-hover:gap-2 group-hover:px-3"
@@ -590,10 +636,23 @@ const Floormap = ({
       )}
 
       {/* Add Table Modal */}
-      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+      <Dialog
+        open={isAddModalOpen}
+        onOpenChange={(open) => {
+          setIsAddModalOpen(open);
+          if (!open) {
+            setTableNumber("");
+            setAddTableArea(activeSection);
+            setAddTableError(null);
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add New Table</DialogTitle>
+            <DialogDescription>
+              Enter a table number and choose which area it belongs to.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -602,10 +661,45 @@ const Floormap = ({
                 id="tableNumber"
                 type="number"
                 value={tableNumber}
-                onChange={(e) => setTableNumber(e.target.value)}
+                onChange={(e) => {
+                  setTableNumber(e.target.value);
+                  if (addTableError) setAddTableError(null);
+                }}
                 placeholder="Enter table number"
+                aria-invalid={!!addTableError}
+                aria-describedby={addTableError ? "add-table-error" : undefined}
               />
             </div>
+            <div>
+              <Label htmlFor="tableArea">Area</Label>
+              <Select
+                value={addTableArea}
+                onValueChange={(value) => {
+                  setAddTableArea(value as FloorSectionId);
+                  if (addTableError) setAddTableError(null);
+                }}
+              >
+                <SelectTrigger id="tableArea">
+                  <SelectValue placeholder="Select area" />
+                </SelectTrigger>
+                <SelectContent>
+                  {FLOOR_SECTIONS.map((section) => (
+                    <SelectItem key={section.id} value={section.id}>
+                      {section.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {addTableError && (
+              <p
+                id="add-table-error"
+                role="alert"
+                className="text-sm font-medium text-destructive"
+              >
+                {addTableError}
+              </p>
+            )}
           </div>
           <DialogFooter>
             <Button
@@ -615,7 +709,10 @@ const Floormap = ({
             >
               Cancel
             </Button>
-            <Button onClick={handleAddTable} disabled={isPending}>
+            <Button
+              onClick={handleAddTable}
+              disabled={isPending || !tableNumber}
+            >
               {isPending ? "Adding..." : "Add Table"}
             </Button>
           </DialogFooter>
@@ -642,6 +739,10 @@ const Floormap = ({
                 </SelectTrigger>
                 <SelectContent>
                   {localTables
+                    .filter(
+                      (table) =>
+                        normalizeFloorSection(table.area) === activeSection,
+                    )
                     .slice()
                     .sort((a, b) => a.number - b.number)
                     .map((table) => (

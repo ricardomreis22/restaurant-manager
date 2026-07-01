@@ -168,6 +168,20 @@ export default function PaymentPage() {
       </div>
 
       <div className="flex flex-1 overflow-hidden justify-center items-center text-primary">
+        <div className="hidden xl:flex xl:w-3/5 xl:h-full relative overflow-hidden">
+          <Image
+            src="/restaurant.jpg"
+            alt="Restaurant"
+            fill
+            className="object-cover"
+          />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 mx-12 max-w-2xl">
+            <p className="rounded-lg border-2 border-primary bg-white/75 px-12 py-10 text-center text-4xl font-bold leading-relaxed text-primary shadow-xl">
+              &ldquo;Great food and great company are the two life simplest and
+              yet most rewarding pleasures.&rdquo;
+            </p>
+          </div>
+        </div>
         <div className="w-full xl:w-2/5 flex justify-center items-start overflow-y-auto h-full">
           <div className="p-6 grid gap-6 grid-cols-1 w-full xl:w-[95%] xl:max-w-xl xl:px-6 my-6">
             {/* Orders Summary */}
@@ -309,20 +323,6 @@ export default function PaymentPage() {
                 )}
               </div>
             </Card>
-          </div>
-        </div>
-        <div className="hidden xl:flex xl:w-3/5 xl:h-full relative overflow-hidden">
-          <Image
-            src="/restaurant.jpg"
-            alt="Restaurant"
-            fill
-            className="object-cover"
-          />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 mx-12 max-w-2xl">
-            <p className="rounded-lg border-2 border-primary bg-white/95 px-12 py-10 text-center text-4xl font-bold leading-relaxed text-primary shadow-xl">
-              &ldquo;Great food and great company are the two life simplest and
-              yet most rewarding pleasures.&rdquo;
-            </p>
           </div>
         </div>
       </div>

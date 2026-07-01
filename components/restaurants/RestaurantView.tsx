@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { getRestaurant, getRestaurantTables } from "@/actions/restaurants";
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
@@ -35,6 +35,7 @@ interface Table {
   capacity: number;
   isReserved: boolean;
   isLocked: boolean;
+  area?: string;
   x: number;
   y: number;
 }
@@ -48,6 +49,7 @@ export default function RestaurantView({
 }: RestaurantViewProps) {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const userRole = useCurrentRole();
   const restaurantId = parseInt(params.restaurantId as string);
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
@@ -58,25 +60,20 @@ export default function RestaurantView({
   const [display, setDisplay] = useState<string>("floormap");
   const prevDisplayRef = useRef<string | null>(null);
 
-  // Check for initial display from URL search params (only for non-admin view)
+  // Sync display from URL tab param (staff view only)
   useEffect(() => {
-    if (!isAdminView) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const initialDisplay = urlParams.get("tab");
-      if (
-        initialDisplay &&
-        [
-          "floormap",
-          "menu",
-          "menu-management",
-          "employees",
-          "activity",
-        ].includes(initialDisplay)
-      ) {
-        setDisplay(initialDisplay);
-      }
+    if (isAdminView) return;
+
+    const tab = searchParams.get("tab");
+    if (
+      tab &&
+      ["floormap", "menu", "menu-management", "employees", "activity"].includes(
+        tab,
+      )
+    ) {
+      setDisplay(tab);
     }
-  }, [isAdminView]);
+  }, [isAdminView, searchParams]);
 
   const adminSetDisplay = async (newDisplay: string) => {
     try {

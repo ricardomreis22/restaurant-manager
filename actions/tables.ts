@@ -2,12 +2,15 @@
 
 import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
+import type { FloorSectionId } from "@/lib/floor-sections";
+import { DEFAULT_FLOOR_SECTION } from "@/lib/floor-sections";
 
 export async function createTable(data: {
   id: number;
   number: number;
   capacity: number;
   restaurantId: number;
+  area?: FloorSectionId;
 }) {
   try {
     const session = await auth();
@@ -19,12 +22,18 @@ export async function createTable(data: {
       throw new Error("Unauthorized");
     }
 
-    const existingTable = await prisma.table.findUnique({
-      where: { id: data.id },
+    const existingTable = await prisma.table.findFirst({
+      where: {
+        restaurantId: data.restaurantId,
+        OR: [{ id: data.id }, { number: data.number }],
+      },
     });
 
     if (existingTable) {
-      throw new Error("Table with this ID already exists");
+      return {
+        success: false as const,
+        error: "Table number already exists",
+      };
     }
 
     const table = await prisma.table.create({
@@ -34,12 +43,25 @@ export async function createTable(data: {
         capacity: data.capacity,
         restaurantId: data.restaurantId,
         isReserved: false,
-      },
+        // Available after running: npx prisma migrate dev
+        area: data.area ?? DEFAULT_FLOOR_SECTION,
+      } as Parameters<typeof prisma.table.create>[0]["data"],
     });
 
     return { success: true, table };
   } catch (error) {
     console.error("[CREATE_TABLE_ERROR]", error);
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === "P2002"
+    ) {
+      return {
+        success: false as const,
+        error: "Table number already exists",
+      };
+    }
     throw error;
   }
 }

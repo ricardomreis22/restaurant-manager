@@ -1,5 +1,14 @@
+import { Suspense } from "react";
 import RestaurantView from "@/components/restaurants/RestaurantView";
 
 export default function AdminRestaurantPage() {
-  return <RestaurantView isAdminView={true} />;
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-full items-center justify-center">Loading...</div>
+      }
+    >
+      <RestaurantView isAdminView={true} />
+    </Suspense>
+  );
 }
