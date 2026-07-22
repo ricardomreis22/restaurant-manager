@@ -9,7 +9,7 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash, Users, Lock } from "lucide-react";
+import { Plus, Trash, Users, Lock, Clock, ArrowRight } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -34,6 +34,7 @@ import {
   toggleTableLock,
   updateTablePosition,
 } from "@/actions/tables";
+import { getRecentRestaurantOrders } from "@/actions/orders";
 import { toast } from "sonner";
 import { TableLocker } from "./TableLocker";
 import io from "socket.io-client";
@@ -115,6 +116,10 @@ const Floormap = ({
     width: number;
     height: number;
   } | null>(null);
+  const [recentOrders, setRecentOrders] = useState<
+    Awaited<ReturnType<typeof getRecentRestaurantOrders>>["orders"]
+  >([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
 
   const GRID_COLS = 16;
   const GRID_ROWS = 10;
@@ -216,6 +221,23 @@ const Floormap = ({
     }
   }, [restaurantId]);
 
+  const refreshRecentOrders = useCallback(async () => {
+    try {
+      const response = await getRecentRestaurantOrders(restaurantId);
+      if (response.success) {
+        setRecentOrders(response.orders);
+      }
+    } catch (error) {
+      console.error("Failed to refresh recent orders:", error);
+    } finally {
+      setOrdersLoading(false);
+    }
+  }, [restaurantId]);
+
+  useEffect(() => {
+    refreshRecentOrders();
+  }, [refreshRecentOrders]);
+
   useEffect(() => {
     const socketUrl =
       process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001";
@@ -225,12 +247,13 @@ const Floormap = ({
 
     socket.on("do_something", () => {
       refreshTables();
+      refreshRecentOrders();
     });
 
     return () => {
       socket.disconnect();
     };
-  }, [restaurantId, refreshTables]);
+  }, [restaurantId, refreshTables, refreshRecentOrders]);
 
   // Update local tables when prop changes
   useEffect(() => {
@@ -472,20 +495,38 @@ const Floormap = ({
     (table) => normalizeFloorSection(table.area) === activeSection,
   );
 
+  const getKitchenWaitLabel = (date: Date | string) => {
+    const minutes = Math.floor(
+      (Date.now() - new Date(date).getTime()) / (1000 * 60),
+    );
+    if (minutes < 1) return "Just placed";
+    if (minutes === 1) return "1 min in kitchen";
+    return `${minutes} min in kitchen`;
+  };
+
+  const getOrderTableNumber = (order: (typeof recentOrders)[number]) =>
+    order.tableNumber ??
+    order.table?.number ??
+    localTables.find((table) => table.id === order.tableId)?.number ??
+    null;
+
+  const formatOrderItems = (items: (typeof recentOrders)[number]["items"]) =>
+    items.map((item) => `${item.quantity}x ${item.menuItem.name}`).join(", ");
+
   return (
     <div className="flex min-h-0 w-full h-full flex-1 flex-col items-stretch max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden">
       {/* flex-1 + min-h-0: shrink to viewport; droppable fills remaining height */}
-      <div className="flex flex-row min-h-0 w-full h-full min-w-0 flex-1 max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden px-0 pb-2 pt-2 md:px-6 md:pb-3 md:pt-4">
-        <div className="flex min-h-0 h-full w-4/5 min-w-0 shrink-0 flex-row gap-3 overflow-hidden rounded-lg bg-green-50 p-2 md:gap-4 md:p-3">
-          <div className="flex shrink-0 flex-col gap-2">
+      <div className="flex min-h-0 h-full w-full min-w-0 flex-1 max-sm:overflow-x-visible max-sm:overflow-y-hidden sm:overflow-hidden px-0 pb-2 pt-2 md:px-6 md:pb-3 md:pt-4">
+        <div className="flex min-h-0 h-full w-full min-w-0 flex-1 flex-row gap-3 overflow-hidden rounded-lg bg-green-50 p-2 md:gap-4 md:p-3">
+          <div className="flex shrink-0 flex-col gap-3">
             {FLOOR_SECTIONS.map((section) => (
               <Button
                 key={section.id}
                 type="button"
                 variant={activeSection === section.id ? "default" : "outline"}
-                size="sm"
+                size="lg"
                 className={cn(
-                  "w-full min-w-[6.5rem] justify-start",
+                  "h-12 w-full min-w-[9rem] justify-start px-4 text-base font-semibold",
                   activeSection !== section.id && "bg-white text-black",
                 )}
                 onClick={() => {
@@ -510,7 +551,9 @@ const Floormap = ({
                   >
                     <div
                       className={`relative shrink-0 ${
-                        mapBoxPx == null ? "h-full min-h-0 w-full max-h-full" : ""
+                        mapBoxPx == null
+                          ? "h-full min-h-0 w-full max-h-full"
+                          : ""
                       }`}
                       style={
                         mapBoxPx != null
@@ -600,8 +643,66 @@ const Floormap = ({
               </Droppable>
             </DndContext>
           </div>
+
+          <div className="flex min-h-0 h-full w-1/5 min-w-0 shrink-0 flex-col overflow-hidden my-10 2xl:pr-12">
+            <div className="min-h-0 flex-1 mx overflow-y-auto rounded-xl text-primary">
+              {ordersLoading ? (
+                <p className="text-base text-white/70">Loading orders...</p>
+              ) : recentOrders.length === 0 ? (
+                <p className="text-base text-white/70">
+                  No orders waiting in kitchen
+                </p>
+              ) : (
+                <div className="space-y-4 ">
+                  <h1 className="text-2xl font-semibold md:text-3xl text-center mb-10">
+                    Next up in kitchen
+                  </h1>
+                  {recentOrders.map((order) => (
+                    <div
+                      key={order.id}
+                      className="rounded-2xl border border-white/15 bg-primary/100 p-4 shadow-sm text-white md:p-5"
+                    >
+                      <div className="flex flex-row justify-between">
+                        <div className="flex flex-col gap-2">
+                          <p className="text-2xl font-semibold">
+                            Table {getOrderTableNumber(order) ?? "—"}
+                          </p>
+
+                          <p className="mt-2 text-xl leading-snug">
+                            {formatOrderItems(order.items)}
+                          </p>
+                          <p className="mt-3 flex items-center gap-1.5 text-base font-medium text-red-400">
+                            <Clock className="h-4 w-4 shrink-0" />
+                            {getKitchenWaitLabel(order.createdAt)}
+                          </p>
+                        </div>
+                        <div className="flex flex-col justify-between items-center gap-2">
+                          <p className="text-xl font-semibold text-center">
+                            {order.placedByName ?? "Unknown staff"}
+                          </p>
+                          {order.tableId ? (
+                            <button
+                              type="button"
+                              className="rounded-full p-1 text-white"
+                              aria-label={`Go to table ${getOrderTableNumber(order) ?? order.tableId}`}
+                              onClick={() => {
+                                router.push(
+                                  `/restaurants/${restaurantId}/tables/${order.tableId}`,
+                                );
+                              }}
+                            >
+                              <ArrowRight className="h-6 w-6" />
+                            </button>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-        <div className="flex min-h-0 h-full w-1/5 min-w-0 shrink-0 flex-col" />
       </div>
 
       {isAdminView && (

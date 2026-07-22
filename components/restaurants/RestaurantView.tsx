@@ -1,15 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter, useParams, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { getRestaurant, getRestaurantTables } from "@/actions/restaurants";
-import { Button } from "@/components/ui/button";
-import { Settings } from "lucide-react";
 import Floormap from "@/components/restaurants/FloorMap";
 import StaffPage from "@/components/restaurants/StaffPage";
 import MenuPage from "@/components/restaurants/MenuPage";
 import ActivityLogPage from "@/components/restaurants/ActivityLogPage";
-import { useCurrentRole } from "@/hooks/use-current-role";
 import { checkAdmin } from "@/actions/admin";
 import { useAdminRestaurantOptional } from "@/contexts/AdminRestaurantContext";
 import { AdminTab } from "@/contexts/AdminRestaurantContext";
@@ -47,10 +44,8 @@ interface RestaurantViewProps {
 export default function RestaurantView({
   isAdminView = false,
 }: RestaurantViewProps) {
-  const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
-  const userRole = useCurrentRole();
   const restaurantId = parseInt(params.restaurantId as string);
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [tables, setTables] = useState<Table[]>([]);
@@ -169,21 +164,6 @@ export default function RestaurantView({
           />
         ) : null}
       </div>
-      {userRole === "ADMIN" && !isAdminView && (
-        <div className="fixed bottom-10 right-4 z-50">
-          <Button
-            onClick={() => router.push(`/admin/restaurants/${restaurantId}`)}
-            variant="outline"
-            size="sm"
-            className="transform transition-transform duration-200 hover:scale-110 group shadow-lg text-black gap-2 px-3 py-2"
-          >
-            <Settings className="h-4 w-4" />
-            <span className="hidden group-hover:inline ml-2 sm:inline">
-              Admin View
-            </span>
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

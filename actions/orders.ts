@@ -132,6 +132,69 @@ export async function createOrder(data: {
   }
 }
 
+export async function getRecentRestaurantOrders(
+  restaurantId: number,
+  limit = 3,
+) {
+  try {
+    const orders = await prisma.order.findMany({
+      where: {
+        status: "Pending",
+        table: {
+          restaurantId,
+        },
+      },
+      include: {
+        table: {
+          select: {
+            id: true,
+            number: true,
+          },
+        },
+        items: {
+          include: {
+            menuItem: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+      take: limit,
+    });
+
+    const ordersWithStaff = await Promise.all(
+      orders.map(async (order) => {
+        const activity = await prisma.activityLog.findFirst({
+          where: {
+            activityType: "ORDER_PLACED",
+            metadata: {
+              path: ["orderId"],
+              equals: order.id,
+            },
+          },
+          include: {
+            user: {
+              select: { name: true },
+            },
+          },
+        });
+
+        return {
+          ...order,
+          placedByName: activity?.user?.name ?? null,
+          tableNumber: order.table?.number ?? null,
+        };
+      }),
+    );
+
+    return { success: true, orders: ordersWithStaff };
+  } catch (error) {
+    console.error("[GET_RECENT_RESTAURANT_ORDERS_ERROR]", error);
+    throw error;
+  }
+}
+
 export async function getTableOrders(tableId: number) {
   try {
     const orders = await prisma.order.findMany({
@@ -188,7 +251,7 @@ export async function payOrder(orderId: number) {
     });
 
     const completedOrders = orders.filter(
-      (order) => order.status === "Completed"
+      (order) => order.status === "Completed",
     );
 
     if (completedOrders.length === orders.length) {
@@ -205,7 +268,7 @@ export async function payOrder(orderId: number) {
             const sessionDuration = Math.floor(
               (new Date().getTime() -
                 new Date(tableSession.openedAt).getTime()) /
-                (1000 * 60)
+                (1000 * 60),
             );
 
             // First update the session with end timestamp and duration
@@ -229,7 +292,7 @@ export async function payOrder(orderId: number) {
                   totalOrders: orders.length,
                   totalAmount: orders.reduce(
                     (sum, o) => sum + o.totalAmount,
-                    0
+                    0,
                   ),
                   sessionDuration: sessionDuration,
                   sessionOpenedAt: tableSession.openedAt,

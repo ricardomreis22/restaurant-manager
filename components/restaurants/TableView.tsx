@@ -295,14 +295,14 @@ export function TableView({ tableId, restaurantId, onClose }: TableViewProps) {
     : menuItems;
 
   return (
-    <div className="h-screen flex flex-col">
-      <div className="flex-1 flex overflow-hidden">
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="flex min-h-0 flex-1 overflow-hidden">
         {/* Menu Items (Left Side) - Hidden on small screens unless menu is open */}
         <div
           className={`${
             isMenuOpen ? "block" : "hidden"
           } md:block w-full md:w-1/2 lg:w-2/3 xl:w-3/4 bg-white px-8 py-12 overflow-y-auto md:bg-opacity-100
-          absolute md:relative top-0 left-0 right-0 bottom-0 z-10 md:z-auto h-screen md:h-full`}
+            absolute md:relative top-0 left-0 right-0 bottom-0 z-10 md:z-auto h-full md:h-full`}
         >
           {/* Category Tabs - Hidden on small screens */}
           <div className="flex justify-between items-center mb-16 xl:text-xl">
@@ -449,18 +449,11 @@ export function TableView({ tableId, restaurantId, onClose }: TableViewProps) {
         </div>
 
         {/* Orders (Right Side) - Full width on small screens */}
-        <div className="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 md:border-l overflow-hidden flex flex-col">
+        <div className="flex h-full min-h-0 w-full flex-col md:w-1/2 lg:w-1/3 xl:w-1/4 md:border-l">
           {/* Hamburger Menu Button - Only visible on small screens */}
           <div className="z-50 flex items-center justify-between border-b-2 border-white bg-primary p-4 md:hidden">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="hover:bg-white transition-colors"
-              onClick={handleClose}
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <h2 className="text-lg font-bold ">Table {table.number}</h2>
+            <div className="w-10" aria-hidden />
+            <h2 className="text-lg font-bold">Table {table.number}</h2>
 
             <Button
               variant="ghost"
@@ -560,7 +553,7 @@ export function TableView({ tableId, restaurantId, onClose }: TableViewProps) {
           </div>
 
           {/* Placed Orders */}
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="min-h-0 flex-1 overflow-y-auto p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold">Placed Orders</h3>
               {placedOrders.some((order) => order.status === "Pending") && (

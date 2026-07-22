@@ -26,7 +26,7 @@ export default function TablePage() {
     <TableView
       tableId={tableId}
       restaurantId={restaurantId}
-      onClose={() => router.push(`/restaurants/${restaurantId}`)}
+      onClose={() => router.push(`/restaurants/${restaurantId}?tab=floormap`)}
     />
   );
 }
