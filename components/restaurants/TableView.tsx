@@ -66,7 +66,7 @@ interface OrderItem {
   isAvailable: boolean;
 }
 
-export function TableView({ tableId, restaurantId, onClose }: TableViewProps) {
+export function TableView({ tableId, restaurantId }: TableViewProps) {
   const router = useRouter();
   const isFirstRender = useRef(true);
   const [table, setTable] = useState<TableData | null>(null);
