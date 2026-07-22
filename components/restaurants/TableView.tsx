@@ -141,17 +141,6 @@ export function TableView({ tableId, restaurantId, onClose }: TableViewProps) {
     };
   }, [tableId, table?.isLocked]);
 
-  const handleClose = async () => {
-    if (table?.isLocked) {
-      try {
-        await toggleTableLock(tableId, false);
-      } catch (error) {
-        console.error("Failed to unlock table:", error);
-      }
-    }
-    onClose();
-  };
-
   const handleAddToOrder = (item: MenuItemWithCategory) => {
     setSelectedItem(item);
     setIsFoodModalOpen(true);
