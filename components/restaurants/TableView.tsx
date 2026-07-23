@@ -66,15 +66,17 @@ interface OrderItem {
   isAvailable: boolean;
 }
 
-export function TableView({ tableId, restaurantId }: TableViewProps) {
+export function TableView({ tableId, restaurantId, onClose }: TableViewProps) {
   const router = useRouter();
-  const isFirstRender = useRef(true);
+  const shouldUnlockRef = useRef(false);
+  const unlockedRef = useRef(false);
   const [table, setTable] = useState<TableData | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [order, setOrder] = useState<OrderItem[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItemWithCategory[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isClosing, setIsClosing] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [placedOrders, setPlacedOrders] = useState<PlacedOrder[]>([]);
@@ -106,6 +108,8 @@ export function TableView({ tableId, restaurantId }: TableViewProps) {
         }
 
         setTable(tableResponse.table);
+        // FloorMap locks before opening this view; always unlock on leave.
+        shouldUnlockRef.current = true;
         setCategories(categoriesData);
         setMenuItems(menuItemsData as MenuItemWithCategory[]);
         if (categoriesData.length > 0) {
@@ -124,22 +128,54 @@ export function TableView({ tableId, restaurantId }: TableViewProps) {
     loadData();
   }, [restaurantId, tableId]);
 
-  // Unlock table when leaving the view
-  useEffect(() => {
-    // Skip cleanup on first render
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
+  const unlockTable = async () => {
+    if (unlockedRef.current || !shouldUnlockRef.current) return;
+    unlockedRef.current = true;
+    try {
+      await toggleTableLock(tableId, false);
+      shouldUnlockRef.current = false;
+    } catch (error) {
+      unlockedRef.current = false;
+      console.error("Failed to unlock table:", error);
+      throw error;
     }
+  };
 
+  const unlockTableKeepalive = () => {
+    if (unlockedRef.current || !shouldUnlockRef.current) return;
+    unlockedRef.current = true;
+    shouldUnlockRef.current = false;
+    void fetch(`/api/tables/${tableId}/lock`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ locked: false }),
+      keepalive: true,
+    }).catch((error) => {
+      console.error("Failed to unlock table:", error);
+    });
+  };
+
+  const handleClose = async () => {
+    if (isClosing) return;
+    setIsClosing(true);
+    try {
+      await unlockTable();
+      onClose();
+    } catch {
+      toast.error("Failed to unlock table. Please try again.");
+      setIsClosing(false);
+    }
+  };
+
+  // Fallback unlock when leaving without the Back button (browser back, etc.)
+  useEffect(() => {
+    const onPageHide = () => unlockTableKeepalive();
+    window.addEventListener("pagehide", onPageHide);
     return () => {
-      if (table?.isLocked) {
-        toggleTableLock(tableId, false).catch((error) => {
-          console.error("Failed to unlock table:", error);
-        });
-      }
+      window.removeEventListener("pagehide", onPageHide);
+      unlockTableKeepalive();
     };
-  }, [tableId, table?.isLocked]);
+  }, [tableId]);
 
   const handleAddToOrder = (item: MenuItemWithCategory) => {
     setSelectedItem(item);
@@ -295,6 +331,16 @@ export function TableView({ tableId, restaurantId }: TableViewProps) {
         >
           {/* Category Tabs - Hidden on small screens */}
           <div className="flex justify-between items-center mb-16 xl:text-xl">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleClose}
+              disabled={isClosing}
+              className="hidden md:inline-flex mr-4"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              {isClosing ? "Leaving..." : "Back"}
+            </Button>
             <div className="hidden md:flex gap-2 overflow-x-auto pb-2  ">
               {categories.map((category) => (
                 <Button
@@ -441,7 +487,15 @@ export function TableView({ tableId, restaurantId }: TableViewProps) {
         <div className="flex h-full min-h-0 w-full flex-col md:w-1/2 lg:w-1/3 xl:w-1/4 md:border-l">
           {/* Hamburger Menu Button - Only visible on small screens */}
           <div className="z-50 flex items-center justify-between border-b-2 border-white bg-primary p-4 md:hidden">
-            <div className="w-10" aria-hidden />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClose}
+              disabled={isClosing}
+              className="hover:bg-white hover:text-black transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
             <h2 className="text-lg font-bold">Table {table.number}</h2>
 
             <Button
