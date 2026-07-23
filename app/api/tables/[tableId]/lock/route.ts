@@ -7,31 +7,48 @@ export const runtime = "nodejs";
 
 export async function PATCH(
   req: Request,
-  { params }: { params: Promise<{ tableId: string }> },
+  context: { params: Promise<{ tableId: string }> | { tableId: string } },
 ) {
   try {
     const session = await auth();
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const resolvedParams = await params;
+    const resolvedParams = await Promise.resolve(context.params);
     const tableId = parseInt(resolvedParams.tableId, 10);
-    if (!tableId) {
-      return new NextResponse("Table ID is required", { status: 400 });
+    if (Number.isNaN(tableId) || tableId < 1) {
+      return NextResponse.json(
+        { error: "Table ID is required" },
+        { status: 400 },
+      );
     }
 
-    const body = await req.json();
-    const locked = Boolean(body?.locked);
+    // keepalive / empty body should still unlock
+    let locked = false;
+    try {
+      const body = await req.json();
+      if (typeof body?.locked === "boolean") {
+        locked = body.locked;
+      }
+    } catch {
+      locked = false;
+    }
 
-    await prisma.table.update({
+    const result = await prisma.table.updateMany({
       where: { id: tableId },
       data: { isLocked: locked },
     });
 
+    if (result.count === 0) {
+      return NextResponse.json({ error: "Table not found" }, { status: 404 });
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[TABLE_LOCK_PATCH]", error);
-    return new NextResponse("Internal error", { status: 500 });
+    const message =
+      error instanceof Error ? error.message : "Internal error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

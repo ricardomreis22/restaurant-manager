@@ -144,7 +144,7 @@ export function TableView({ tableId, restaurantId, onClose }: TableViewProps) {
     if (unlockedRef.current || !shouldUnlockRef.current) return;
     unlockedRef.current = true;
     shouldUnlockRef.current = false;
-    void unlockTableRequest(tableId);
+    void unlockTableRequest(tableId, { keepalive: true });
   };
 
   const handleClose = async () => {
