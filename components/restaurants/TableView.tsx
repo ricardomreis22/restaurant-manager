@@ -10,8 +10,9 @@ import { ArrowLeft, Clock, CreditCard, Menu, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FoodModal } from "./FoodModal";
-import { toggleTableLock, getTable } from "@/actions/tables";
+import { getTable } from "@/actions/tables";
 import { TableLoadingScreen } from "./TableLoadingScreen";
+import { unlockTableRequest } from "@/lib/unlock-table";
 
 export interface MenuItemWithCategory extends MenuItems {
   category: Category;
@@ -131,28 +132,19 @@ export function TableView({ tableId, restaurantId, onClose }: TableViewProps) {
   const unlockTable = async () => {
     if (unlockedRef.current || !shouldUnlockRef.current) return;
     unlockedRef.current = true;
-    try {
-      await toggleTableLock(tableId, false);
-      shouldUnlockRef.current = false;
-    } catch (error) {
+    const ok = await unlockTableRequest(tableId);
+    if (!ok) {
       unlockedRef.current = false;
-      console.error("Failed to unlock table:", error);
-      throw error;
+      throw new Error("Failed to unlock table");
     }
+    shouldUnlockRef.current = false;
   };
 
   const unlockTableKeepalive = () => {
     if (unlockedRef.current || !shouldUnlockRef.current) return;
     unlockedRef.current = true;
     shouldUnlockRef.current = false;
-    void fetch(`/api/tables/${tableId}/lock`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ locked: false }),
-      keepalive: true,
-    }).catch((error) => {
-      console.error("Failed to unlock table:", error);
-    });
+    void unlockTableRequest(tableId);
   };
 
   const handleClose = async () => {

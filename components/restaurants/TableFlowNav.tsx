@@ -2,8 +2,11 @@
 
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { unlockTableRequest } from "@/lib/unlock-table";
+import { toast } from "sonner";
 
 const tabs = [
   { id: "floormap", label: "Floor map" },
@@ -19,13 +22,22 @@ export function TableFlowNav() {
   const params = useParams();
   const restaurantId = params.restaurantId as string;
   const tableId = params.tableId as string;
+  const [isLeaving, setIsLeaving] = useState(false);
 
   const activeTab: TabId | null = pathname.endsWith("/payment")
     ? "payment"
     : "table";
 
-  const handleNavigate = (tabId: TabId) => {
+  const handleNavigate = async (tabId: TabId) => {
     if (tabId === "floormap") {
+      if (isLeaving) return;
+      setIsLeaving(true);
+      const ok = await unlockTableRequest(parseInt(tableId, 10));
+      if (!ok) {
+        toast.error("Failed to unlock table. Please try again.");
+        setIsLeaving(false);
+        return;
+      }
       router.push(`/restaurants/${restaurantId}?tab=floormap`);
       return;
     }
@@ -57,15 +69,19 @@ export function TableFlowNav() {
                 type="button"
                 role="tab"
                 aria-selected={isActive}
-                onClick={() => handleNavigate(tab.id)}
+                disabled={isLeaving}
+                onClick={() => {
+                  void handleNavigate(tab.id);
+                }}
                 className={cn(
                   "min-w-[6.5rem] rounded-lg px-4 py-2.5 text-base font-semibold transition-all md:min-w-[7.5rem] md:px-5 md:py-3 md:text-lg",
                   isActive
                     ? "bg-white text-primary shadow-sm"
                     : "text-primary-foreground/80 hover:bg-white/10 hover:text-primary-foreground",
+                  isLeaving && "opacity-60",
                 )}
               >
-                {tab.label}
+                {tab.id === "floormap" && isLeaving ? "Leaving..." : tab.label}
               </button>
             );
           })}
