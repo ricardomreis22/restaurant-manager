@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 
 export async function PATCH(
   req: Request,
-  context: { params: Promise<{ tableId: string }> | { tableId: string } },
+  { params }: { params: Promise<{ tableId: string }> },
 ) {
   try {
     const session = await auth();
@@ -15,7 +15,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const resolvedParams = await Promise.resolve(context.params);
+    const resolvedParams = await params;
     const tableId = parseInt(resolvedParams.tableId, 10);
     if (Number.isNaN(tableId) || tableId < 1) {
       return NextResponse.json(
