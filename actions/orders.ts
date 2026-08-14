@@ -125,10 +125,10 @@ export async function createOrder(data: {
       return newOrder;
     });
 
-    return { success: true, order };
+    return { success: true as const, order };
   } catch (error) {
     console.error("[CREATE_ORDER_ERROR]", error);
-    throw error;
+    return { success: false as const, error: "Failed to create order" };
   }
 }
 
@@ -188,10 +188,10 @@ export async function getRecentRestaurantOrders(
       }),
     );
 
-    return { success: true, orders: ordersWithStaff };
+    return { success: true as const, orders: ordersWithStaff };
   } catch (error) {
     console.error("[GET_RECENT_RESTAURANT_ORDERS_ERROR]", error);
-    throw error;
+    return { success: false as const, orders: [] };
   }
 }
 
@@ -216,10 +216,10 @@ export async function getTableOrders(tableId: number) {
       },
     });
 
-    return { success: true, orders };
+    return { success: true as const, orders };
   } catch (error) {
     console.error("[GET_TABLE_ORDERS_ERROR]", error);
-    throw error;
+    return { success: false as const, orders: [] };
   }
 }
 
@@ -320,10 +320,12 @@ export async function payOrder(orderId: number) {
         });
       }
 
-      return { success: true, order };
+      return { success: true as const, order };
     }
+
+    return { success: true as const, order };
   } catch (error) {
     console.error("[PAY_ORDER_ERROR]", error);
-    throw error;
+    return { success: false as const, error: "Failed to process payment" };
   }
 }

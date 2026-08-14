@@ -54,8 +54,11 @@ export default function AdminRestaurantsPage() {
 
     setDeleting(restaurantId);
     try {
-      await deleteRestaurant(restaurantId);
-      // Remove the restaurant from the local state
+      const result = await deleteRestaurant(restaurantId);
+      if (!result.success) {
+        alert("Failed to delete restaurant. Please try again.");
+        return;
+      }
       setRestaurants(restaurants.filter((r) => r.id !== restaurantId));
     } catch (error) {
       console.error("Failed to delete restaurant:", error);

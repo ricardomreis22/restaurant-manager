@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, startTransition, useRef } from "react";
+import { useState, useEffect, startTransition, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { MenuItems, Category } from "@prisma/client";
@@ -140,12 +140,12 @@ export function TableView({ tableId, restaurantId, onClose }: TableViewProps) {
     shouldUnlockRef.current = false;
   };
 
-  const unlockTableKeepalive = () => {
+  const unlockTableKeepalive = useCallback(() => {
     if (unlockedRef.current || !shouldUnlockRef.current) return;
     unlockedRef.current = true;
     shouldUnlockRef.current = false;
     void unlockTableRequest(tableId, { keepalive: true });
-  };
+  }, [tableId]);
 
   const handleClose = async () => {
     if (isClosing) return;
@@ -167,7 +167,7 @@ export function TableView({ tableId, restaurantId, onClose }: TableViewProps) {
       window.removeEventListener("pagehide", onPageHide);
       unlockTableKeepalive();
     };
-  }, [tableId]);
+  }, [unlockTableKeepalive]);
 
   const handleAddToOrder = (item: MenuItemWithCategory) => {
     setSelectedItem(item);
@@ -268,6 +268,8 @@ export function TableView({ tableId, restaurantId, onClose }: TableViewProps) {
               setPlacedOrders(ordersData.orders);
             }
             router.refresh();
+          } else {
+            toast.error("Failed to place order. Please try again.");
           }
         })
         .catch((error) => {
