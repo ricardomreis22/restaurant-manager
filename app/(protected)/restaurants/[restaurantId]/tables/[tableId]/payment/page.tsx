@@ -111,7 +111,10 @@ export default function PaymentPage() {
     startTransition(async () => {
       try {
         for (const order of pendingOrders) {
-          await payOrder(order.id);
+          const result = await payOrder(order.id);
+          if (!result?.success) {
+            throw new Error(result?.error ?? "Failed to process payments");
+          }
         }
 
         if (paymentMethod === "CASH") {

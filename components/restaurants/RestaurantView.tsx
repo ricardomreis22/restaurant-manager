@@ -71,25 +71,29 @@ export default function RestaurantView({
   }, [isAdminView, searchParams]);
 
   const adminSetDisplay = async (newDisplay: string) => {
-    try {
-      await checkAdmin();
-      if (isAdminView && adminContext) {
-        adminContext.setCurrentTab(newDisplay as AdminTab);
-      } else {
-        setDisplay(newDisplay);
-      }
-    } catch (error) {
-      console.error("Unauthorized action:", error);
+    const result = await checkAdmin();
+    if (!result.success) {
+      console.error("Unauthorized action:", result.error);
+      return;
+    }
+    if (isAdminView && adminContext) {
+      adminContext.setCurrentTab(newDisplay as AdminTab);
+    } else {
+      setDisplay(newDisplay);
     }
   };
 
   useEffect(() => {
     const loadData = async () => {
-      const restaurantData = await getRestaurant(restaurantId);
-      const tablesData = await getRestaurantTables(restaurantId);
+      try {
+        const restaurantData = await getRestaurant(restaurantId);
+        const tablesData = await getRestaurantTables(restaurantId);
 
-      setRestaurant(restaurantData);
-      setTables(tablesData);
+        setRestaurant(restaurantData);
+        setTables(tablesData);
+      } catch (error) {
+        console.error("Failed to load restaurant:", error);
+      }
     };
 
     loadData();
@@ -107,8 +111,12 @@ export default function RestaurantView({
       prevDisplayRef.current !== "floormap"
     ) {
       const refreshTables = async () => {
-        const tablesData = await getRestaurantTables(restaurantId);
-        setTables(tablesData);
+        try {
+          const tablesData = await getRestaurantTables(restaurantId);
+          setTables(tablesData);
+        } catch (error) {
+          console.error("Failed to refresh tables:", error);
+        }
       };
       refreshTables();
     }

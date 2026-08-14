@@ -31,14 +31,16 @@ import {
   createTable,
   deleteTable,
   getTables,
-  toggleTableLock,
   updateTablePosition,
 } from "@/actions/tables";
 import { getRecentRestaurantOrders } from "@/actions/orders";
 import { toast } from "sonner";
 import { TableLocker } from "./TableLocker";
 import io from "socket.io-client";
-import { checkTableLock } from "@/actions/tables";
+import {
+  checkTableLockRequest,
+  setTableLockRequest,
+} from "@/lib/unlock-table";
 import {
   DndContext,
   DragEndEvent,
@@ -284,28 +286,25 @@ const Floormap = ({
     }
 
     if (table?.isReserved) {
-      if (await checkTableLock(tableId)) return;
+      if (await checkTableLockRequest(tableId)) return;
 
-      try {
-        // Update the table capacity and lock it
-        await toggleTableLock(tableId, true);
-        // Update local state
-        setLocalTables((tables) =>
-          tables.map((table) =>
-            table.id === tableId
-              ? {
-                  ...table,
-                  capacity: numberOfPeople,
-                  isReserved: true,
-                  isLocked: true,
-                }
-              : table,
-          ),
-        );
-      } catch (error) {
-        console.error("Failed to lock table:", error);
+      const ok = await setTableLockRequest(tableId, true);
+      if (!ok) {
         toast.error("Failed to lock table");
+        return;
       }
+      setLocalTables((tables) =>
+        tables.map((current) =>
+          current.id === tableId
+            ? {
+                ...current,
+                capacity: numberOfPeople,
+                isReserved: true,
+                isLocked: true,
+              }
+            : current,
+        ),
+      );
       setSelectedTable(table.id);
       router.push(`/restaurants/${restaurantId}/tables/${table.id}`);
     } else {
@@ -318,31 +317,27 @@ const Floormap = ({
 
   const handleConfirmSeating = async () => {
     if (!selectedTable) return;
-    if (await checkTableLock(selectedTable)) return;
+    if (await checkTableLockRequest(selectedTable)) return;
 
-    try {
-      // Update the table capacity and lock it
-      await toggleTableLock(selectedTable, true);
-      // Update local state
-      setLocalTables((tables) =>
-        tables.map((table) =>
-          table.id === selectedTable
-            ? {
-                ...table,
-                capacity: numberOfPeople,
-                isReserved: true,
-                isLocked: true,
-              }
-            : table,
-        ),
-      );
-      // Close the modal and navigate to the table
-      setIsSeatModalOpen(false);
-      router.push(`/restaurants/${restaurantId}/tables/${selectedTable}`);
-    } catch (error) {
-      console.error("Failed to confirm seating:", error);
+    const ok = await setTableLockRequest(selectedTable, true);
+    if (!ok) {
       toast.error("Failed to confirm seating");
+      return;
     }
+    setLocalTables((tables) =>
+      tables.map((table) =>
+        table.id === selectedTable
+          ? {
+              ...table,
+              capacity: numberOfPeople,
+              isReserved: true,
+              isLocked: true,
+            }
+          : table,
+      ),
+    );
+    setIsSeatModalOpen(false);
+    router.push(`/restaurants/${restaurantId}/tables/${selectedTable}`);
   };
 
   // ADMIN ONLY ///////////////////////////////////////////////////////////////
@@ -476,7 +471,10 @@ const Floormap = ({
       setTablePositions((prev) => ({ ...prev, [tableId]: gridPos }));
 
       try {
-        await updateTablePosition(tableId, gridPos.x, gridPos.y);
+        const result = await updateTablePosition(tableId, gridPos.x, gridPos.y);
+        if (!result.success) {
+          toast.error("Failed to save table position");
+        }
       } catch (error) {
         console.error("Failed to update table position:", error);
         toast.error("Failed to save table position");

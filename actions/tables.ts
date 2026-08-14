@@ -15,11 +15,11 @@ export async function createTable(data: {
   try {
     const session = await auth();
     if (!session?.user) {
-      throw new Error("Unauthorized");
+      return { success: false as const, error: "Unauthorized" };
     }
 
     if (session.user.userRole !== "ADMIN") {
-      throw new Error("Unauthorized");
+      return { success: false as const, error: "Unauthorized" };
     }
 
     const existingTable = await prisma.table.findFirst({
@@ -62,7 +62,7 @@ export async function createTable(data: {
         error: "Table number already exists",
       };
     }
-    throw error;
+    return { success: false as const, error: "Failed to add table" };
   }
 }
 
@@ -70,11 +70,11 @@ export async function deleteTable(tableId: number) {
   try {
     const session = await auth();
     if (!session?.user) {
-      throw new Error("Unauthorized");
+      return { success: false as const, error: "Unauthorized" };
     }
 
     if (session.user.userRole !== "ADMIN") {
-      throw new Error("Unauthorized");
+      return { success: false as const, error: "Unauthorized" };
     }
 
     await prisma.table.delete({
@@ -83,10 +83,10 @@ export async function deleteTable(tableId: number) {
       },
     });
 
-    return { success: true };
+    return { success: true as const };
   } catch (error) {
     console.error("[DELETE_TABLE_ERROR]", error);
-    throw error;
+    return { success: false as const, error: "Failed to delete table" };
   }
 }
 
@@ -101,10 +101,10 @@ export async function getTables(restaurantId: number) {
       },
     });
 
-    return { success: true, tables };
+    return { success: true as const, tables };
   } catch (error) {
     console.error("[GET_TABLES_ERROR]", error);
-    throw error;
+    return { success: false as const, tables: [] };
   }
 }
 
@@ -124,7 +124,7 @@ export async function getTable(tableId: number, restaurantId: number) {
     return { success: true as const, table };
   } catch (error) {
     console.error("[GET_TABLE_ERROR]", error);
-    throw error;
+    return { success: false as const, table: null };
   }
 }
 
@@ -132,25 +132,31 @@ export async function toggleTableLock(tableId: number, locked: boolean) {
   try {
     const session = await auth();
     if (!session?.user) {
-      throw new Error("Unauthorized");
+      return { success: false as const, error: "Unauthorized" };
     }
     const table = await prisma.table.update({
       where: { id: tableId },
       data: { isLocked: locked },
     });
 
-    return table;
+    return { success: true as const, table };
   } catch (error) {
     console.error("Failed to toggle table lock:", error);
-    throw error;
+    return { success: false as const, error: "Failed to toggle table lock" };
   }
 }
 
 export async function checkTableLock(tableId: number) {
-  const table = await prisma.table.findUnique({
-    where: { id: tableId },
-  });
-  return table?.isLocked;
+  try {
+    const table = await prisma.table.findUnique({
+      where: { id: tableId },
+      select: { isLocked: true },
+    });
+    return table?.isLocked ?? false;
+  } catch (error) {
+    console.error("Failed to check table lock:", error);
+    return true;
+  }
 }
 
 export async function updateTablePosition(
@@ -161,11 +167,11 @@ export async function updateTablePosition(
   try {
     const session = await auth();
     if (!session?.user) {
-      throw new Error("Unauthorized");
+      return { success: false as const, error: "Unauthorized" };
     }
 
     if (session.user.userRole !== "ADMIN") {
-      throw new Error("Unauthorized");
+      return { success: false as const, error: "Unauthorized" };
     }
 
     const table = await prisma.table.update({
@@ -173,9 +179,9 @@ export async function updateTablePosition(
       data: { x, y },
     });
 
-    return { success: true, table };
+    return { success: true as const, table };
   } catch (error) {
     console.error("[UPDATE_TABLE_POSITION_ERROR]", error);
-    throw error;
+    return { success: false as const, error: "Failed to save table position" };
   }
 }

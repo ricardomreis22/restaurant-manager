@@ -8,7 +8,7 @@ export async function getRestaurants() {
     const session = await auth();
 
     if (!session?.user?.id) {
-      throw new Error("Not authenticated");
+      return null;
     }
 
     const restaurants = await prisma.user.findUnique({
@@ -23,7 +23,7 @@ export async function getRestaurants() {
     return restaurants;
   } catch (error) {
     console.error("Failed to fetch restaurants:", error);
-    throw error;
+    return null;
   }
 }
 
@@ -44,7 +44,8 @@ export async function getRestaurant(id: number) {
       },
     });
   } catch (error) {
-    throw new Error("Failed to fetch restaurant");
+    console.error("Failed to fetch restaurant:", error);
+    return null;
   }
 }
 
@@ -148,19 +149,19 @@ export async function updateRestaurant(
 }
 
 export async function deleteRestaurant(id: number) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error("Not authenticated");
-  }
-  const user = await prisma.user.findUnique({
-    where: { id: parseInt(session.user.id) },
-  });
   try {
-    return await prisma.restaurant.delete({
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false as const, error: "Not authenticated" };
+    }
+
+    await prisma.restaurant.delete({
       where: { id },
     });
+    return { success: true as const };
   } catch (error) {
-    throw new Error("Failed to delete restaurant");
+    console.error("Failed to delete restaurant:", error);
+    return { success: false as const, error: "Failed to delete restaurant" };
   }
 }
 

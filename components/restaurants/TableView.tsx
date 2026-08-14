@@ -268,6 +268,8 @@ export function TableView({ tableId, restaurantId, onClose }: TableViewProps) {
               setPlacedOrders(ordersData.orders);
             }
             router.refresh();
+          } else {
+            toast.error("Failed to place order. Please try again.");
           }
         })
         .catch((error) => {

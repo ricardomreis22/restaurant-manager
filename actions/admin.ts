@@ -2,20 +2,19 @@
 
 import { auth } from "@/auth";
 import { UserRole } from "@prisma/client";
-import { redirect } from "next/navigation";
 
 export async function checkAdmin() {
   const session = await auth();
 
   if (!session || !session.user) {
-    redirect("/auth/login");
+    return { success: false as const, error: "Not authenticated" };
   }
 
   if (session.user.userRole !== UserRole.ADMIN) {
-    redirect("/restaurants");
+    return { success: false as const, error: "Unauthorized" };
   }
 
-  return true;
+  return { success: true as const };
 }
 
 // Example of a protected admin action

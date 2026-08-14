@@ -5,6 +5,49 @@ import { auth } from "@/auth";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+async function resolveTableId(params: Promise<{ tableId: string }>) {
+  const resolvedParams = await params;
+  const tableId = parseInt(resolvedParams.tableId, 10);
+  if (Number.isNaN(tableId) || tableId < 1) {
+    return null;
+  }
+  return tableId;
+}
+
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ tableId: string }> },
+) {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const tableId = await resolveTableId(params);
+    if (tableId == null) {
+      return NextResponse.json(
+        { error: "Table ID is required" },
+        { status: 400 },
+      );
+    }
+
+    const table = await prisma.table.findUnique({
+      where: { id: tableId },
+      select: { isLocked: true },
+    });
+
+    if (!table) {
+      return NextResponse.json({ error: "Table not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ isLocked: table.isLocked });
+  } catch (error) {
+    console.error("[TABLE_LOCK_GET]", error);
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+  }
+}
+
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ tableId: string }> },
@@ -15,9 +58,8 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const resolvedParams = await params;
-    const tableId = parseInt(resolvedParams.tableId, 10);
-    if (Number.isNaN(tableId) || tableId < 1) {
+    const tableId = await resolveTableId(params);
+    if (tableId == null) {
       return NextResponse.json(
         { error: "Table ID is required" },
         { status: 400 },
