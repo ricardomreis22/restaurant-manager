@@ -10,21 +10,14 @@ import ActivityLogPage from "@/components/restaurants/ActivityLogPage";
 import { checkAdmin } from "@/actions/admin";
 import { useAdminRestaurantOptional } from "@/contexts/AdminRestaurantContext";
 import { AdminTab } from "@/contexts/AdminRestaurantContext";
-import type { Prisma } from "@prisma/client";
 
-type Restaurant = Prisma.RestaurantGetPayload<{
-  include: {
-    users: true;
-    tables: true;
-    menuItems: true;
-    inventory: true;
-    promotions: true;
-    reviews: true;
-    events: true;
-    suppliers: true;
-    reports: true;
-  };
-}>;
+type RestaurantSummary = {
+  id: number;
+  name: string;
+  address: string | null;
+  phone: string | null;
+  email: string | null;
+};
 
 interface Table {
   id: number;
@@ -47,8 +40,10 @@ export default function RestaurantView({
   const params = useParams();
   const searchParams = useSearchParams();
   const restaurantId = parseInt(params.restaurantId as string);
-  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+  const [restaurant, setRestaurant] = useState<RestaurantSummary | null>(null);
   const [tables, setTables] = useState<Table[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Always call the hook, then conditionally use its value
   const adminContext = useAdminRestaurantOptional();
@@ -84,15 +79,34 @@ export default function RestaurantView({
   };
 
   useEffect(() => {
+    if (Number.isNaN(restaurantId) || restaurantId < 1) {
+      setLoadError("Invalid restaurant");
+      setIsLoading(false);
+      return;
+    }
+
     const loadData = async () => {
+      setIsLoading(true);
+      setLoadError(null);
       try {
-        const restaurantData = await getRestaurant(restaurantId);
-        const tablesData = await getRestaurantTables(restaurantId);
+        const [restaurantData, tablesData] = await Promise.all([
+          getRestaurant(restaurantId),
+          getRestaurantTables(restaurantId),
+        ]);
+
+        if (!restaurantData) {
+          setRestaurant(null);
+          setLoadError("Restaurant not found or failed to load");
+          return;
+        }
 
         setRestaurant(restaurantData);
         setTables(tablesData);
       } catch (error) {
         console.error("Failed to load restaurant:", error);
+        setLoadError("Failed to load restaurant");
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -138,11 +152,25 @@ export default function RestaurantView({
     }
   };
 
-  if (!restaurant) {
+  if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center">Loading...</div>
     );
   }
+
+  if (loadError || !restaurant) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-2 px-4 text-center">
+        <p className="text-lg font-medium">
+          {loadError ?? "Restaurant not found"}
+        </p>
+        <p className="text-sm text-primary-foreground/70">
+          Go back to restaurants and try again.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden">
       {/* flex-1 + h-full: fill space below nav only (never 100vh) */}

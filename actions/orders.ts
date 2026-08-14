@@ -165,26 +165,34 @@ export async function getRecentRestaurantOrders(
 
     const ordersWithStaff = await Promise.all(
       orders.map(async (order) => {
-        const activity = await prisma.activityLog.findFirst({
-          where: {
-            activityType: "ORDER_PLACED",
-            metadata: {
-              path: ["orderId"],
-              equals: order.id,
+        try {
+          const activity = await prisma.activityLog.findFirst({
+            where: {
+              activityType: "ORDER_PLACED",
+              metadata: {
+                path: ["orderId"],
+                equals: order.id,
+              },
             },
-          },
-          include: {
-            user: {
-              select: { name: true },
+            include: {
+              user: {
+                select: { name: true },
+              },
             },
-          },
-        });
+          });
 
-        return {
-          ...order,
-          placedByName: activity?.user?.name ?? null,
-          tableNumber: order.table?.number ?? null,
-        };
+          return {
+            ...order,
+            placedByName: activity?.user?.name ?? null,
+            tableNumber: order.table?.number ?? null,
+          };
+        } catch {
+          return {
+            ...order,
+            placedByName: null,
+            tableNumber: order.table?.number ?? null,
+          };
+        }
       }),
     );
 

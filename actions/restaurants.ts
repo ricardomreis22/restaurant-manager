@@ -29,18 +29,16 @@ export async function getRestaurants() {
 
 export async function getRestaurant(id: number) {
   try {
+    // Keep this lean — heavy includes caused production server-action failures
+    // when opening a restaurant (digested RSC errors / endless Loading).
     return await prisma.restaurant.findUnique({
       where: { id },
-      include: {
-        users: true,
-        tables: true,
-        menuItems: true,
-        inventory: true,
-        promotions: true,
-        reviews: true,
-        events: true,
-        suppliers: true,
-        reports: true,
+      select: {
+        id: true,
+        name: true,
+        address: true,
+        phone: true,
+        email: true,
       },
     });
   } catch (error) {
@@ -196,8 +194,16 @@ export async function getRestaurantTables(restaurantId: number) {
       orderBy: {
         number: "asc",
       },
-      include: {
-        reservations: true,
+      select: {
+        id: true,
+        number: true,
+        capacity: true,
+        isReserved: true,
+        isLocked: true,
+        area: true,
+        x: true,
+        y: true,
+        restaurantId: true,
       },
     });
     return tables;
