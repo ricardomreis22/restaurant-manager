@@ -7,7 +7,8 @@ export const FLOOR_SECTIONS = [
 
 export type FloorSectionId = (typeof FLOOR_SECTIONS)[number]["id"];
 
-export const DEFAULT_FLOOR_SECTION: FloorSectionId = "FIRST_FLOOR";
+/** Prefer Main Floor so the first sidebar tab matches the default view. */
+export const DEFAULT_FLOOR_SECTION: FloorSectionId = "MAIN_FLOOR";
 
 const FLOOR_SECTION_IDS = new Set<FloorSectionId>(
   FLOOR_SECTIONS.map((section) => section.id),

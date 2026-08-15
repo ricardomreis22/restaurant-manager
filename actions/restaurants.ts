@@ -2,6 +2,7 @@
 
 import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
+import { DEFAULT_FLOOR_SECTION } from "@/lib/floor-sections";
 
 export async function getRestaurants() {
   try {
@@ -99,6 +100,9 @@ export async function createRestaurant(formData: {
             number: index + 1,
             capacity: index < 5 ? 2 : 4,
             isReserved: false,
+            area: DEFAULT_FLOOR_SECTION,
+            x: (index % 5) * 2,
+            y: Math.floor(index / 5) * 2,
           })),
         },
       },
@@ -194,21 +198,33 @@ export async function getRestaurantTables(restaurantId: number) {
       orderBy: {
         number: "asc",
       },
-      select: {
-        id: true,
-        number: true,
-        capacity: true,
-        isReserved: true,
-        isLocked: true,
-        area: true,
-        x: true,
-        y: true,
-        restaurantId: true,
-      },
     });
     return tables;
   } catch (error) {
     console.error("Failed to fetch tables:", error);
-    return [];
+    // Fallback without area/reservations if schema drift breaks the full model
+    try {
+      const tables = await prisma.table.findMany({
+        where: { restaurantId },
+        orderBy: { number: "asc" },
+        select: {
+          id: true,
+          number: true,
+          capacity: true,
+          isReserved: true,
+          isLocked: true,
+          x: true,
+          y: true,
+          restaurantId: true,
+        },
+      });
+      return tables.map((table) => ({
+        ...table,
+        area: DEFAULT_FLOOR_SECTION as never,
+      }));
+    } catch (fallbackError) {
+      console.error("Failed to fetch tables (fallback):", fallbackError);
+      return [];
+    }
   }
 }
