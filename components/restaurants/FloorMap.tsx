@@ -262,6 +262,25 @@ const Floormap = ({
     setLocalTables(tables);
   }, [tables]);
 
+  // If the active section is empty, jump to a section that has tables
+  useEffect(() => {
+    if (tables.length === 0) return;
+
+    setActiveSection((current) => {
+      const currentHasTables = tables.some(
+        (table) => normalizeFloorSection(table.area) === current,
+      );
+      if (currentHasTables) return current;
+
+      const sectionWithTables = FLOOR_SECTIONS.find((section) =>
+        tables.some(
+          (table) => normalizeFloorSection(table.area) === section.id,
+        ),
+      );
+      return sectionWithTables?.id ?? current;
+    });
+  }, [tables]);
+
   // Initialize table positions: store as grid (col, row) so cell is fixed across screen sizes
   useEffect(() => {
     const initialPositions: Record<number, { x: number; y: number }> = {};
@@ -577,6 +596,15 @@ const Floormap = ({
                         <div className="col-span-full row-span-full relative">
                           {/* Tables area: fills grid so tables can use --cell-size */}
                           <div className="absolute inset-0 overflow-hidden">
+                            {sectionTables.length === 0 && (
+                              <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 px-4 text-center">
+                                <p className="text-sm text-gray-600 md:text-base">
+                                  {localTables.length === 0
+                                    ? "No tables for this restaurant yet."
+                                    : "No tables in this area. Try another floor section."}
+                                </p>
+                              </div>
+                            )}
                             {sectionTables.map((table) => (
                               <Draggable
                                 key={table.id}

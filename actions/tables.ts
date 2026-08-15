@@ -104,7 +104,34 @@ export async function getTables(restaurantId: number) {
     return { success: true as const, tables };
   } catch (error) {
     console.error("[GET_TABLES_ERROR]", error);
-    return { success: false as const, tables: [] };
+    try {
+      const tables = await prisma.table.findMany({
+        where: { restaurantId },
+        orderBy: { number: "asc" },
+        select: {
+          id: true,
+          number: true,
+          capacity: true,
+          isReserved: true,
+          isLocked: true,
+          x: true,
+          y: true,
+          restaurantId: true,
+        },
+      });
+      return {
+        success: true as const,
+        tables: tables.map((table) => ({
+          ...table,
+          area: DEFAULT_FLOOR_SECTION,
+        })) as Awaited<
+          ReturnType<typeof prisma.table.findMany>
+        >,
+      };
+    } catch (fallbackError) {
+      console.error("[GET_TABLES_FALLBACK_ERROR]", fallbackError);
+      return { success: false as const, tables: [] };
+    }
   }
 }
 
